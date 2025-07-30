@@ -1,0 +1,43 @@
+services:
+  app:
+    container_name: mpt_api_client
+    build:
+      context: .
+      dockerfile: prod.Dockerfile
+    working_dir: /mpt_api_client
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/mpt_api_client
+
+  app_test:
+    container_name: mpt_api_client_test
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    working_dir: /mpt_api_client
+    command: bash -c "ruff check . && flake8 . && mypy . && uv lock --check && pytest"
+    volumes:
+      - .:/mpt_api_client
+
+  bash:
+    container_name: mpt_api_client_bash
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    command: bash
+    working_dir: /mpt_api_client
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/mpt_api_client
+
+  format:
+    container_name: mpt_api_client_format
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    working_dir: /mpt_api_client
+    command: bash -c "ruff check . --select I --fix && ruff format ."
+    volumes:
+      - .:/mpt_api_client
