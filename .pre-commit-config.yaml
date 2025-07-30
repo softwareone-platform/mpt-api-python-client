@@ -26,6 +26,8 @@ repos:
     rev: v1.17.0
     hooks:
       - id: mypy
+        args: ["--config-file=pyproject.toml", "."]
+        pass_filenames: false
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
