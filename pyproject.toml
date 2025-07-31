@@ -138,6 +138,7 @@ ignore = [
   "D100",
   "D104",
   "D106",
+  "D107",
   "D203",
   "D212",
   "D401",
@@ -150,8 +151,6 @@ ignore = [
   "PLR6301", # do not require classmethod / staticmethod when self not used
   "PT011", # pytest.raises({exception}) is too broad, set the match parameter or use a more specific exception
   "TRY003",  # long exception messages from `tryceratops`
-  "UP046", # Doesn't properly work with ParamSpec and python 3.12
-  "UP047", # Doesn't properly work with ParamSpec and python 3.12
 ]
 external = [ "WPS" ]
 
