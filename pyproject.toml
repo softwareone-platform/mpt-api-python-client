@@ -20,7 +20,8 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "httpx==0.28.*"
+    "httpx==0.28.*",
+    "python-box>=7.3.2",
 ]
 
 [dependency-groups]
@@ -166,6 +167,8 @@ pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = [
+  "D101", # do not require docstrings in public classes
+  "D102", # do not require docstrincs in public method
   "D103", # missing docstring in public function
   "PLR2004", # allow magic numbers in tests
   "S101", # asserts
@@ -173,6 +176,7 @@ pydocstyle.convention = "google"
   "S404", # subprocess calls are for tests
   "S603", # do not require `shell=True`
   "S607", # partial executable paths
+  "SLF001", # Allow private property/method access
 ]
 
 [tool.mypy]
