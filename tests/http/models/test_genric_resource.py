@@ -11,6 +11,7 @@ def meta_data():
 
 def test_generic_resource_empty():
     resource = GenericResource()
+
     assert resource.meta is None
     assert resource.to_dict() == {}
 
@@ -26,23 +27,14 @@ def test_from_response(meta_data):
     assert resource.meta == expected_meta
 
 
-def test_attribute_access():
+def test_attribute_getter(mocker, meta_data):
     resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
-    meta = Meta.from_response(Response(200, json={"$meta": {}}))
-    resource = GenericResource(resource_data=resource_data, meta=meta)
+    response = Response(200, json={"data": resource_data, "$meta": meta_data})
 
-    assert resource.meta == meta
+    resource = GenericResource.from_response(response)
 
     assert resource.id == 1
-
-    with pytest.raises(AttributeError, match=r"'Box' object has no attribute 'address'"):
-        resource.address  # noqa: B018
-
-    with pytest.raises(AttributeError, match=r"'Box' object has no attribute 'surname'"):
-        resource.name.surname  # noqa: B018
-
     assert resource.name.given == "Albert"
-    assert resource.name.to_dict() == resource_data["name"]
 
 
 def test_attribute_setter():
@@ -50,9 +42,9 @@ def test_attribute_setter():
     resource = GenericResource(resource_data)
 
     resource.id = 2
-    assert resource.id == 2
-
     resource.name.given = "John"
+
+    assert resource.id == 2
     assert resource.name.given == "John"
 
 

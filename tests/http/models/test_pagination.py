@@ -37,7 +37,9 @@ def test_has_next(mocker, num_page, total_pages, expected_has_next):
     mocker.patch.object(pagination, "num_page", return_value=num_page)
     mocker.patch.object(pagination, "total_pages", return_value=total_pages)
 
-    assert pagination.has_next() == expected_has_next
+    has_next = pagination.has_next()
+
+    assert has_next == expected_has_next
 
 
 @pytest.mark.parametrize(
@@ -47,7 +49,7 @@ def test_has_next(mocker, num_page, total_pages, expected_has_next):
         (1, 0, 0),
         (5, 5, 1),
         (10, 990, 99),
-        (245, 238, 0)
+        (245, 238, 0),
     ],
 )
 def test_num_page(limit, offset, expected_page):
