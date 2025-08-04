@@ -1,5 +1,3 @@
-import re
-
 import pytest
 from httpx import Response
 
@@ -11,100 +9,53 @@ def meta_data():
     return {"pagination": {"limit": 10, "offset": 20, "total": 100}, "ignored": ["one"]}  # noqa: WPS226
 
 
-class TestGenericResource:  # noqa: WPS214
-    def test_generic_resource_empty(self):
-        resource = GenericResource()
-        with pytest.raises(AttributeError):
-            _ = resource._meta
-
-    def test_initialization_with_data(self):
-        resource = GenericResource(name="test", value=123)
-
-        assert resource.name == "test"
-        assert resource.value == 123
-
-    def test_init(self, meta_data):
-        resource = {"$meta": meta_data, "key": "value"}  # noqa: WPS445 WPS517
-        init_one = GenericResource(resource)
-        init_two = GenericResource(**resource)
-        assert init_one == init_two
-
-    def test_generic_resource_meta_property_with_data(self, meta_data):
-        resource = GenericResource({"$meta": meta_data})
-        assert resource._meta == Meta(**meta_data)
-
-    def test_generic_resource_box_functionality(self):
-        resource = GenericResource(id=1, name="test_resource", nested={"key": "value"})
-
-        assert resource.id == 1
-        assert resource.name == "test_resource"
-        assert resource.nested.key == "value"
-
-    def test_with_both_meta_and_response(self, meta_data):
-        response = Response(200, json={})
-        meta_data["response"] = response
-        meta_object = Meta(**meta_data)
-
-        resource = GenericResource(
-            data="test_data",
-            **{"$meta": meta_data},  # noqa: WPS445 WPS517
-        )
-
-        assert resource.data == "test_data"
-        assert resource._meta == meta_object
-
-    def test_dynamic_attribute_access(self):
-        resource = GenericResource()
-
-        resource.dynamic_field = "dynamic_value"
-        resource.nested_object = {"inner": "data"}
-
-        assert resource.dynamic_field == "dynamic_value"
-        assert resource.nested_object.inner == "data"
+def test_generic_resource_empty():
+    resource = GenericResource()
+    assert resource.meta is None
+    assert resource.to_dict() == {}
 
 
-class TestGenericResourceFromResponse:
-    @pytest.fixture
-    def meta_data_single(self):
-        return {"ignored": ["one"]}  # noqa: WPS226
+def test_from_response(meta_data):
+    record_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
+    response = Response(200, json={"data": record_data, "$meta": meta_data})
+    expected_meta = Meta.from_response(response)
 
-    @pytest.fixture
-    def meta_data_two_resources(self):
-        return {"pagination": {"limit": 10, "offset": 0, "total": 2}, "ignored": ["one"]}  # noqa: WPS226
+    resource = GenericResource.from_response(response)
 
-    @pytest.fixture
-    def meta_data_multiple(self):
-        return {"ignored": ["one", "two"]}  # noqa: WPS226
+    assert resource.to_dict() == record_data
+    assert resource.meta == expected_meta
 
-    @pytest.fixture
-    def single_resource_data(self):
-        return {"id": 1, "name": "test"}
 
-    @pytest.fixture
-    def single_resource_response(self, single_resource_data, meta_data_single):
-        return Response(200, json={"data": single_resource_data, "$meta": meta_data_single})
+def test_attribute_access():
+    resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
+    meta = Meta.from_response(Response(200, json={"$meta": {}}))
+    resource = GenericResource(resource_data=resource_data, meta=meta)
 
-    @pytest.fixture
-    def multiple_resource_response(self, single_resource_data, meta_data_two_resources):
-        return Response(
-            200,
-            json={
-                "data": [single_resource_data, single_resource_data],
-                "$meta": meta_data_two_resources,
-            },
-        )
+    assert resource.meta == meta
 
-    def test_malformed_meta_response(self):
-        with pytest.raises(TypeError, match=re.escape("Response $meta must be a dict.")):
-            _resource = GenericResource.from_response(Response(200, json={"data": {}, "$meta": 4}))
+    assert resource.id == 1
 
-    def test_single_resource(self, single_resource_response):
-        resource = GenericResource.from_response(single_resource_response)
-        assert resource.id == 1
-        assert resource.name == "test"
-        assert isinstance(resource._meta, Meta)
-        assert resource._meta.response == single_resource_response
+    with pytest.raises(AttributeError, match=r"'Box' object has no attribute 'address'"):
+        resource.address  # noqa: B018
 
-    def test_two_resources(self, multiple_resource_response, single_resource_data):
-        with pytest.raises(TypeError, match=r"Response data must be a dict."):
-            _resource = GenericResource.from_response(multiple_resource_response)
+    with pytest.raises(AttributeError, match=r"'Box' object has no attribute 'surname'"):
+        resource.name.surname  # noqa: B018
+
+    assert resource.name.given == "Albert"
+    assert resource.name.to_dict() == resource_data["name"]
+
+
+def test_attribute_setter():
+    resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
+    resource = GenericResource(resource_data)
+
+    resource.id = 2
+    assert resource.id == 2
+
+    resource.name.given = "John"
+    assert resource.name.given == "John"
+
+
+def test_wrong_data_type():
+    with pytest.raises(TypeError, match=r"Response data must be a dict."):
+        GenericResource.from_response(Response(200, json={"data": 1}))
