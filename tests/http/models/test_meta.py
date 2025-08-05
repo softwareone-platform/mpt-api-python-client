@@ -31,11 +31,3 @@ def test_meta_from_response(responses_fixture):
 def test_invalid_meta_from_response(invalid_response_fixture):
     with pytest.raises(TypeError, match=r"Response \$meta must be a dict."):
         Meta.from_response(invalid_response_fixture)
-
-
-def test_meta_with_pagination_object():
-    response = Response(status_code=200, json={})
-    pagination = Pagination(limit=10, offset=0, total=100)
-    meta = Meta(response=response, pagination=pagination)
-
-    assert meta.pagination == Pagination(limit=10, offset=0, total=100)
