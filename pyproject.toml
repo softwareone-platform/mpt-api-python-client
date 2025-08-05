@@ -141,6 +141,7 @@ ignore = [
   # Different doc rules that we don't really care about:
   "D100",
   "D104",
+  "D105", # docstring for magic methods
   "D106",
   "D107",
   "D203",
