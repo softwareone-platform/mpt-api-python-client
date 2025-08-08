@@ -1,9 +1,9 @@
 from httpx import Response
 
-from mpt_api_client.http.models import GenericResource
+from mpt_api_client.models import Resource
 
 
-class ChargeResourceMock(GenericResource):
+class ChargeResourceMock(Resource):
     _data_key = "charge"
 
 

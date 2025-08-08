@@ -1,7 +1,7 @@
 import pytest
 from httpx import Response
 
-from mpt_api_client.http.models import Meta, Pagination
+from mpt_api_client.models import Meta, Pagination
 
 
 @pytest.fixture
