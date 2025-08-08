@@ -148,29 +148,43 @@ class RQLQuery:  # noqa: WPS214
 
     def __init__(  # noqa: WPS211
         self,
-        _field: str | None = None,
-        *,
-        _op: str = EXPRESSION,
-        _children: list["RQLQuery"] | set["RQLQuery"] | None = None,
-        _negated: bool = False,
-        _expr: str | None = None,
+        namespace_: str | None = None,  # noqa: WPS120
         **kwargs: QueryValue,
     ) -> None:
-        self.op = _op
-        self.children: list[RQLQuery] = list(_children) if _children else []
-        self.negated = _negated
-        self.expr = _expr
+        self.op: str = self.EXPRESSION
+        self.children: list[RQLQuery] = []
+        self.negated: bool = False
+        self.expr: str | None = None
         self._path: list[str] = []
         self._field: str | None = None
-        if _field:
-            self.n(_field)
+        if namespace_:
+            self.n(namespace_)
         if len(kwargs) == 1:
             self.op = self.EXPRESSION
             self.expr = parse_kwargs(kwargs)[0]
         if len(kwargs) > 1:
             self.op = self.AND
             for token in parse_kwargs(kwargs):
-                self.children.append(self.__class__(_expr=token))
+                self.children.append(self.new(expr=token))
+
+    @classmethod
+    def new(
+        cls,
+        expr: str | None = None,
+        *,
+        negated: bool = False,
+        op: str | None = None,
+        children: list["RQLQuery"] | set["RQLQuery"] | None = None,
+    ) -> Self:
+        """Create a new RQLQuery object from a expression or from a set of op and children."""
+        if isinstance(children, set):
+            children = list(children)
+        query = cls()
+        query.op = op or cls.EXPRESSION
+        query.children = children or []
+        query.negated = negated
+        query.expr = expr
+        return query
 
     def __len__(self) -> int:
         if self.op == self.EXPRESSION:
@@ -221,10 +235,10 @@ class RQLQuery:  # noqa: WPS214
         return self._join(other, self.OR)
 
     def __invert__(self) -> Self:
-        inverted_query = self.__class__(
-            _op=self.AND,
-            _expr=self.expr,
-            _negated=True,
+        inverted_query = self.new(
+            op=self.AND,
+            expr=self.expr,
+            negated=True,
         )
         inverted_query._append(self)  # noqa: SLF001
         return inverted_query
@@ -449,10 +463,10 @@ class RQLQuery:  # noqa: WPS214
         return f"{query.op}({str_tokens})"
 
     def _copy(self, other: "RQLQuery") -> Self:
-        return self.__class__(
-            _op=other.op,
-            _children=other.children.copy(),
-            _expr=other.expr,
+        return self.new(
+            op=other.op,
+            children=other.children.copy(),
+            expr=other.expr,
         )
 
     def _join(self, other: "RQLQuery", op: str) -> Self:
@@ -463,7 +477,7 @@ class RQLQuery:  # noqa: WPS214
         if not self:
             return self._copy(other)
 
-        query = self.__class__(_op=op)
+        query = self.new(op=op)
         query._append(self)  # noqa: SLF001
         query._append(other)  # noqa: SLF001
         return query
