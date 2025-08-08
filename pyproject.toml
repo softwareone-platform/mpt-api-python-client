@@ -72,7 +72,7 @@ source = ["mpt_api_client"]
 [tool.coverage.report]
 exclude_also = [
     "if __name__ == \"__main__\":",
-  "raise NotImplementedError"
+    "raise NotImplementedError",
 ]
 include = [
     "mpt_api_client/**",
