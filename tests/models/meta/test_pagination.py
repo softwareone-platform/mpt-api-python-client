@@ -1,6 +1,6 @@
 import pytest
 
-from mpt_api_client.http.models import Pagination
+from mpt_api_client.models import Pagination
 
 
 def test_default_page():  # noqa: WPS218
