@@ -1,0 +1,41 @@
+import pytest
+
+from mpt_api_client.http.client import MPTClient
+from mpt_api_client.models import Resource
+from mpt_api_client.rql.query_builder import RQLQuery
+from tests.http.collection.conftest import DummyCollectionClient
+
+
+class DummyResource(Resource):
+    """Dummy resource for testing."""
+
+
+@pytest.fixture
+def mock_mpt_client(api_url, api_token):
+    return MPTClient(base_url=api_url, api_token=api_token)
+
+
+@pytest.fixture
+def sample_rql_query():
+    return RQLQuery(status="active")
+
+
+def test_init_defaults(mpt_client):
+    collection_client = DummyCollectionClient(client=mpt_client)
+
+    assert collection_client.query_rql is None
+    assert collection_client.query_order_by is None
+    assert collection_client.query_select is None
+    assert collection_client.build_url() == "/api/v1/test"
+
+
+def test_init_with_filter(mpt_client, sample_rql_query):
+    collection_client = DummyCollectionClient(
+        client=mpt_client,
+        query_rql=sample_rql_query,
+    )
+
+    assert collection_client.query_rql == sample_rql_query
+    assert collection_client.query_order_by is None
+    assert collection_client.query_select is None
+    assert collection_client.build_url() == "/api/v1/test?eq(status,active)"
