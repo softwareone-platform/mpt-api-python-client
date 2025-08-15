@@ -23,8 +23,8 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
     """
 
     _endpoint: str
-    _resource_class: type[Resource]
-    _collection_class: type[Collection[Resource]]
+    _resource_class: type[ResourceType]
+    _collection_class: type[Collection[ResourceType]]
 
     def __init__(
         self,
@@ -181,7 +181,7 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
         response = self.mpt_client.post(self._endpoint, json=resource_data)
         response.raise_for_status()
 
-        return self._resource_class.from_response(response)  # type: ignore[return-value]
+        return self._resource_class.from_response(response)
 
     def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
         """Fetch one page of resources.
