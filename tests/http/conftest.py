@@ -1,9 +1,14 @@
 import pytest
 
 from mpt_api_client.http.client import MPTClient
+from mpt_api_client.models import Resource
 
 API_TOKEN = "test-token"
 API_URL = "https://api.example.com"
+
+
+class DummyResource(Resource):
+    """Dummy resource for testing."""
 
 
 @pytest.fixture
