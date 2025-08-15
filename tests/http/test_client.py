@@ -3,23 +3,35 @@ import respx
 from httpx import ConnectTimeout, Response, codes
 
 from mpt_api_client.http.client import MPTClient
-
-API_TOKEN = "test-token"
-API_URL = "https://api.example.com"
-
-
-@pytest.fixture
-def mpt_client():
-    return MPTClient(base_url=API_URL, api_token=API_TOKEN)
+from tests.http.conftest import API_TOKEN, API_URL
 
 
 def test_mpt_client_initialization():
     client = MPTClient(base_url=API_URL, api_token=API_TOKEN)
 
-    assert client.api_token == API_TOKEN
     assert client.base_url == API_URL
     assert client.headers["Authorization"] == "Bearer test-token"
     assert client.headers["User-Agent"] == "swo-marketplace-client/1.0"
+
+
+def test_env_initialization(monkeypatch):
+    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
+    monkeypatch.setenv("MPT_URL", API_URL)
+
+    client = MPTClient()
+
+    assert client.base_url == API_URL
+    assert client.headers["Authorization"] == f"Bearer {API_TOKEN}"
+
+
+def test_mpt_client_without_token():
+    with pytest.raises(ValueError):
+        MPTClient(base_url=API_URL)
+
+
+def test_mpt_client_without_url():
+    with pytest.raises(ValueError):
+        MPTClient(api_token=API_TOKEN)
 
 
 @respx.mock
