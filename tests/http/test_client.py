@@ -2,12 +2,12 @@ import pytest
 import respx
 from httpx import ConnectTimeout, Response, codes
 
-from mpt_api_client.http.client import MPTClient
+from mpt_api_client.http.client import HTTPClient
 from tests.conftest import API_TOKEN, API_URL
 
 
 def test_mpt_client_initialization():
-    client = MPTClient(base_url=API_URL, api_token=API_TOKEN)
+    client = HTTPClient(base_url=API_URL, api_token=API_TOKEN)
 
     assert client.base_url == API_URL
     assert client.headers["Authorization"] == "Bearer test-token"
@@ -18,7 +18,7 @@ def test_env_initialization(monkeypatch):
     monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
     monkeypatch.setenv("MPT_URL", API_URL)
 
-    client = MPTClient()
+    client = HTTPClient()
 
     assert client.base_url == API_URL
     assert client.headers["Authorization"] == f"Bearer {API_TOKEN}"
@@ -26,12 +26,12 @@ def test_env_initialization(monkeypatch):
 
 def test_mpt_client_without_token():
     with pytest.raises(ValueError):
-        MPTClient(base_url=API_URL)
+        HTTPClient(base_url=API_URL)
 
 
 def test_mpt_client_without_url():
     with pytest.raises(ValueError):
-        MPTClient(api_token=API_TOKEN)
+        HTTPClient(api_token=API_TOKEN)
 
 
 @respx.mock

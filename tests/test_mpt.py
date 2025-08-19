@@ -1,12 +1,12 @@
 from unittest.mock import Mock
 
-from mpt_api_client.modules import OrderCollectionClient
-from mpt_api_client.mpt import MPT
+from mpt_api_client.mptclient import MPTClient
+from mpt_api_client.resources import OrderCollectionClient
 
 
 def test_mapped_module() -> None:
     mock_registry = Mock()
-    mpt = MPT(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
+    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
 
     mpt.orders  # noqa: B018
 
@@ -15,7 +15,7 @@ def test_mapped_module() -> None:
 
 def test_not_mapped_module() -> None:
     mock_registry = Mock()
-    mpt = MPT(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
+    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
 
     mpt.non_existing_module  # noqa: B018
 
@@ -23,7 +23,7 @@ def test_not_mapped_module() -> None:
 
 
 def test_subclient_orders_module():
-    mpt = MPT(base_url="https://test.example.com", api_key="test-key")
+    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key")
 
     orders_client = mpt.commerce.orders
 
