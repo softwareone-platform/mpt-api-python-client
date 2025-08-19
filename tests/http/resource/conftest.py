@@ -2,7 +2,7 @@ import pytest
 
 from mpt_api_client.http.client import MPTClient
 from mpt_api_client.http.resource import ResourceBaseClient
-from tests.http.conftest import DummyResource
+from tests.conftest import DummyResource
 
 
 class DummyResourceClient(ResourceBaseClient[DummyResource]):
