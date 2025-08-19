@@ -1,11 +1,8 @@
 import pytest
 
 from mpt_api_client.http.collection import CollectionBaseClient
-from mpt_api_client.models import Collection, Resource
-
-
-class DummyResource(Resource):
-    """Dummy resource for testing."""
+from mpt_api_client.models import Collection
+from tests.http.conftest import DummyResource
 
 
 class DummyCollectionClient(CollectionBaseClient[DummyResource]):
