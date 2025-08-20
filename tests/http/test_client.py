@@ -3,7 +3,7 @@ import respx
 from httpx import ConnectTimeout, Response, codes
 
 from mpt_api_client.http.client import MPTClient
-from tests.http.conftest import API_TOKEN, API_URL
+from tests.conftest import API_TOKEN, API_URL
 
 
 def test_mpt_client_initialization():
