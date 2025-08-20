@@ -41,7 +41,7 @@ def test_and_different():
 
     assert r3 != r1
     assert r3 != r2
-    assert r3.op == RQLQuery.AND
+    assert r3.op == RQLQuery.OP_AND
     assert r1 in r3.children
     assert r2 in r3.children
 
@@ -60,5 +60,5 @@ def test_and_triple():
     r3 = r1 & r2 & r2
 
     assert len(r3) == 2
-    assert r3.op == RQLQuery.AND
+    assert r3.op == RQLQuery.OP_AND
     assert [r1, r2] == r3.children

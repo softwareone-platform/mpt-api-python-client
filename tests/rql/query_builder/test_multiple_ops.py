@@ -10,7 +10,7 @@ def test_and_or():  # noqa: WPS218 WPS473
 
     r5 = r1 & r2 & (r3 | r4)
 
-    assert r5.op == RQLQuery.AND
+    assert r5.op == RQLQuery.OP_AND
     assert str(r5) == "and(eq(id,ID),eq(field,value),or(eq(other,value2),in(inop,(a,b))))"  # noqa: WPS204
 
     r5 = r1 & r2 | r3
@@ -43,6 +43,6 @@ def test_and_merge():  # noqa: WPS210
 
     and3 = and1 & and2
 
-    assert and3.op == RQLQuery.AND
+    assert and3.op == RQLQuery.OP_AND
     assert len(and3.children) == 4
     assert [r1, r2, r3, r4] == and3.children
