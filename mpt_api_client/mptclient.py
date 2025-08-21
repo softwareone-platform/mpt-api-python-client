@@ -3,8 +3,8 @@ from mpt_api_client.registry import Registry, commerce
 from mpt_api_client.resources import OrderCollectionClient
 
 
-class MPTClient:
-    """MPT API Client."""
+class MPTClientBase:
+    """MPT API Client Base."""
 
     def __init__(
         self,
@@ -19,6 +19,10 @@ class MPTClient:
     def __getattr__(self, name):  # type: ignore[no-untyped-def]
         return self.registry.get(name)(client=self.mpt_client)
 
+
+class MPTClient(MPTClientBase):
+    """MPT API Client."""
+
     @property
     def commerce(self) -> "CommerceMpt":
         """Commerce MPT API Client.
@@ -30,7 +34,7 @@ class MPTClient:
         return CommerceMpt(mpt_client=self.mpt_client, registry=commerce)
 
 
-class CommerceMpt(MPTClient):
+class CommerceMpt(MPTClientBase):
     """Commerce MPT API Client."""
 
     @property
