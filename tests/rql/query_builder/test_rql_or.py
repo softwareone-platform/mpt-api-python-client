@@ -42,7 +42,7 @@ def test_or_not_equals():
     assert r3 != r1
     assert r3 != r2
 
-    assert r3.op == RQLQuery.OR
+    assert r3.op == RQLQuery.OP_OR
     assert r1 in r3.children
     assert r2 in r3.children
 
@@ -65,7 +65,7 @@ def test_or_merge():  # noqa: WPS210
     or2 = r3 | r4
     or3 = or1 | or2
 
-    assert or3.op == RQLQuery.OR
+    assert or3.op == RQLQuery.OP_OR
     assert len(or3.children) == 4
     assert [r1, r2, r3, r4] == or3.children
 
@@ -77,5 +77,5 @@ def test_or_merge_duplicates():
     r3 = r1 | r2 | r2
 
     assert len(r3) == 2
-    assert r3.op == RQLQuery.OR
+    assert r3.op == RQLQuery.OP_OR
     assert [r1, r2] == r3.children

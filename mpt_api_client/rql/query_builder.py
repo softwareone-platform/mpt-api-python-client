@@ -142,16 +142,18 @@ class RQLQuery:  # noqa: WPS214
             rql = RQLQuery().nested.field.eq('value')
     """
 
-    AND = "and"  # noqa: WPS115
-    OR = "or"  # noqa: WPS115
-    EXPRESSION = "expr"  # noqa: WPS115
+    OP_AND = "and"  # noqa: WPS115
+    OP_OR = "or"  # noqa: WPS115
+    OP_ANY = "any"  # noqa: WPS115
+    OP_ALL = "all"  # noqa: WPS115
+    OP_EXPRESSION = "expr"  # noqa: WPS115
 
     def __init__(  # noqa: WPS211
         self,
         namespace_: str | None = None,  # noqa: WPS120
         **kwargs: QueryValue,
     ) -> None:
-        self.op: str = self.EXPRESSION
+        self.op: str = self.OP_EXPRESSION
         self.children: list[RQLQuery] = []
         self.negated: bool = False
         self.expr: str | None = None
@@ -160,10 +162,10 @@ class RQLQuery:  # noqa: WPS214
         if namespace_:
             self.n(namespace_)
         if len(kwargs) == 1:
-            self.op = self.EXPRESSION
+            self.op = self.OP_EXPRESSION
             self.expr = parse_kwargs(kwargs)[0]
         if len(kwargs) > 1:
-            self.op = self.AND
+            self.op = self.OP_AND
             for token in parse_kwargs(kwargs):
                 self.children.append(self.new(expr=token))
 
@@ -180,14 +182,14 @@ class RQLQuery:  # noqa: WPS214
         if isinstance(children, set):
             children = list(children)
         query = cls()
-        query.op = op or cls.EXPRESSION
+        query.op = op or cls.OP_EXPRESSION
         query.children = children or []
         query.negated = negated
         query.expr = expr
         return query
 
     def __len__(self) -> int:
-        if self.op == self.EXPRESSION:
+        if self.op == self.OP_EXPRESSION:
             if self.expr:
                 return 1
             return 0
@@ -220,23 +222,23 @@ class RQLQuery:  # noqa: WPS214
 
     @override
     def __repr__(self) -> str:
-        if self.op == self.EXPRESSION:
+        if self.op == self.OP_EXPRESSION:
             return f"<RQLQuery({self.op}) {self.expr}>"
         return f"<RQLQuery({self.op})>"
 
     def __and__(self, other: object) -> Self:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._join(other, self.AND)
+        return self._join(other, self.OP_AND)
 
     def __or__(self, other: object) -> Self:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._join(other, self.OR)
+        return self._join(other, self.OP_OR)
 
     def __invert__(self) -> Self:
         inverted_query = self.new(
-            op=self.AND,
+            op=self.OP_AND,
             expr=self.expr,
             negated=True,
         )
@@ -249,6 +251,29 @@ class RQLQuery:  # noqa: WPS214
     @override
     def __str__(self) -> str:
         return self._to_string(self)
+
+    def any(self) -> Self:
+        """Any nested objects have to match the filter condition.
+
+        Returns:
+            RQLQuery: RQLQuery with new condition
+
+        Examples:
+            RQLQuery(saleDetails__orderQty__gt=11).any()
+            will result: any(saleDetails,orderQty=11)
+        """
+        return self.new(op=self.OP_ANY, children=[self])
+
+    def all(self) -> Self:
+        """All nested objects have to match the filter condition.
+
+        Returns:
+            RQLQuery: RQLQuery with new condition
+
+        Example:
+            RQLQuery(saleDetails__orderQty__gt=1).all()
+        """
+        return self.new(op=self.OP_ALL, children=[self])
 
     def n(self, name: str) -> Self:  # noqa: WPS111
         """Set the current field for this `RQLQuery` object.
@@ -485,7 +510,7 @@ class RQLQuery:  # noqa: WPS214
     def _append(self, query: "RQLQuery") -> "RQLQuery" | Self:
         if query in self.children:
             return query
-        single_operation = len(query) == 1 and query.op != self.EXPRESSION
+        single_operation = len(query) == 1 and query.op != self.OP_EXPRESSION
         if (query.op == self.op or single_operation) and not query.negated:
             self.children.extend(query.children)
             return self
