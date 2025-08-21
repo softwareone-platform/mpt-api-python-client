@@ -18,7 +18,7 @@ def test_resource_empty():
 
 def test_from_response(meta_data):
     record_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
-    response = Response(200, json={"data": record_data, "$meta": meta_data})
+    response = Response(200, json=record_data | {"$meta": meta_data})
     expected_meta = Meta.from_response(response)
 
     resource = Resource.from_response(response)
@@ -29,7 +29,9 @@ def test_from_response(meta_data):
 
 def test_attribute_getter(mocker, meta_data):
     resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
-    response = Response(200, json={"data": resource_data, "$meta": meta_data})
+    response_data = resource_data | {"$meta": meta_data}
+
+    response = Response(200, json=response_data)
 
     resource = Resource.from_response(response)
 
@@ -49,5 +51,6 @@ def test_attribute_setter():
 
 
 def test_wrong_data_type():
+    response = Response(200, json=1)
     with pytest.raises(TypeError, match=r"Response data must be a dict."):
-        Resource.from_response(Response(200, json={"data": 1}))
+        Resource.from_response(response)

@@ -3,7 +3,7 @@ from typing import Any
 
 from mpt_api_client.http.collection import CollectionBaseClient
 
-ItemType = type[CollectionBaseClient[Any]]
+ItemType = type[CollectionBaseClient[Any, Any]]
 
 
 class Registry:

@@ -3,7 +3,7 @@ import os
 import httpx
 
 
-class MPTClient(httpx.Client):
+class HTTPClient(httpx.Client):
     """A client for interacting with SoftwareOne Marketplace Platform API."""
 
     def __init__(

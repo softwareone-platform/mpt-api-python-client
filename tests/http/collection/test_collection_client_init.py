@@ -1,18 +1,13 @@
 import pytest
 
-from mpt_api_client.http.client import MPTClient
-from mpt_api_client.models import Resource
+from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.rql.query_builder import RQLQuery
-from tests.http.collection.conftest import DummyCollectionClient
-
-
-class DummyResource(Resource):
-    """Dummy resource for testing."""
+from tests.http.conftest import DummyCollectionClient
 
 
 @pytest.fixture
 def mock_mpt_client(api_url, api_token):
-    return MPTClient(base_url=api_url, api_token=api_token)
+    return HTTPClient(base_url=api_url, api_token=api_token)
 
 
 @pytest.fixture

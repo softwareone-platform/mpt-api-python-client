@@ -10,7 +10,7 @@ from mpt_api_client.models.meta import Meta
 class Resource(BaseResource):
     """Provides a resource to interact with api data using fluent interfaces."""
 
-    _data_key: ClassVar[str] = "data"
+    _data_key: ClassVar[str | None] = None
     _safe_attributes: ClassVar[list[str]] = ["meta", "_resource_data"]
 
     def __init__(self, resource_data: ResourceData | None = None, meta: Meta | None = None) -> None:
@@ -37,7 +37,11 @@ class Resource(BaseResource):
     @classmethod
     @override
     def from_response(cls, response: Response) -> Self:
-        response_data = response.json().get(cls._data_key)
+        response_data = response.json()
+        if isinstance(response_data, dict):
+            response_data.pop("$meta", None)
+        if cls._data_key:
+            response_data = response_data.get(cls._data_key)
         if not isinstance(response_data, dict):
             raise TypeError("Response data must be a dict.")
         meta = Meta.from_response(response)

@@ -5,12 +5,15 @@ from typing import Any, Self
 
 import httpx
 
-from mpt_api_client.http.client import MPTClient
+from mpt_api_client.http.client import HTTPClient
+from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Collection, Resource
 from mpt_api_client.rql.query_builder import RQLQuery
 
 
-class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
+class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBaseClient[Resource]](  # noqa: WPS214
+    ABC
+):
     """Immutable Base client for RESTful resource collections.
 
     Examples:
@@ -23,21 +26,24 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
     """
 
     _endpoint: str
-    _resource_class: type[ResourceType]
-    _collection_class: type[Collection[ResourceType]]
+    _resource_class: type[ResourceModel]
+    _resource_client_class: type[ResourceClient]
+    _collection_class: type[Collection[ResourceModel]]
 
     def __init__(
         self,
         query_rql: RQLQuery | None = None,
-        client: MPTClient | None = None,
+        client: HTTPClient | None = None,
     ) -> None:
-        self.mpt_client = client or MPTClient()
+        self.mpt_client = client or HTTPClient()
         self.query_rql: RQLQuery | None = query_rql
         self.query_order_by: list[str] | None = None
         self.query_select: list[str] | None = None
 
     @classmethod
-    def clone(cls, collection_client: "CollectionBaseClient[ResourceType]") -> Self:
+    def clone(
+        cls, collection_client: "CollectionBaseClient[ResourceModel, ResourceClient]"
+    ) -> Self:
         """Create a copy of collection client for immutable operations.
 
         Returns:
@@ -122,7 +128,7 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
         new_client.query_select = list(fields)
         return new_client
 
-    def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[ResourceType]:
+    def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[ResourceModel]:
         """Fetch one page of resources.
 
         Returns:
@@ -131,7 +137,7 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
         response = self._fetch_page_as_response(limit=limit, offset=offset)
         return Collection.from_response(response)
 
-    def fetch_one(self) -> ResourceType:
+    def fetch_one(self) -> ResourceModel:
         """Fetch one page, expect exactly one result.
 
         Returns:
@@ -141,7 +147,7 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
             ValueError: If the total matching records are not exactly one.
         """
         response = self._fetch_page_as_response(limit=1, offset=0)
-        resource_list: Collection[ResourceType] = Collection.from_response(response)
+        resource_list: Collection[ResourceModel] = Collection.from_response(response)
         total_records = len(resource_list)
         if resource_list.meta:
             total_records = resource_list.meta.pagination.total
@@ -152,18 +158,23 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
 
         return resource_list[0]
 
-    def iterate(self) -> Iterator[ResourceType]:
+    def iterate(self, batch_size: int = 100) -> Iterator[ResourceModel]:
         """Iterate over all resources, yielding GenericResource objects.
+
+        Args:
+            batch_size: Number of resources to fetch per request
 
         Returns:
             Iterator of resources.
         """
         offset = 0
-        limit = 100  # Default page size
+        limit = batch_size  # Default page size
 
         while True:
             response = self._fetch_page_as_response(limit=limit, offset=offset)
-            items_collection: Collection[ResourceType] = Collection.from_response(response)
+            items_collection: Collection[ResourceModel] = self._collection_class.from_response(
+                response
+            )
             yield from items_collection
 
             if not items_collection.meta:
@@ -172,7 +183,11 @@ class CollectionBaseClient[ResourceType: Resource](ABC):  # noqa: WPS214
                 break
             offset = items_collection.meta.pagination.next_offset()
 
-    def create(self, resource_data: dict[str, Any]) -> ResourceType:
+    def get(self, resource_id: str) -> ResourceClient:
+        """Get resource by resource_id."""
+        return self._resource_client_class(client=self.mpt_client, resource_id=resource_id)
+
+    def create(self, resource_data: dict[str, Any]) -> ResourceModel:
         """Create a new resource using `POST /endpoint`.
 
         Returns:
