@@ -6,6 +6,7 @@ from httpx import Response
 from mpt_api_client.models.meta import Meta
 
 ResourceData = dict[str, Any]
+ResourceList = list[ResourceData]
 
 
 class BaseResource(ABC):
@@ -28,7 +29,7 @@ class BaseResource(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> ResourceData:
         """Returns the resource as a dictionary."""
         raise NotImplementedError
 
@@ -47,6 +48,6 @@ class BaseCollection(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def to_list(self) -> list[dict[str, Any]]:
+    def to_list(self) -> ResourceList:
         """Returns the collection as a list of dictionaries."""
         raise NotImplementedError

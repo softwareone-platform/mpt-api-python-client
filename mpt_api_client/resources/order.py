@@ -22,7 +22,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             order: Order data will be updated
         """
-        response = self.do_action("POST", "validate", json=order)
+        response = self._do_action("POST", "validate", json=order)
         return self._resource_class.from_response(response)
 
     def process(self, order: dict[str, Any] | None = None) -> Order:
@@ -31,7 +31,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             order: Order data will be updated
         """
-        return self.resource_action("POST", "process", json=order)
+        return self._resource_action("POST", "process", json=order)
 
     def query(self, order: dict[str, Any] | None = None) -> Order:
         """Switch order to query state.
@@ -39,7 +39,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             order: Order data will be updated
         """
-        return self.resource_action("POST", "query", json=order)
+        return self._resource_action("POST", "query", json=order)
 
     def complete(self, order: dict[str, Any] | None = None) -> Order:
         """Switch order to complete state.
@@ -47,7 +47,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             order: Order data will be updated
         """
-        return self.resource_action("POST", "complete", json=order)
+        return self._resource_action("POST", "complete", json=order)
 
     def fail(self, order: dict[str, Any] | None = None) -> Order:
         """Switch order to fail state.
@@ -55,7 +55,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             order: Order data will be updated
         """
-        return self.resource_action("POST", "fail", json=order)
+        return self._resource_action("POST", "fail", json=order)
 
     def notify(self, user: dict[str, Any]) -> None:
         """Notify user about order status.
@@ -63,7 +63,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Args:
             user: User data
         """
-        self.do_action("POST", "notify", json=user)
+        self._do_action("POST", "notify", json=user)
 
     def template(self) -> str:
         """Render order template.
@@ -71,7 +71,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
         Returns:
             Order template text in markdown format.
         """
-        response = self.do_action("GET", "template")
+        response = self._do_action("GET", "template")
         return response.text
 
 

@@ -2,7 +2,7 @@ import pytest
 
 from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
 from mpt_api_client.http.collection import AsyncCollectionClientBase, CollectionClientBase
-from mpt_api_client.http.resource import ResourceBaseClient
+from mpt_api_client.http.resource import AsyncResourceBaseClient, ResourceBaseClient
 from mpt_api_client.models import Collection
 from tests.conftest import DummyResource
 
@@ -19,10 +19,17 @@ class DummyCollectionClientBase(CollectionClientBase[DummyResource, DummyResourc
     _collection_class = Collection[DummyResource]
 
 
-class DummyAsyncCollectionClientBase(AsyncCollectionClientBase[DummyResource, DummyResourceClient]):
+class DummyAsyncResourceClient(AsyncResourceBaseClient[DummyResource]):
+    _endpoint = "/api/v1/test-resource"
+    _resource_class = DummyResource
+
+
+class DummyAsyncCollectionClientBase(
+    AsyncCollectionClientBase[DummyResource, DummyAsyncResourceClient]
+):
     _endpoint = "/api/v1/test"
     _resource_class = DummyResource
-    _resource_client_class = DummyResourceClient
+    _resource_client_class = DummyAsyncResourceClient
     _collection_class = Collection[DummyResource]
 
 
@@ -59,3 +66,9 @@ def collection_client(http_client) -> DummyCollectionClientBase:
 @pytest.fixture
 def async_collection_client(http_client_async) -> DummyAsyncCollectionClientBase:
     return DummyAsyncCollectionClientBase(http_client=http_client_async)
+
+
+@pytest.fixture
+def async_resource_client(http_client_async):
+    """Create an async resource client for testing."""
+    return DummyAsyncResourceClient(http_client=http_client_async, resource_id="RES-123")

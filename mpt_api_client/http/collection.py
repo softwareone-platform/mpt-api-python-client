@@ -6,8 +6,9 @@ from typing import Any, Self
 import httpx
 
 from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
-from mpt_api_client.http.resource import ResourceBaseClient
+from mpt_api_client.http.resource import AsyncResourceBaseClient, ResourceBaseClient
 from mpt_api_client.models import Collection, Resource
+from mpt_api_client.models.base import ResourceData
 from mpt_api_client.rql.query_builder import RQLQuery
 
 
@@ -50,7 +51,7 @@ class CollectionMixin:
         )
         return new_collection
 
-    def build_url(self, query_params: dict[str, Any] | None = None) -> str:
+    def build_url(self, query_params: dict[str, Any] | None = None) -> str:  # noqa: WPS210
         """Builds the endpoint URL with all the query parameters.
 
         Returns:
@@ -59,15 +60,18 @@ class CollectionMixin:
         query_params = query_params or {}
         query_parts = [
             f"{param_key}={param_value}" for param_key, param_value in query_params.items()
-        ]  # noqa: WPS237
+        ]
         if self.query_order_by:
-            query_parts.append(f"order={','.join(self.query_order_by)}")  # noqa: WPS237
+            str_order_by = ",".join(self.query_order_by)
+            query_parts.append(f"order={str_order_by}")
         if self.query_select:
-            query_parts.append(f"select={','.join(self.query_select)}")  # noqa: WPS237
+            str_query_select = ",".join(self.query_select)
+            query_parts.append(f"select={str_query_select}")
         if self.query_rql:
             query_parts.append(str(self.query_rql))
         if query_parts:
-            return f"{self._endpoint}?{'&'.join(query_parts)}"  # noqa: WPS237
+            query = "&".join(query_parts)
+            return f"{self._endpoint}?{query}"
         return self._endpoint
 
     def order_by(self, *fields: str) -> Self:
@@ -201,7 +205,7 @@ class CollectionClientBase[ResourceModel: Resource, ResourceClient: ResourceBase
         """Get resource by resource_id."""
         return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)
 
-    def create(self, resource_data: dict[str, Any]) -> ResourceModel:
+    def create(self, resource_data: ResourceData) -> ResourceModel:
         """Create a new resource using `POST /endpoint`.
 
         Returns:
@@ -230,7 +234,7 @@ class CollectionClientBase[ResourceModel: Resource, ResourceClient: ResourceBase
 
 class AsyncCollectionClientBase[
     ResourceModel: Resource,
-    ResourceClient: ResourceBaseClient[Resource],
+    ResourceClient: AsyncResourceBaseClient[Resource],
 ](ABC, CollectionMixin):
     """Immutable Base client for RESTful resource collections.
 
@@ -313,7 +317,7 @@ class AsyncCollectionClientBase[
 
     async def get(self, resource_id: str) -> ResourceClient:
         """Get resource by resource_id."""
-        return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)  # type: ignore[arg-type]
+        return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)
 
     async def create(self, resource_data: dict[str, Any]) -> ResourceModel:
         """Create a new resource using `POST /endpoint`.

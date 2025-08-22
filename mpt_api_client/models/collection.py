@@ -1,9 +1,9 @@
 from collections.abc import Iterator
-from typing import Any, ClassVar, Self, override
+from typing import ClassVar, Self, override
 
 from httpx import Response
 
-from mpt_api_client.models.base import BaseCollection, ResourceData
+from mpt_api_client.models.base import BaseCollection, ResourceList
 from mpt_api_client.models.meta import Meta
 from mpt_api_client.models.resource import Resource
 
@@ -15,7 +15,7 @@ class Collection[ResourceType](BaseCollection):
     _resource_model: type[Resource] = Resource
 
     def __init__(
-        self, collection_data: list[ResourceData] | None = None, meta: Meta | None = None
+        self, collection_data: ResourceList | None = None, meta: Meta | None = None
     ) -> None:
         self.meta = meta
         collection_data = collection_data or []
@@ -50,5 +50,5 @@ class Collection[ResourceType](BaseCollection):
         return cls(response_data, meta)
 
     @override
-    def to_list(self) -> list[dict[str, Any]]:
+    def to_list(self) -> ResourceList:
         return [resource.to_dict() for resource in self._resource_collection]
