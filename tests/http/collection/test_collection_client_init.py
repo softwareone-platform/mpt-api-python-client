@@ -15,8 +15,8 @@ def sample_rql_query():
     return RQLQuery(status="active")
 
 
-def test_init_defaults(mpt_client):
-    collection_client = DummyCollectionClient(client=mpt_client)
+def test_init_defaults(http_client):
+    collection_client = DummyCollectionClient(client=http_client)
 
     assert collection_client.query_rql is None
     assert collection_client.query_order_by is None
@@ -24,9 +24,9 @@ def test_init_defaults(mpt_client):
     assert collection_client.build_url() == "/api/v1/test"
 
 
-def test_init_with_filter(mpt_client, sample_rql_query):
+def test_init_with_filter(http_client, sample_rql_query):
     collection_client = DummyCollectionClient(
-        client=mpt_client,
+        client=http_client,
         query_rql=sample_rql_query,
     )
 

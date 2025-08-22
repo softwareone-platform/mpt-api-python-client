@@ -32,6 +32,7 @@ dev = [
     "mypy==1.15.*",
     "pre-commit==4.2.*",
     "pytest==8.3.*",
+    "pytest-asyncio==1.1.*",
     "pytest-cov==6.1.*",
     "pytest-deadfixtures==2.2.*",
     "pytest-mock==3.14.*",
@@ -59,6 +60,7 @@ testpaths = "tests"
 pythonpath = "."
 addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml"
 log_cli = false
+asyncio_mode = "auto"
 filterwarnings = [
     "ignore:Support for class-based `config` is deprecated:DeprecationWarning",
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",

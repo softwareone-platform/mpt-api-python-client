@@ -1,6 +1,6 @@
 import pytest
 
-from mpt_api_client.http.client import HTTPClient
+from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
 from mpt_api_client.http.collection import CollectionBaseClient
 from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Collection
@@ -30,15 +30,20 @@ def api_token():
 
 
 @pytest.fixture
-def mpt_client(api_url, api_token):
+def http_client(api_url, api_token):
     return HTTPClient(base_url=api_url, api_token=api_token)
 
 
 @pytest.fixture
-def resource_client(mpt_client):
-    return DummyResourceClient(client=mpt_client, resource_id="RES-123")
+def http_client_async(api_url, api_token):
+    return HTTPClientAsync(base_url=api_url, api_token=api_token)
 
 
 @pytest.fixture
-def collection_client(mpt_client) -> DummyCollectionClient:
-    return DummyCollectionClient(client=mpt_client)
+def resource_client(http_client):
+    return DummyResourceClient(client=http_client, resource_id="RES-123")
+
+
+@pytest.fixture
+def collection_client(http_client) -> DummyCollectionClient:
+    return DummyCollectionClient(client=http_client)
