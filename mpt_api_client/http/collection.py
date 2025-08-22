@@ -6,7 +6,7 @@ from typing import Any, Self
 import httpx
 
 from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
-from mpt_api_client.http.resource import ResourceBaseClient
+from mpt_api_client.http.resource import AsyncResourceBaseClient, ResourceBaseClient
 from mpt_api_client.models import Collection, Resource
 from mpt_api_client.rql.query_builder import RQLQuery
 
@@ -230,7 +230,7 @@ class CollectionClientBase[ResourceModel: Resource, ResourceClient: ResourceBase
 
 class AsyncCollectionClientBase[
     ResourceModel: Resource,
-    ResourceClient: ResourceBaseClient[Resource],
+    ResourceClient: AsyncResourceBaseClient[Resource],
 ](ABC, CollectionMixin):
     """Immutable Base client for RESTful resource collections.
 
@@ -313,7 +313,7 @@ class AsyncCollectionClientBase[
 
     async def get(self, resource_id: str) -> ResourceClient:
         """Get resource by resource_id."""
-        return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)  # type: ignore[arg-type]
+        return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)
 
     async def create(self, resource_data: dict[str, Any]) -> ResourceModel:
         """Create a new resource using `POST /endpoint`.

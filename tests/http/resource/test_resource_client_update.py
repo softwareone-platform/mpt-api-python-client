@@ -1,3 +1,5 @@
+import re
+
 import httpx
 import pytest
 import respx
@@ -66,7 +68,11 @@ def test_save_resource_successfully(resource_client):
 
 
 def test_save_raises_error_when_resource_not_set(resource_client):
-    with pytest.raises(ValueError, match="Unable to save resource that has not been set"):
+    expected_message = (
+        "Resource data not available. Call fetch() method first to retrieve "
+        "the resource `DummyResource`"
+    )
+    with pytest.raises(RuntimeError, match=re.escape(expected_message)):
         resource_client.save()
 
 
