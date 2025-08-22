@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
 from mpt_api_client.mptclient import MPTClient
-from mpt_api_client.resources import OrderCollectionClient
+from mpt_api_client.resources import OrderCollectionClientBase
 
 
 def test_mapped_module() -> None:
@@ -27,5 +27,5 @@ def test_subclient_orders_module():
 
     orders_client = mpt.commerce.orders
 
-    assert isinstance(orders_client, OrderCollectionClient)
-    assert orders_client.mpt_client == mpt.mpt_client
+    assert isinstance(orders_client, OrderCollectionClientBase)
+    assert orders_client.http_client == mpt.http_client

@@ -1,6 +1,6 @@
 from typing import Any
 
-from mpt_api_client.http.collection import CollectionBaseClient
+from mpt_api_client.http.collection import CollectionClientBase
 from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Collection, Resource
 from mpt_api_client.registry import commerce
@@ -76,7 +76,7 @@ class OrderResourceClient(ResourceBaseClient[Order]):
 
 
 @commerce("orders")
-class OrderCollectionClient(CollectionBaseClient[Order, OrderResourceClient]):
+class OrderCollectionClientBase(CollectionClientBase[Order, OrderResourceClient]):
     """Orders client."""
 
     _endpoint = "/public/v1/commerce/orders"

@@ -1,6 +1,6 @@
 import pytest
 
-from mpt_api_client.http.collection import CollectionBaseClient
+from mpt_api_client.http.collection import CollectionClientBase
 from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Resource
 from mpt_api_client.registry import Registry
@@ -10,7 +10,7 @@ class DummyResource(Resource):
     """Dummy resource for testing."""
 
 
-class DummyCollectionClient(CollectionBaseClient):
+class DummyCollectionClientBase(CollectionClientBase):
     _endpoint = "/api/v1/dummy"
     _resource_class = DummyResource
 
@@ -19,22 +19,22 @@ def test_register_collection_client_successfully():
     registry = Registry()
     keyname = "test_collection"
 
-    registry.register(keyname, DummyCollectionClient)
+    registry.register(keyname, DummyCollectionClientBase)
 
     assert keyname in registry.items
-    assert registry.items[keyname] == DummyCollectionClient
-    assert registry.get(keyname) == DummyCollectionClient
+    assert registry.items[keyname] == DummyCollectionClientBase
+    assert registry.get(keyname) == DummyCollectionClientBase
 
 
 def test_get_registered_client_successfully():
     registry = Registry()
     keyname = "orders"
 
-    registry.register(keyname, DummyCollectionClient)
+    registry.register(keyname, DummyCollectionClientBase)
 
     retrieved_client = registry.get(keyname)
 
-    assert retrieved_client == DummyCollectionClient
+    assert retrieved_client == DummyCollectionClientBase
 
 
 def test_get_raise_exception():
@@ -52,7 +52,7 @@ def test_list_keys():
     expected_keys = ["orders", "customers", "products"]
 
     for keyname in expected_keys:
-        registry.register(keyname, DummyCollectionClient)
+        registry.register(keyname, DummyCollectionClientBase)
 
     registry_keys = registry.list_keys()
 
@@ -64,10 +64,12 @@ def test_registry_as_decorator():
     registry = Registry()
 
     @registry("test_call")
-    class TestCallClient(CollectionBaseClient[DummyResource, ResourceBaseClient[DummyResource]]):  # noqa: WPS431
+    class TestCallClientBase(  # noqa: WPS431
+        CollectionClientBase[DummyResource, ResourceBaseClient[DummyResource]]
+    ):
         _endpoint = "/api/v1/test-call"
         _resource_class = DummyResource
 
     registered_client = registry.get("test_call")
 
-    assert registered_client == TestCallClient
+    assert registered_client == TestCallClientBase
