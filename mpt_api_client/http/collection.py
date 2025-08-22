@@ -5,52 +5,39 @@ from typing import Any, Self
 
 import httpx
 
-from mpt_api_client.http.client import HTTPClient
+from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
 from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Collection, Resource
 from mpt_api_client.rql.query_builder import RQLQuery
 
 
-class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBaseClient[Resource]](  # noqa: WPS214
-    ABC
-):
-    """Immutable Base client for RESTful resource collections.
-
-    Examples:
-        active_orders_cc = order_collection.filter(RQLQuery(status="active"))
-        active_orders = active_orders_cc.order_by("created").iterate()
-        product_active_orders = active_orders_cc.filter(RQLQuery(product__id="PRD-1")).iterate()
-
-        new_order = order_collection.create(order_data)
-
-    """
+class CollectionMixin:
+    """Mixin for collection clients."""
 
     _endpoint: str
-    _resource_class: type[ResourceModel]
-    _resource_client_class: type[ResourceClient]
-    _collection_class: type[Collection[ResourceModel]]
+    _resource_class: type[Any]
+    _resource_client_class: type[Any]
+    _collection_class: type[Collection[Any]]
 
     def __init__(
         self,
+        http_client: HTTPClient | HTTPClientAsync,
         query_rql: RQLQuery | None = None,
-        client: HTTPClient | None = None,
     ) -> None:
-        self.mpt_client = client or HTTPClient()
+        self.http_client = http_client
         self.query_rql: RQLQuery | None = query_rql
         self.query_order_by: list[str] | None = None
         self.query_select: list[str] | None = None
 
     @classmethod
-    def clone(
-        cls, collection_client: "CollectionBaseClient[ResourceModel, ResourceClient]"
-    ) -> Self:
+    def clone(cls, collection_client: "CollectionMixin") -> Self:
         """Create a copy of collection client for immutable operations.
 
         Returns:
             New collection client with same settings.
         """
         new_collection = cls(
-            client=collection_client.mpt_client,
+            http_client=collection_client.http_client,
             query_rql=collection_client.query_rql,
         )
         new_collection.query_order_by = (
@@ -128,6 +115,33 @@ class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBase
         new_client.query_select = list(fields)
         return new_client
 
+
+class CollectionClientBase[ResourceModel: Resource, ResourceClient: ResourceBaseClient[Resource]](  # noqa: WPS214
+    ABC, CollectionMixin
+):
+    """Immutable Base client for RESTful resource collections.
+
+    Examples:
+        active_orders_cc = order_collection.filter(RQLQuery(status="active"))
+        active_orders = active_orders_cc.order_by("created").iterate()
+        product_active_orders = active_orders_cc.filter(RQLQuery(product__id="PRD-1")).iterate()
+
+        new_order = order_collection.create(order_data)
+
+    """
+
+    _resource_class: type[ResourceModel]
+    _resource_client_class: type[ResourceClient]
+    _collection_class: type[Collection[ResourceModel]]
+
+    def __init__(
+        self,
+        query_rql: RQLQuery | None = None,
+        http_client: HTTPClient | None = None,
+    ) -> None:
+        self.http_client: HTTPClient = http_client or HTTPClient()  # type: ignore[mutable-override]
+        CollectionMixin.__init__(self, http_client=self.http_client, query_rql=query_rql)
+
     def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[ResourceModel]:
         """Fetch one page of resources.
 
@@ -185,7 +199,7 @@ class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBase
 
     def get(self, resource_id: str) -> ResourceClient:
         """Get resource by resource_id."""
-        return self._resource_client_class(client=self.mpt_client, resource_id=resource_id)
+        return self._resource_client_class(http_client=self.http_client, resource_id=resource_id)
 
     def create(self, resource_data: dict[str, Any]) -> ResourceModel:
         """Create a new resource using `POST /endpoint`.
@@ -193,7 +207,7 @@ class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBase
         Returns:
             New resource created.
         """
-        response = self.mpt_client.post(self._endpoint, json=resource_data)
+        response = self.http_client.post(self._endpoint, json=resource_data)
         response.raise_for_status()
 
         return self._resource_class.from_response(response)
@@ -208,7 +222,7 @@ class CollectionBaseClient[ResourceModel: Resource, ResourceClient: ResourceBase
             HTTPStatusError: if the response status code is not 200.
         """
         pagination_params: dict[str, int] = {"limit": limit, "offset": offset}
-        response = self.mpt_client.get(self.build_url(pagination_params))
+        response = self.http_client.get(self.build_url(pagination_params))
         response.raise_for_status()
 
         return response

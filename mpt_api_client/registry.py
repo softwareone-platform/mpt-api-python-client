@@ -1,9 +1,9 @@
 from collections.abc import Callable
 from typing import Any
 
-from mpt_api_client.http.collection import CollectionBaseClient
+from mpt_api_client.http.collection import CollectionClientBase
 
-ItemType = type[CollectionBaseClient[Any, Any]]
+ItemType = type[CollectionClientBase[Any, Any]]
 
 
 class Registry:

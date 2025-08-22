@@ -1,7 +1,7 @@
 import pytest
 
 from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
-from mpt_api_client.http.collection import CollectionBaseClient
+from mpt_api_client.http.collection import CollectionClientBase
 from mpt_api_client.http.resource import ResourceBaseClient
 from mpt_api_client.models import Collection
 from tests.conftest import DummyResource
@@ -12,7 +12,7 @@ class DummyResourceClient(ResourceBaseClient[DummyResource]):
     _resource_class = DummyResource
 
 
-class DummyCollectionClient(CollectionBaseClient[DummyResource, DummyResourceClient]):
+class DummyCollectionClientBase(CollectionClientBase[DummyResource, DummyResourceClient]):
     _endpoint = "/api/v1/test"
     _resource_class = DummyResource
     _resource_client_class = DummyResourceClient
@@ -41,9 +41,9 @@ def http_client_async(api_url, api_token):
 
 @pytest.fixture
 def resource_client(http_client):
-    return DummyResourceClient(client=http_client, resource_id="RES-123")
+    return DummyResourceClient(http_client=http_client, resource_id="RES-123")
 
 
 @pytest.fixture
-def collection_client(http_client) -> DummyCollectionClient:
-    return DummyCollectionClient(client=http_client)
+def collection_client(http_client) -> DummyCollectionClientBase:
+    return DummyCollectionClientBase(http_client=http_client)

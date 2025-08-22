@@ -67,3 +67,19 @@ def test_url(collection_client) -> None:
         "&select=-audit,product.agreements,-product.agreements.product"
         "&eq(status,active)"
     )
+
+
+def test_clone(collection_client) -> None:
+    configured = (
+        collection_client
+        .filter(RQLQuery(status="active"))
+        .order_by("created", "-name")
+        .select("agreement", "-product")
+    )
+
+    cloned = configured.clone(configured)
+
+    assert cloned is not configured
+    assert isinstance(cloned, configured.__class__)
+    assert cloned.http_client is configured.http_client
+    assert str(cloned.query_rql) == str(configured.query_rql)

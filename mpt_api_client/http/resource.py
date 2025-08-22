@@ -12,10 +12,10 @@ class ResourceBaseClient[ResourceModel: Resource](ABC):  # noqa: WPS214
 
     _endpoint: str
     _resource_class: type[ResourceModel]
-    _safe_attributes: ClassVar[set[str]] = {"mpt_client_", "resource_id_", "resource_"}
+    _safe_attributes: ClassVar[set[str]] = {"http_client_", "resource_id_", "resource_"}
 
-    def __init__(self, client: HTTPClient, resource_id: str) -> None:
-        self.mpt_client_ = client  # noqa: WPS120
+    def __init__(self, http_client: HTTPClient, resource_id: str) -> None:
+        self.http_client_ = http_client  # noqa: WPS120
         self.resource_id_ = resource_id  # noqa: WPS120
         self.resource_: Resource | None = None  # noqa: WPS120
 
@@ -78,7 +78,7 @@ class ResourceBaseClient[ResourceModel: Resource](ABC):  # noqa: WPS214
             HTTPError: If the action fails.
         """
         url = f"{self.resource_url}/{url}" if url else self.resource_url
-        response = self.mpt_client_.request(method, url, json=json)
+        response = self.http_client_.request(method, url, json=json)
         response.raise_for_status()
         return response
 
