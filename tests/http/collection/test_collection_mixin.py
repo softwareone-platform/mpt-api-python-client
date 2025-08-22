@@ -71,8 +71,7 @@ def test_url(collection_client) -> None:
 
 def test_clone(collection_client) -> None:
     configured = (
-        collection_client
-        .filter(RQLQuery(status="active"))
+        collection_client.filter(RQLQuery(status="active"))
         .order_by("created", "-name")
         .select("agreement", "-product")
     )
