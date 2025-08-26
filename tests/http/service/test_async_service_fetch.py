@@ -41,23 +41,18 @@ def multiple_results_response():
 
 
 @pytest.fixture
-def no_meta_response():
-    return httpx.Response(httpx.codes.OK, json={"data": [{"id": "ID-1"}]})
-
-
-@pytest.fixture
 def filter_status_active():
     return RQLQuery(status="active")
 
 
 @pytest.mark.asyncio
-async def test_fetch_one_success(async_collection_client, single_result_response):
+async def test_fetch_one_success(async_dummy_service, single_result_response):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_result_response
         )
 
-        resource = await async_collection_client.fetch_one()
+        resource = await async_dummy_service.fetch_one()
 
     assert resource.id == "ID-1"
     assert resource.name == "Test Resource"
@@ -69,33 +64,31 @@ async def test_fetch_one_success(async_collection_client, single_result_response
 
 
 @pytest.mark.asyncio
-async def test_fetch_one_no_results(async_collection_client, no_results_response):
+async def test_fetch_one_no_results(async_dummy_service, no_results_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=no_results_response)
 
         with pytest.raises(ValueError, match="Expected one result, but got zero results"):
-            await async_collection_client.fetch_one()
+            await async_dummy_service.fetch_one()
 
 
 @pytest.mark.asyncio
-async def test_fetch_one_multiple_results(async_collection_client, multiple_results_response):
+async def test_fetch_one_multiple_results(async_dummy_service, multiple_results_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=multiple_results_response
         )
 
         with pytest.raises(ValueError, match=r"Expected one result, but got 2 results"):
-            await async_collection_client.fetch_one()
+            await async_dummy_service.fetch_one()
 
 
 @pytest.mark.asyncio
 async def test_fetch_one_with_filters(
-    async_collection_client, single_result_response, filter_status_active
+    async_dummy_service, single_result_response, filter_status_active
 ):
     filtered_collection = (
-        async_collection_client.filter(filter_status_active)
-        .select("id", "name")
-        .order_by("created")
+        async_dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
 
     with respx.mock:
@@ -118,10 +111,10 @@ async def test_fetch_one_with_filters(
 
 @pytest.mark.asyncio
 async def test_fetch_page_with_filter(
-    async_collection_client, list_response, filter_status_active
+    async_dummy_service, list_response, filter_status_active
 ) -> None:
     custom_collection = (
-        async_collection_client.filter(filter_status_active)
+        async_dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
         .order_by("-created", "name")
     )

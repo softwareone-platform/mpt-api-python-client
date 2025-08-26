@@ -33,8 +33,7 @@ class HTTPClient(Client):
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",
         }
-        Client.__init__(
-            self,
+        super().__init__(
             base_url=base_url,
             headers=base_headers,
             timeout=timeout,
@@ -42,7 +41,7 @@ class HTTPClient(Client):
         )
 
 
-class HTTPClientAsync(AsyncClient):
+class AsyncHTTPClient(AsyncClient):
     """Async HTTP client for interacting with SoftwareOne Marketplace Platform API."""
 
     def __init__(
@@ -72,8 +71,7 @@ class HTTPClientAsync(AsyncClient):
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",
         }
-        AsyncClient.__init__(
-            self,
+        super().__init__(
             base_url=base_url,
             headers=base_headers,
             timeout=timeout,

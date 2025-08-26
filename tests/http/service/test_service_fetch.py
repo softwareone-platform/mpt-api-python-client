@@ -3,6 +3,7 @@ import pytest
 import respx
 
 from mpt_api_client.rql import RQLQuery
+from tests.conftest import DummyModel
 
 
 @pytest.fixture
@@ -41,22 +42,17 @@ def multiple_results_response():
 
 
 @pytest.fixture
-def no_meta_response():
-    return httpx.Response(httpx.codes.OK, json={"data": [{"id": "ID-1"}]})
-
-
-@pytest.fixture
 def filter_status_active():
     return RQLQuery(status="active")
 
 
-def test_fetch_one_success(collection_client, single_result_response):
+def test_fetch_one_success(dummy_service, single_result_response):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_result_response
         )
 
-        resource = collection_client.fetch_one()
+        resource = dummy_service.fetch_one()
 
     assert resource.id == "ID-1"
     assert resource.name == "Test Resource"
@@ -67,27 +63,27 @@ def test_fetch_one_success(collection_client, single_result_response):
     assert "offset=0" in str(first_request.url)
 
 
-def test_fetch_one_no_results(collection_client, no_results_response):
+def test_fetch_one_no_results(dummy_service, no_results_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=no_results_response)
 
         with pytest.raises(ValueError, match="Expected one result, but got zero results"):
-            collection_client.fetch_one()
+            dummy_service.fetch_one()
 
 
-def test_fetch_one_multiple_results(collection_client, multiple_results_response):
+def test_fetch_one_multiple_results(dummy_service, multiple_results_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=multiple_results_response
         )
 
         with pytest.raises(ValueError, match=r"Expected one result, but got 2 results"):
-            collection_client.fetch_one()
+            dummy_service.fetch_one()
 
 
-def test_fetch_one_with_filters(collection_client, single_result_response, filter_status_active):
+def test_fetch_one_with_filters(dummy_service, single_result_response, filter_status_active):
     filtered_collection = (
-        collection_client.filter(filter_status_active).select("id", "name").order_by("created")
+        dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
 
     with respx.mock:
@@ -108,9 +104,9 @@ def test_fetch_one_with_filters(collection_client, single_result_response, filte
     )
 
 
-def test_fetch_page_with_filter(collection_client, list_response, filter_status_active) -> None:
+def test_fetch_page_with_filter(dummy_service, list_response, filter_status_active) -> None:
     custom_collection = (
-        collection_client.filter(filter_status_active)
+        dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
         .order_by("-created", "name")
     )
@@ -133,3 +129,15 @@ def test_fetch_page_with_filter(collection_client, list_response, filter_status_
     request = mock_route.calls[0].request
     assert request.method == "GET"
     assert request.url == expected_url
+
+
+def test_get(dummy_service):
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test/RES-123").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=resource_data)
+        )
+
+        resource = dummy_service.get("RES-123")
+    assert isinstance(resource, DummyModel)
+    assert resource.to_dict() == resource_data

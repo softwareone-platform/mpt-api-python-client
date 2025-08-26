@@ -1,11 +1,7 @@
 import pytest
 
-from mpt_api_client.models import Collection, Resource
-
-
-@pytest.fixture
-def meta_data():
-    return {"pagination": {"limit": 10, "offset": 0, "total": 3}, "ignored": ["field1"]}
+from mpt_api_client.models import Collection
+from tests.conftest import DummyModel
 
 
 @pytest.fixture
@@ -17,14 +13,16 @@ def response_collection_data():
     ]
 
 
-TestCollection = Collection[Resource]
-
-
 @pytest.fixture
 def empty_collection():
-    return TestCollection()
+    return Collection()
 
 
 @pytest.fixture
-def collection(response_collection_data):
-    return TestCollection(response_collection_data)
+def collection_items(response_collection_data):
+    return [DummyModel(resource_data) for resource_data in response_collection_data]
+
+
+@pytest.fixture
+def collection(collection_items):
+    return Collection(collection_items)

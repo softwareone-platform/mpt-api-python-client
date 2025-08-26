@@ -1,13 +1,7 @@
 import pytest
 
-from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.rql.query_builder import RQLQuery
-from tests.http.conftest import DummyCollectionClientBase
-
-
-@pytest.fixture
-def mock_mpt_client(api_url, api_token):
-    return HTTPClient(base_url=api_url, api_token=api_token)
+from tests.http.conftest import DummyService
 
 
 @pytest.fixture
@@ -16,7 +10,7 @@ def sample_rql_query():
 
 
 def test_init_defaults(http_client):
-    collection_client = DummyCollectionClientBase(http_client=http_client)
+    collection_client = DummyService(http_client=http_client)
 
     assert collection_client.query_rql is None
     assert collection_client.query_order_by is None
@@ -25,7 +19,7 @@ def test_init_defaults(http_client):
 
 
 def test_init_with_filter(http_client, sample_rql_query):
-    collection_client = DummyCollectionClientBase(
+    collection_client = DummyService(
         http_client=http_client,
         query_rql=sample_rql_query,
     )
