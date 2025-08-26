@@ -1,10 +1,10 @@
 import os
 
-from httpx import Client, HTTPTransport
+from httpx import AsyncClient, AsyncHTTPTransport
 
 
-class HTTPClient(Client):
-    """Sync HTTP client for interacting with SoftwareOne Marketplace Platform API."""
+class AsyncHTTPClient(AsyncClient):
+    """Async HTTP client for interacting with SoftwareOne Marketplace Platform API."""
 
     def __init__(
         self,
@@ -37,5 +37,5 @@ class HTTPClient(Client):
             base_url=base_url,
             headers=base_headers,
             timeout=timeout,
-            transport=HTTPTransport(retries=retries),
+            transport=AsyncHTTPTransport(retries=retries),
         )

@@ -1,74 +1,157 @@
+import httpx
 import pytest
 
-from mpt_api_client.http.client import HTTPClient, HTTPClientAsync
-from mpt_api_client.http.collection import AsyncCollectionClientBase, CollectionClientBase
-from mpt_api_client.http.resource import AsyncResourceBaseClient, ResourceBaseClient
-from mpt_api_client.models import Collection
-from tests.conftest import DummyResource
+from mpt_api_client import RQLQuery
+from mpt_api_client.http.async_service import AsyncService
+from mpt_api_client.http.service import Service
+from tests.conftest import DummyModel
 
 
-class DummyResourceClient(ResourceBaseClient[DummyResource]):
-    _endpoint = "/api/v1/test-resource"
-    _resource_class = DummyResource
-
-
-class DummyCollectionClientBase(CollectionClientBase[DummyResource, DummyResourceClient]):
+class DummyService(Service[DummyModel]):
     _endpoint = "/api/v1/test"
-    _resource_class = DummyResource
-    _resource_client_class = DummyResourceClient
-    _collection_class = Collection[DummyResource]
+    _model_class = DummyModel
 
 
-class DummyAsyncResourceClient(AsyncResourceBaseClient[DummyResource]):
-    _endpoint = "/api/v1/test-resource"
-    _resource_class = DummyResource
-
-
-class DummyAsyncCollectionClientBase(
-    AsyncCollectionClientBase[DummyResource, DummyAsyncResourceClient]
-):
+class AsyncDummyService(AsyncService[DummyModel]):
     _endpoint = "/api/v1/test"
-    _resource_class = DummyResource
-    _resource_client_class = DummyAsyncResourceClient
-    _collection_class = Collection[DummyResource]
+    _model_class = DummyModel
 
 
 @pytest.fixture
-def api_url():
-    return "https://api.example.com"
+def dummy_service(http_client) -> DummyService:
+    return DummyService(http_client=http_client)
 
 
 @pytest.fixture
-def api_token():
-    return "test-token"
+def async_dummy_service(async_http_client) -> AsyncDummyService:
+    return AsyncDummyService(http_client=async_http_client)
 
 
 @pytest.fixture
-def http_client(api_url, api_token):
-    return HTTPClient(base_url=api_url, api_token=api_token)
+def single_page_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [
+                {"id": "ID-1", "name": "Resource 1"},
+                {"id": "ID-2", "name": "Resource 2"},
+            ],
+            "$meta": {
+                "pagination": {
+                    "total": 2,
+                    "offset": 0,
+                    "limit": 100,
+                }
+            },
+        },
+    )
 
 
 @pytest.fixture
-def http_client_async(api_url, api_token):
-    return HTTPClientAsync(base_url=api_url, api_token=api_token)
+def multi_page_response_page1():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [
+                {"id": "ID-1", "name": "Resource 1"},
+                {"id": "ID-2", "name": "Resource 2"},
+            ],
+            "$meta": {
+                "pagination": {
+                    "total": 4,
+                    "offset": 0,
+                    "limit": 2,
+                }
+            },
+        },
+    )
 
 
 @pytest.fixture
-def resource_client(http_client):
-    return DummyResourceClient(http_client=http_client, resource_id="RES-123")
+def multi_page_response_page2():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [
+                {"id": "ID-3", "name": "Resource 3"},
+                {"id": "ID-4", "name": "Resource 4"},
+            ],
+            "$meta": {
+                "pagination": {
+                    "total": 4,
+                    "offset": 2,
+                    "limit": 2,
+                }
+            },
+        },
+    )
 
 
 @pytest.fixture
-def collection_client(http_client) -> DummyCollectionClientBase:
-    return DummyCollectionClientBase(http_client=http_client)
+def empty_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [],
+            "$meta": {
+                "pagination": {
+                    "total": 0,
+                    "offset": 0,
+                    "limit": 100,
+                }
+            },
+        },
+    )
 
 
 @pytest.fixture
-def async_collection_client(http_client_async) -> DummyAsyncCollectionClientBase:
-    return DummyAsyncCollectionClientBase(http_client=http_client_async)
+def no_meta_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [
+                {"id": "ID-1", "name": "Resource 1"},
+                {"id": "ID-2", "name": "Resource 2"},
+            ]
+        },
+    )
 
 
 @pytest.fixture
-def async_resource_client(http_client_async):
-    """Create an async resource client for testing."""
-    return DummyAsyncResourceClient(http_client=http_client_async, resource_id="RES-123")
+def list_response():
+    return httpx.Response(httpx.codes.OK, json={"data": [{"id": "ID-1"}]})
+
+
+@pytest.fixture
+def single_result_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [{"id": "ID-1", "name": "Test Resource"}],
+            "$meta": {"pagination": {"total": 1, "offset": 0, "limit": 1}},
+        },
+    )
+
+
+@pytest.fixture
+def no_results_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={"data": [], "$meta": {"pagination": {"total": 0, "offset": 0, "limit": 1}}},
+    )
+
+
+@pytest.fixture
+def multiple_results_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        json={
+            "data": [{"id": "ID-1", "name": "Resource 1"}, {"id": "ID-2", "name": "Resource 2"}],
+            "$meta": {"pagination": {"total": 2, "offset": 0, "limit": 1}},
+        },
+    )
+
+
+@pytest.fixture
+def filter_status_active():
+    return RQLQuery(status="active")

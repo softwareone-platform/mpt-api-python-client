@@ -1,7 +1,7 @@
 import pytest
 from httpx import Response
 
-from mpt_api_client.models import Meta, Resource
+from mpt_api_client.models import Meta, Model
 
 
 @pytest.fixture
@@ -10,7 +10,7 @@ def meta_data():
 
 
 def test_resource_empty():
-    resource = Resource()
+    resource = Model()
 
     assert resource.meta is None
     assert resource.to_dict() == {}
@@ -21,7 +21,7 @@ def test_from_response(meta_data):
     response = Response(200, json=record_data | {"$meta": meta_data})
     expected_meta = Meta.from_response(response)
 
-    resource = Resource.from_response(response)
+    resource = Model.from_response(response)
 
     assert resource.to_dict() == record_data
     assert resource.meta == expected_meta
@@ -33,7 +33,7 @@ def test_attribute_getter(mocker, meta_data):
 
     response = Response(200, json=response_data)
 
-    resource = Resource.from_response(response)
+    resource = Model.from_response(response)
 
     assert resource.id == 1
     assert resource.name.given == "Albert"
@@ -41,7 +41,7 @@ def test_attribute_getter(mocker, meta_data):
 
 def test_attribute_setter():
     resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
-    resource = Resource(resource_data)
+    resource = Model(resource_data)
 
     resource.id = 2
     resource.name.given = "John"
@@ -53,4 +53,4 @@ def test_attribute_setter():
 def test_wrong_data_type():
     response = Response(200, json=1)
     with pytest.raises(TypeError, match=r"Response data must be a dict."):
-        Resource.from_response(response)
+        Model.from_response(response)

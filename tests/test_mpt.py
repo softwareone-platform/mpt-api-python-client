@@ -1,31 +1,40 @@
-from unittest.mock import Mock
-
-from mpt_api_client.mptclient import MPTClient
-from mpt_api_client.resources import OrderCollectionClientBase
-
-
-def test_mapped_module() -> None:
-    mock_registry = Mock()
-    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
-
-    mpt.orders  # noqa: B018
-
-    mock_registry.get.assert_called_once_with("orders")
+from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.mpt_client import AsyncMPTClient, MPTClient
+from mpt_api_client.resources import AsyncCommerce, Commerce
+from tests.conftest import API_TOKEN, API_URL
 
 
-def test_not_mapped_module() -> None:
-    mock_registry = Mock()
-    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key", registry=mock_registry)
+def test_mpt_client() -> None:
+    mpt = MPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
+    commerce = mpt.commerce
 
-    mpt.non_existing_module  # noqa: B018
+    assert isinstance(mpt, MPTClient)
+    assert isinstance(commerce, Commerce)
 
-    mock_registry.get.assert_called_once_with("non_existing_module")
+
+def test_mpt_client_env(monkeypatch):
+    monkeypatch.setenv("MPT_URL", API_URL)
+    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
+
+    mpt = MPTClient()
+
+    assert isinstance(mpt, MPTClient)
+    assert isinstance(mpt.http_client, HTTPClient)
 
 
-def test_subclient_orders_module():
-    mpt = MPTClient(base_url="https://test.example.com", api_key="test-key")
+def test_async_mpt_client() -> None:
+    mpt = AsyncMPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
+    commerce = mpt.commerce
 
-    orders_client = mpt.commerce.orders
+    assert isinstance(mpt, AsyncMPTClient)
+    assert isinstance(commerce, AsyncCommerce)
 
-    assert isinstance(orders_client, OrderCollectionClientBase)
-    assert orders_client.http_client == mpt.http_client
+
+def test_async_mpt_client_env(monkeypatch):
+    monkeypatch.setenv("MPT_URL", API_URL)
+    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
+
+    mpt = AsyncMPTClient()
+
+    assert isinstance(mpt, AsyncMPTClient)
+    assert isinstance(mpt.http_client, AsyncHTTPClient)
