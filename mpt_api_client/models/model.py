@@ -3,11 +3,12 @@ from typing import Any, ClassVar, Self, override
 from box import Box
 from httpx import Response
 
-from mpt_api_client.models.base import BaseResource, ResourceData
 from mpt_api_client.models.meta import Meta
 
+ResourceData = dict[str, Any]
 
-class Resource(BaseResource):
+
+class Model:
     """Provides a resource to interact with api data using fluent interfaces."""
 
     _data_key: ClassVar[str | None] = None
@@ -18,8 +19,8 @@ class Resource(BaseResource):
         self._resource_data = Box(resource_data or {}, camel_killer_box=True, default_box=False)
 
     @classmethod
-    @override
     def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:
+        """Creates a new resource from ResourceData and Meta."""
         return cls(resource_data, meta)
 
     def __getattr__(self, attribute: str) -> Box | Any:
@@ -35,8 +36,12 @@ class Resource(BaseResource):
         self._resource_data.__setattr__(attribute, attribute_value)  # type: ignore[no-untyped-call]
 
     @classmethod
-    @override
     def from_response(cls, response: Response) -> Self:
+        """Creates a collection from a response.
+
+        Args:
+            response: The httpx response object.
+        """
         response_data = response.json()
         if isinstance(response_data, dict):
             response_data.pop("$meta", None)
@@ -47,6 +52,6 @@ class Resource(BaseResource):
         meta = Meta.from_response(response)
         return cls.new(response_data, meta)
 
-    @override
     def to_dict(self) -> dict[str, Any]:
+        """Returns the resource as a dictionary."""
         return self._resource_data.to_dict()
