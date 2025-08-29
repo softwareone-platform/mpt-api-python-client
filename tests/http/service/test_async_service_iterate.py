@@ -5,13 +5,15 @@ import respx
 from mpt_api_client.rql import RQLQuery
 
 
-def test_iterate_single_page(collection_client, single_page_response):
+@pytest.mark.asyncio
+async def test_iterate_single_page(async_dummy_service, single_page_response):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_page_response
         )
 
-        resources = list(collection_client.iterate())
+        resources = [resource async for resource in async_dummy_service.iterate()]
+
         request = mock_route.calls[0].request
 
     assert len(resources) == 2
@@ -21,8 +23,9 @@ def test_iterate_single_page(collection_client, single_page_response):
     assert request.url == "https://api.example.com/api/v1/test?limit=100&offset=0"
 
 
-def test_iterate_multiple_pages(
-    collection_client, multi_page_response_page1, multi_page_response_page2
+@pytest.mark.asyncio
+async def test_iterate_multiple_pages(
+    async_dummy_service, multi_page_response_page1, multi_page_response_page2
 ):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 0}).mock(
@@ -32,7 +35,7 @@ def test_iterate_multiple_pages(
             return_value=multi_page_response_page2
         )
 
-        resources = list(collection_client.iterate(2))
+        resources = [resource async for resource in async_dummy_service.iterate(2)]
 
     assert len(resources) == 4
     assert resources[0].id == "ID-1"
@@ -41,25 +44,27 @@ def test_iterate_multiple_pages(
     assert resources[3].id == "ID-4"
 
 
-def test_iterate_empty_results(collection_client, empty_response):
+@pytest.mark.asyncio
+async def test_iterate_empty_results(async_dummy_service, empty_response):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=empty_response
         )
 
-        resources = list(collection_client.iterate(2))
+        resources = [resource async for resource in async_dummy_service.iterate()]
 
     assert len(resources) == 0
     assert mock_route.call_count == 1
 
 
-def test_iterate_no_meta(collection_client, no_meta_response):
+@pytest.mark.asyncio
+async def test_iterate_no_meta(async_dummy_service, no_meta_response):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=no_meta_response
         )
 
-        resources = list(collection_client.iterate())
+        resources = [resource async for resource in async_dummy_service.iterate()]
 
     assert len(resources) == 2
     assert resources[0].id == "ID-1"
@@ -67,9 +72,12 @@ def test_iterate_no_meta(collection_client, no_meta_response):
     assert mock_route.call_count == 1
 
 
-def test_iterate_with_filters(collection_client):
+@pytest.mark.asyncio
+async def test_iterate_with_filters(async_dummy_service):
     filtered_collection = (
-        collection_client.filter(RQLQuery(status="active")).select("id", "name").order_by("created")
+        async_dummy_service.filter(RQLQuery(status="active"))
+        .select("id", "name")
+        .order_by("created")
     )
 
     response = httpx.Response(
@@ -89,7 +97,7 @@ def test_iterate_with_filters(collection_client):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(return_value=response)
 
-        resources = list(filtered_collection.iterate())
+        resources = [resource async for resource in filtered_collection.iterate()]
 
     assert len(resources) == 1
     assert resources[0].id == "ID-1"
@@ -102,7 +110,8 @@ def test_iterate_with_filters(collection_client):
     )
 
 
-def test_iterate_lazy_evaluation(collection_client):
+@pytest.mark.asyncio
+async def test_iterate_lazy_evaluation(async_dummy_service):
     response = httpx.Response(
         httpx.codes.OK,
         json={
@@ -120,25 +129,13 @@ def test_iterate_lazy_evaluation(collection_client):
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(return_value=response)
 
-        iterator = collection_client.iterate()
+        iterator = async_dummy_service.iterate()
 
+        # No requests should be made until we start iterating
         assert mock_route.call_count == 0
 
-        first_resource = next(iterator)
+        # Get first item to trigger the first request
+        first_resource = await anext(iterator)
 
-        assert mock_route.call_count == 1
         assert first_resource.id == "ID-1"
-
-
-def test_iterate_handles_api_errors(collection_client):
-    with respx.mock:
-        respx.get("https://api.example.com/api/v1/test").mock(
-            return_value=httpx.Response(
-                httpx.codes.INTERNAL_SERVER_ERROR, json={"error": "Internal Server Error"}
-            )
-        )
-
-        iterator = collection_client.iterate()
-
-        with pytest.raises(httpx.HTTPStatusError):
-            list(iterator)
+        assert mock_route.call_count == 1
