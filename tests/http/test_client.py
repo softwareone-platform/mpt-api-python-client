@@ -6,7 +6,7 @@ from mpt_api_client.http.client import HTTPClient
 from tests.conftest import API_TOKEN, API_URL
 
 
-def test_mpt_client_initialization():
+def test_http_initialization():
     client = HTTPClient(base_url=API_URL, api_token=API_TOKEN)
 
     assert client.base_url == API_URL
@@ -24,18 +24,18 @@ def test_env_initialization(monkeypatch):
     assert client.headers["Authorization"] == f"Bearer {API_TOKEN}"
 
 
-def test_mpt_client_without_token():
+def test_http_without_token():
     with pytest.raises(ValueError):
         HTTPClient(base_url=API_URL)
 
 
-def test_mpt_client_without_url():
+def test_http_without_url():
     with pytest.raises(ValueError):
         HTTPClient(api_token=API_TOKEN)
 
 
 @respx.mock
-def test_mock_call_success(http_client):
+def test_http_call_success(http_client):
     success_route = respx.get(f"{API_URL}/").mock(
         return_value=Response(200, json={"message": "Hello, World!"})
     )
@@ -48,7 +48,7 @@ def test_mock_call_success(http_client):
 
 
 @respx.mock
-def test_mock_call_failure(http_client):
+def test_http_call_failure(http_client):
     timeout_route = respx.get(f"{API_URL}/timeout").mock(side_effect=ConnectTimeout("Mock Timeout"))
 
     with pytest.raises(ConnectTimeout):

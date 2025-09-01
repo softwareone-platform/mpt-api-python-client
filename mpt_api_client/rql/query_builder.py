@@ -9,7 +9,7 @@ Numeric = int | float | Decimal
 QueryValue = str | bool | dt.date | dt.datetime | Numeric
 
 
-def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS210 WPS231
+def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS231
     """
     Parse keyword arguments into RQL query expressions.
 
@@ -112,7 +112,7 @@ def rql_encode(op: str, value: Any) -> str:
     raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
 
-class RQLQuery:  # noqa: WPS214
+class RQLQuery:
     """
     Helper class to construct complex RQL queries.
 
@@ -142,11 +142,11 @@ class RQLQuery:  # noqa: WPS214
             rql = RQLQuery().nested.field.eq('value')
     """
 
-    OP_AND = "and"  # noqa: WPS115
-    OP_OR = "or"  # noqa: WPS115
-    OP_ANY = "any"  # noqa: WPS115
-    OP_ALL = "all"  # noqa: WPS115
-    OP_EXPRESSION = "expr"  # noqa: WPS115
+    OP_AND = "and"
+    OP_OR = "or"
+    OP_ANY = "any"
+    OP_ALL = "all"
+    OP_EXPRESSION = "expr"
 
     def __init__(  # noqa: WPS211
         self,

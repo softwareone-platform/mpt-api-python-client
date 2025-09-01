@@ -1,3 +1,3 @@
-from mpt_api_client.resources.order import Order, OrderCollectionClientBase, OrderResourceClient
+from mpt_api_client.resources.commerce import AsyncCommerce, Commerce
 
-__all__ = ["Order", "OrderCollectionClientBase", "OrderResourceClient"]  # noqa: WPS410
+__all__ = ["AsyncCommerce", "Commerce"]  # noqa: WPS410
