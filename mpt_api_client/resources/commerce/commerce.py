@@ -1,4 +1,5 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, OrdersService
 
 
@@ -7,6 +8,11 @@ class Commerce:
 
     def __init__(self, http_client: HTTPClient):
         self.http_client = http_client
+
+    @property
+    def agreements(self) -> AgreementsService:
+        """Agreement service."""
+        return AgreementsService(http_client=self.http_client)
 
     @property
     def orders(self) -> OrdersService:
@@ -19,6 +25,11 @@ class AsyncCommerce:
 
     def __init__(self, http_client: AsyncHTTPClient):
         self.http_client = http_client
+
+    @property
+    def agreements(self) -> AsyncAgreementsService:
+        """Agreement service."""
+        return AsyncAgreementsService(http_client=self.http_client)
 
     @property
     def orders(self) -> AsyncOrdersService:
