@@ -5,7 +5,6 @@ import httpx
 
 from mpt_api_client.http.base_service import ServiceBase
 from mpt_api_client.http.client import HTTPClient
-from mpt_api_client.http.helper import prepare_query_params
 from mpt_api_client.http.types import QueryParam
 from mpt_api_client.models import Collection, ResourceData
 from mpt_api_client.models import Model as BaseModel
@@ -77,17 +76,6 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
                 break
             offset = items_collection.meta.pagination.next_offset()
 
-    def create(self, resource_data: ResourceData) -> Model:
-        """Create a new resource using `POST /endpoint`.
-
-        Returns:
-            New resource created.
-        """
-        response = self.http_client.post(self._endpoint, json=resource_data)
-        response.raise_for_status()
-
-        return self._model_class.from_response(response)
-
     def get(self, resource_id: str, select: list[str] | str | None = None) -> Model:
         """Fetch a specific resource using `GET /endpoint/{resource_id}`.
 
@@ -115,15 +103,6 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
 
         """
         return self._resource_action(resource_id, "PUT", json=resource_data)
-
-    def delete(self, resource_id: str) -> None:
-        """Delete resource using `DELETE /endpoint/{resource_id}`.
-
-        Args:
-            resource_id: Resource ID.
-        """
-        response = self._resource_do_request(resource_id, "DELETE")
-        response.raise_for_status()
 
     def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
         """Fetch one page of resources.
@@ -165,9 +144,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
         """
         resource_url = urljoin(f"{self._endpoint}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
-        response = self.http_client.request(
-            method, url, json=json, params=prepare_query_params(query_params)
-        )
+        response = self.http_client.request(method, url, json=json, params=query_params)
         response.raise_for_status()
         return response
 

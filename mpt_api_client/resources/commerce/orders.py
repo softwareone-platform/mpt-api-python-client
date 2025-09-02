@@ -1,4 +1,11 @@
-from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http import (
+    AsyncCreateMixin,
+    AsyncDeleteMixin,
+    AsyncService,
+    CreateMixin,
+    DeleteMixin,
+    Service,
+)
 from mpt_api_client.models import Model, ResourceData
 
 
@@ -14,7 +21,12 @@ class OrdersServiceConfig:
     _collection_key = "data"
 
 
-class OrdersService(Service[Order], OrdersServiceConfig):
+class OrdersService(  # noqa: WPS215
+    CreateMixin[Order],
+    DeleteMixin,
+    Service[Order],
+    OrdersServiceConfig,
+):
     """Orders service."""
 
     def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
@@ -84,7 +96,12 @@ class OrdersService(Service[Order], OrdersServiceConfig):
         return response.text
 
 
-class AsyncOrdersService(AsyncService[Order], OrdersServiceConfig):
+class AsyncOrdersService(  # noqa: WPS215
+    AsyncCreateMixin[Order],
+    AsyncDeleteMixin,
+    AsyncService[Order],
+    OrdersServiceConfig,
+):
     """Async Orders service."""
 
     async def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
