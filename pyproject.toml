@@ -40,7 +40,7 @@ dev = [
     "pytest-xdist==3.6.*",
     "responses==0.25.*",
     "respx==0.22.*",
-    "ruff==0.12.*",
+    "ruff==0.12.11",  # force ruff version to have same formatting everywhere
     "typing-extensions==4.13.*",
     "wemake-python-styleguide==1.3.*",
 ]

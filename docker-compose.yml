@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: dev.Dockerfile
     working_dir: /mpt_api_client
-    command: bash -c "ruff check . && flake8 . && mypy . && uv lock --check && pytest"
+    command: bash -c "ruff format --check . && ruff check . && flake8 . && mypy . && uv lock --check && pytest"
     volumes:
       - .:/mpt_api_client
 
