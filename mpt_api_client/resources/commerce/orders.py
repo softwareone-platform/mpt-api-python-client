@@ -15,7 +15,7 @@ class OrdersServiceConfig:
 
 
 class OrdersService(Service[Order], OrdersServiceConfig):
-    """Orders client."""
+    """Orders service."""
 
     def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
         """Switch order to validate state.
@@ -85,7 +85,7 @@ class OrdersService(Service[Order], OrdersServiceConfig):
 
 
 class AsyncOrdersService(AsyncService[Order], OrdersServiceConfig):
-    """Async Orders client."""
+    """Async Orders service."""
 
     async def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
         """Switch order to validate state.

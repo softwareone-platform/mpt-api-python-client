@@ -101,7 +101,7 @@ def test_sync_get(dummy_service):
             return_value=httpx.Response(httpx.codes.OK, json=resource_data)
         )
 
-        resource = dummy_service.get("RES-123")
+        resource = dummy_service.get("RES-123", select=["id", "name"])
     assert isinstance(resource, DummyModel)
     assert resource.to_dict() == resource_data
 

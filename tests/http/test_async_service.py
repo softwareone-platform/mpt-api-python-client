@@ -300,6 +300,6 @@ async def test_async_get(async_dummy_service):
             return_value=httpx.Response(httpx.codes.OK, json=resource_data)
         )
 
-        resource = await async_dummy_service.get("RES-123")
+        resource = await async_dummy_service.get("RES-123", select=["id", "name"])
     assert isinstance(resource, DummyModel)
     assert resource.to_dict() == resource_data
