@@ -2,17 +2,23 @@ import httpx
 import pytest
 
 from mpt_api_client import RQLQuery
-from mpt_api_client.http.async_service import AsyncService
-from mpt_api_client.http.service import Service
+from mpt_api_client.http import (
+    AsyncCreateMixin,
+    AsyncDeleteMixin,
+    AsyncService,
+    CreateMixin,
+    DeleteMixin,
+    Service,
+)
 from tests.conftest import DummyModel
 
 
-class DummyService(Service[DummyModel]):
+class DummyService(CreateMixin[DummyModel], DeleteMixin, Service[DummyModel]):
     _endpoint = "/api/v1/test"
     _model_class = DummyModel
 
 
-class AsyncDummyService(AsyncService[DummyModel]):
+class AsyncDummyService(AsyncCreateMixin[DummyModel], AsyncDeleteMixin, AsyncService[DummyModel]):
     _endpoint = "/api/v1/test"
     _model_class = DummyModel
 

@@ -5,6 +5,7 @@ import httpx
 
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.base_service import ServiceBase
+from mpt_api_client.http.types import QueryParam
 from mpt_api_client.models import Collection, ResourceData
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.collection import ResourceList
@@ -23,7 +24,11 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
     """
 
     async def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[Model]:
-        """Fetch one page of resources."""
+        """Fetch one page of resources.
+
+        Returns:
+            Collection of resources.
+        """
         response = await self._fetch_page_as_response(limit=limit, offset=offset)
         return self._create_collection(response)
 
@@ -72,30 +77,32 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
                 break
             offset = items_collection.meta.pagination.next_offset()
 
-    async def create(self, resource_data: ResourceData) -> Model:
-        """Create a new resource using `POST /endpoint`.
+    async def get(self, resource_id: str, select: list[str] | str | None = None) -> Model:
+        """Fetch a specific resource using `GET /endpoint/{resource_id}`.
+
+        Args:
+            resource_id: Resource ID.
+            select: List of fields to select.
 
         Returns:
-            New resource created.
+            Resource object.
         """
-        response = await self.http_client.post(self._endpoint, json=resource_data)
-        response.raise_for_status()
-
-        return self._model_class.from_response(response)
-
-    async def get(self, resource_id: str) -> Model:
-        """Fetch a specific resource using `GET /endpoint/{resource_id}`."""
-        return await self._resource_action(resource_id=resource_id)
+        if isinstance(select, list):
+            select = ",".join(select) if select else None
+        return await self._resource_action(resource_id=resource_id, query_params={"select": select})
 
     async def update(self, resource_id: str, resource_data: ResourceData) -> Model:
-        """Update a resource using `PUT /endpoint/{resource_id}`."""
-        return await self._resource_action(resource_id, "PUT", json=resource_data)
+        """Update a resource using `PUT /endpoint/{resource_id}`.
 
-    async def delete(self, resource_id: str) -> None:
-        """Delete resource using `DELETE /endpoint/{resource_id}`."""
-        url = urljoin(f"{self._endpoint}/", resource_id)
-        response = await self.http_client.delete(url)
-        response.raise_for_status()
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+
+        Returns:
+            Resource object.
+
+        """
+        return await self._resource_action(resource_id, "PUT", json=resource_data)
 
     async def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
         """Fetch one page of resources.
@@ -118,6 +125,7 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
         method: str = "GET",
         action: str | None = None,
         json: ResourceData | ResourceList | None = None,
+        query_params: QueryParam | None = None,
     ) -> httpx.Response:
         """Perform an action on a specific resource using.
 
@@ -129,13 +137,14 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
             method: The HTTP method to use.
             action: The action name to use.
             json: The updated resource data.
+            query_params: Additional query parameters.
 
         Raises:
             HTTPError: If the action fails.
         """
         resource_url = urljoin(f"{self._endpoint}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
-        response = await self.http_client.request(method, url, json=json)
+        response = await self.http_client.request(method, url, json=json, params=query_params)
         response.raise_for_status()
         return response
 
@@ -145,7 +154,18 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
         method: str = "GET",
         action: str | None = None,
         json: ResourceData | ResourceList | None = None,
+        query_params: QueryParam | None = None,
     ) -> Model:
-        """Perform an action on a specific resource using `HTTP_METHOD /endpoint/{resource_id}`."""
-        response = await self._resource_do_request(resource_id, method, action, json=json)
+        """Perform an action on a specific resource using `HTTP_METHOD /endpoint/{resource_id}`.
+
+        Args:
+            resource_id: The resource ID to operate on.
+            method: The HTTP method to use.
+            action: The action name to use.
+            json: The updated resource data.
+            query_params: Additional query parameters.
+        """
+        response = await self._resource_do_request(
+            resource_id, method, action, json=json, query_params=query_params
+        )
         return self._model_class.from_response(response)
