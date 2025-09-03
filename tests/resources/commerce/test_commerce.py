@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient
 from mpt_api_client.resources.commerce import AsyncCommerce, Commerce
+from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, OrdersService
 
 
@@ -55,3 +56,21 @@ def test_async_commerce_orders_multiple_calls(async_http_client: AsyncHTTPClient
     assert orders_service is not orders_service_additional
     assert isinstance(orders_service, AsyncOrdersService)
     assert isinstance(orders_service_additional, AsyncOrdersService)
+
+
+def test_async_agreements(async_http_client):
+    commerce = AsyncCommerce(http_client=async_http_client)
+
+    agreements = commerce.agreements
+
+    assert isinstance(agreements, AsyncAgreementsService)
+    assert agreements.http_client is async_http_client
+
+
+def test_agreements(http_client):
+    commerce = Commerce(http_client=http_client)
+
+    agreements = commerce.agreements
+
+    assert isinstance(agreements, AgreementsService)
+    assert agreements.http_client is http_client
