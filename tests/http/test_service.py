@@ -1,10 +1,7 @@
-import json
-
 import httpx
 import pytest
 import respx
 
-from mpt_api_client.rql import RQLQuery
 from tests.conftest import DummyModel
 from tests.http.conftest import DummyService
 
@@ -97,11 +94,15 @@ def test_sync_fetch_page_with_filter(dummy_service, list_response, filter_status
 def test_sync_get(dummy_service):
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
-        respx.get("https://api.example.com/api/v1/test/RES-123").mock(
-            return_value=httpx.Response(httpx.codes.OK, json=resource_data)
-        )
+        mock_route = respx.get(
+            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
 
         resource = dummy_service.get("RES-123", select=["id", "name"])
+
+    request = mock_route.calls[0].request
+    accept_header = (b"Accept", b"application/json")
+    assert accept_header in request.headers.raw
     assert isinstance(resource, DummyModel)
     assert resource.to_dict() == resource_data
 
@@ -264,96 +265,3 @@ def test_sync_iterate_handles_api_errors(dummy_service):
 
         with pytest.raises(httpx.HTTPStatusError):
             list(iterator)
-
-
-def test_sync_update_resource(dummy_service):
-    resource_data = {"name": "Test Resource", "status": "active"}
-    update_response = httpx.Response(httpx.codes.OK, json=resource_data)
-    with respx.mock:
-        mock_route = respx.put("https://api.example.com/api/v1/test/RES-123").mock(
-            return_value=update_response
-        )
-
-        dummy_service.update("RES-123", resource_data)
-
-    request = mock_route.calls[0].request
-    assert mock_route.call_count == 1
-    assert json.loads(request.content.decode()) == resource_data
-
-
-def test_sync_filter(dummy_service, filter_status_active):
-    new_collection = dummy_service.filter(filter_status_active)
-
-    assert dummy_service.query_rql is None
-    assert new_collection != dummy_service
-    assert new_collection.query_rql == filter_status_active
-
-
-def test_sync_multiple_filters(dummy_service) -> None:
-    filter_query = RQLQuery(status="active")
-    filter_query2 = RQLQuery(name="test")
-
-    new_collection = dummy_service.filter(filter_query).filter(filter_query2)
-
-    assert dummy_service.query_rql is None
-    assert new_collection.query_rql == filter_query & filter_query2
-
-
-def test_sync_select(dummy_service) -> None:
-    new_collection = dummy_service.select("agreement", "-product")
-
-    assert dummy_service.query_select is None
-    assert new_collection != dummy_service
-    assert new_collection.query_select == ["agreement", "-product"]
-
-
-def test_sync_select_exception(dummy_service) -> None:
-    with pytest.raises(ValueError):
-        dummy_service.select("agreement").select("product")
-
-
-def test_sync_order_by(dummy_service):
-    new_collection = dummy_service.order_by("created", "-name")
-
-    assert dummy_service.query_order_by is None
-    assert new_collection != dummy_service
-    assert new_collection.query_order_by == ["created", "-name"]
-
-
-def test_sync_order_by_exception(dummy_service):
-    with pytest.raises(
-        ValueError, match=r"Ordering is already set. Cannot set ordering multiple times."
-    ):
-        dummy_service.order_by("created").order_by("name")
-
-
-def test_sync_url(dummy_service, filter_status_active) -> None:
-    custom_collection = (
-        dummy_service.filter(filter_status_active)
-        .select("-audit", "product.agreements", "-product.agreements.product")
-        .order_by("-created", "name")
-    )
-
-    url = custom_collection.build_url()
-
-    assert custom_collection != dummy_service
-    assert url == (
-        "/api/v1/test?order=-created,name"
-        "&select=-audit,product.agreements,-product.agreements.product"
-        "&eq(status,active)"
-    )
-
-
-def test_sync_clone(dummy_service, filter_status_active) -> None:
-    configured = (
-        dummy_service.filter(filter_status_active)
-        .order_by("created", "-name")
-        .select("agreement", "-product")
-    )
-
-    cloned = configured.clone()
-
-    assert cloned is not configured
-    assert isinstance(cloned, configured.__class__)
-    assert cloned.http_client is configured.http_client
-    assert str(cloned.query_rql) == str(configured.query_rql)

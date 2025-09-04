@@ -219,3 +219,13 @@ async def test_async_template(async_orders_service):
         template = await async_orders_service.template("ORD-123")
 
         assert template == template_content
+
+
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+def test_mixins_present(orders_service, method):
+    assert hasattr(orders_service, method)
+
+
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+def test_async_mixins_present(async_orders_service, method):
+    assert hasattr(async_orders_service, method)
