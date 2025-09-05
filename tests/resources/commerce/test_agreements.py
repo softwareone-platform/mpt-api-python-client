@@ -1,7 +1,12 @@
 import httpx
+import pytest
 import respx
 
 from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
+from mpt_api_client.resources.commerce.agreements_attachments import (
+    AgreementsAttachmentService,
+    AsyncAgreementsAttachmentService,
+)
 
 
 async def test_async_template(async_http_client):
@@ -39,3 +44,33 @@ def test_template(http_client):
         assert mock_route.called
         assert mock_route.call_count == 1
         assert markdown_template == "# Order Template\n\nThis is a markdown template."
+
+
+def test_attachments_service(http_client):
+    agreements_service = AgreementsService(http_client=http_client)
+
+    attachments = agreements_service.attachments("AGR-123")
+
+    assert isinstance(attachments, AgreementsAttachmentService)
+    assert attachments.endpoint_params == {"agreement_id": "AGR-123"}
+
+
+def test_async_attachments_service(http_client):
+    agreements_service = AsyncAgreementsService(http_client=http_client)
+
+    attachments = agreements_service.attachments("AGR-123")
+
+    assert isinstance(attachments, AsyncAgreementsAttachmentService)
+    assert attachments.endpoint_params == {"agreement_id": "AGR-123"}
+
+
+@pytest.mark.parametrize("method", ["create", "update", "get"])
+def test_mixins_present(http_client, method):
+    service = AgreementsService(http_client=http_client)
+    assert hasattr(service, method)
+
+
+@pytest.mark.parametrize("method", ["create", "update", "get"])
+def test_async_mixins_present(async_http_client, method):
+    service = AgreementsService(http_client=async_http_client)
+    assert hasattr(service, method)

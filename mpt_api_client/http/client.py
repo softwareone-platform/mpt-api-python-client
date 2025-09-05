@@ -32,6 +32,7 @@ class HTTPClient(Client):
         base_headers = {
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",
+            "content-type": "application/json",
         }
         super().__init__(
             base_url=base_url,

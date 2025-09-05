@@ -10,15 +10,26 @@ from mpt_api_client.http import (
     DeleteMixin,
     Service,
 )
+from mpt_api_client.http.mixins import AsyncUpdateMixin, UpdateMixin
 from tests.conftest import DummyModel
 
 
-class DummyService(CreateMixin[DummyModel], DeleteMixin, Service[DummyModel]):
+class DummyService(  # noqa: WPS215
+    CreateMixin[DummyModel],
+    DeleteMixin,
+    UpdateMixin[DummyModel],
+    Service[DummyModel],
+):
     _endpoint = "/api/v1/test"
     _model_class = DummyModel
 
 
-class AsyncDummyService(AsyncCreateMixin[DummyModel], AsyncDeleteMixin, AsyncService[DummyModel]):
+class AsyncDummyService(  # noqa: WPS215
+    AsyncCreateMixin[DummyModel],
+    AsyncDeleteMixin,
+    AsyncUpdateMixin[DummyModel],
+    AsyncService[DummyModel],
+):
     _endpoint = "/api/v1/test"
     _model_class = DummyModel
 

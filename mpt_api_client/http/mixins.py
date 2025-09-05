@@ -12,7 +12,7 @@ class CreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = self.http_client.post(self._endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
         response.raise_for_status()
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
@@ -31,6 +31,23 @@ class DeleteMixin:
         response.raise_for_status()
 
 
+class UpdateMixin[Model]:
+    """Update resource mixin."""
+
+    def update(self, resource_id: str, resource_data: ResourceData) -> Model:
+        """Update a resource using `PUT /endpoint/{resource_id}`.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+
+        Returns:
+            Resource object.
+
+        """
+        return self._resource_action(resource_id, "PUT", json=resource_data)  # type: ignore[attr-defined, no-any-return]
+
+
 class AsyncCreateMixin[Model]:
     """Create resource mixin."""
 
@@ -40,7 +57,7 @@ class AsyncCreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = await self.http_client.post(self._endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = await self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
         response.raise_for_status()
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
@@ -55,6 +72,23 @@ class AsyncDeleteMixin:
         Args:
             resource_id: Resource ID.
         """
-        url = urljoin(f"{self._endpoint}/", resource_id)  # type: ignore[attr-defined]
+        url = urljoin(f"{self.endpoint}/", resource_id)  # type: ignore[attr-defined]
         response = await self.http_client.delete(url)  # type: ignore[attr-defined]
         response.raise_for_status()
+
+
+class AsyncUpdateMixin[Model]:
+    """Update resource mixin."""
+
+    async def update(self, resource_id: str, resource_data: ResourceData) -> Model:
+        """Update a resource using `PUT /endpoint/{resource_id}`.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+
+        Returns:
+            Resource object.
+
+        """
+        return await self._resource_action(resource_id, "PUT", json=resource_data)  # type: ignore[attr-defined, no-any-return]
