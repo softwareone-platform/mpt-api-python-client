@@ -1,5 +1,3 @@
-import json
-
 import httpx
 import pytest
 import respx
@@ -244,29 +242,17 @@ async def test_async_iterate_lazy_evaluation(async_dummy_service):
         assert mock_route.call_count == 1
 
 
-async def test_async_update_resource(async_dummy_service):  # noqa: WPS210
-    resource_data = {"name": "Test Resource", "status": "active"}
-    update_response = httpx.Response(httpx.codes.OK, json=resource_data)
-
-    with respx.mock:
-        mock_route = respx.put("https://api.example.com/api/v1/test/RES-123").mock(
-            return_value=update_response
-        )
-
-        await async_dummy_service.update("RES-123", resource_data)
-
-    request = mock_route.calls[0].request
-    assert mock_route.call_count == 1
-    assert json.loads(request.content.decode()) == resource_data
-
-
 async def test_async_get(async_dummy_service):
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
-        respx.get("https://api.example.com/api/v1/test/RES-123").mock(
-            return_value=httpx.Response(httpx.codes.OK, json=resource_data)
-        )
+        mock_route = respx.get(
+            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
 
         resource = await async_dummy_service.get("RES-123", select=["id", "name"])
+
+    request = mock_route.calls[0].request
+    accept_header = (b"Accept", b"application/json")
+    assert accept_header in request.headers.raw
     assert isinstance(resource, DummyModel)
     assert resource.to_dict() == resource_data

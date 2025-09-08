@@ -91,19 +91,6 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
             select = ",".join(select) if select else None
         return await self._resource_action(resource_id=resource_id, query_params={"select": select})
 
-    async def update(self, resource_id: str, resource_data: ResourceData) -> Model:
-        """Update a resource using `PUT /endpoint/{resource_id}`.
-
-        Args:
-            resource_id: Resource ID.
-            resource_data: Resource data.
-
-        Returns:
-            Resource object.
-
-        """
-        return await self._resource_action(resource_id, "PUT", json=resource_data)
-
     async def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
         """Fetch one page of resources.
 
@@ -119,13 +106,14 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
 
         return response
 
-    async def _resource_do_request(
+    async def _resource_do_request(  # noqa: WPS211
         self,
         resource_id: str,
         method: str = "GET",
         action: str | None = None,
         json: ResourceData | ResourceList | None = None,
         query_params: QueryParam | None = None,
+        headers: dict[str, str] | None = None,
     ) -> httpx.Response:
         """Perform an action on a specific resource using.
 
@@ -138,13 +126,16 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
             action: The action name to use.
             json: The updated resource data.
             query_params: Additional query parameters.
+            headers: Additional headers.
 
         Raises:
             HTTPError: If the action fails.
         """
-        resource_url = urljoin(f"{self._endpoint}/", resource_id)
+        resource_url = urljoin(f"{self.endpoint}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
-        response = await self.http_client.request(method, url, json=json, params=query_params)
+        response = await self.http_client.request(
+            method, url, json=json, params=query_params, headers=headers
+        )
         response.raise_for_status()
         return response
 

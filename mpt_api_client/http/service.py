@@ -11,7 +11,7 @@ from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.collection import ResourceList
 
 
-class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
+class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
     """Immutable service for RESTful resource collections.
 
     Examples:
@@ -91,19 +91,6 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
 
         return self._resource_action(resource_id=resource_id, query_params={"select": select})
 
-    def update(self, resource_id: str, resource_data: ResourceData) -> Model:
-        """Update a resource using `PUT /endpoint/{resource_id}`.
-
-        Args:
-            resource_id: Resource ID.
-            resource_data: Resource data.
-
-        Returns:
-            Resource object.
-
-        """
-        return self._resource_action(resource_id, "PUT", json=resource_data)
-
     def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
         """Fetch one page of resources.
 
@@ -119,13 +106,14 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
 
         return response
 
-    def _resource_do_request(
+    def _resource_do_request(  # noqa: WPS211
         self,
         resource_id: str,
         method: str = "GET",
         action: str | None = None,
         json: ResourceData | ResourceList | None = None,
         query_params: QueryParam | None = None,
+        headers: dict[str, str] | None = None,
     ) -> httpx.Response:
         """Perform an action on a specific resource using `HTTP_METHOD /endpoint/{resource_id}`.
 
@@ -135,6 +123,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
             action: The action name to use.
             json: The updated resource data.
             query_params: Additional query parameters.
+            headers: Additional headers.
 
         Returns:
             HTTP response object.
@@ -142,9 +131,11 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
         Raises:
             HTTPError: If the action fails.
         """
-        resource_url = urljoin(f"{self._endpoint}/", resource_id)
+        resource_url = urljoin(f"{self.endpoint}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
-        response = self.http_client.request(method, url, json=json, params=query_params)
+        response = self.http_client.request(
+            method, url, json=json, params=query_params, headers=headers
+        )
         response.raise_for_status()
         return response
 
@@ -166,6 +157,11 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):
             query_params: Additional query parameters.
         """
         response = self._resource_do_request(
-            resource_id, method, action, json=json, query_params=query_params
+            resource_id,
+            method,
+            action,
+            json=json,
+            query_params=query_params,
+            headers={"Accept": "application/json"},
         )
         return self._model_class.from_response(response)
