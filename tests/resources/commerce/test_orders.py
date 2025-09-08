@@ -3,6 +3,10 @@ import pytest
 import respx
 
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, Order, OrdersService
+from mpt_api_client.resources.commerce.orders_subscription import (
+    AsyncOrderSubscriptionsService,
+    OrderSubscriptionsService,
+)
 
 
 @pytest.fixture
@@ -219,6 +223,24 @@ async def test_async_template(async_orders_service):
         template = await async_orders_service.template("ORD-123")
 
         assert template == template_content
+
+
+def test_subscription_service(http_client):
+    orders_service = OrdersService(http_client=http_client)
+
+    subscriptions = orders_service.subscriptions("ORD-123")
+
+    assert isinstance(subscriptions, OrderSubscriptionsService)
+    assert subscriptions.endpoint_params == {"order_id": "ORD-123"}
+
+
+def test_async_subscription_service(async_http_client):
+    orders_service = AsyncOrdersService(http_client=async_http_client)
+
+    subscriptions = orders_service.subscriptions("ORD-123")
+
+    assert isinstance(subscriptions, AsyncOrderSubscriptionsService)
+    assert subscriptions.endpoint_params == {"order_id": "ORD-123"}
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])

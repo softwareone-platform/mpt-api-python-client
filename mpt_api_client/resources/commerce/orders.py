@@ -8,6 +8,10 @@ from mpt_api_client.http import (
 )
 from mpt_api_client.http.mixins import AsyncUpdateMixin, UpdateMixin
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.resources.commerce.orders_subscription import (
+    AsyncOrderSubscriptionsService,
+    OrderSubscriptionsService,
+)
 
 
 class Order(Model):
@@ -22,7 +26,7 @@ class OrdersServiceConfig:
     _collection_key = "data"
 
 
-class OrdersService(  # noqa: WPS215
+class OrdersService(  # noqa: WPS215 WPS214
     CreateMixin[Order],
     DeleteMixin,
     UpdateMixin[Order],
@@ -97,8 +101,22 @@ class OrdersService(  # noqa: WPS215
         response = self._resource_do_request(resource_id, "GET", "template")
         return response.text
 
+    def subscriptions(self, order_id: str) -> OrderSubscriptionsService:
+        """Get the subscription service for the given Order id.
 
-class AsyncOrdersService(  # noqa: WPS215
+        Args:
+            order_id: Order ID.
+
+        Returns:
+            Order Subscription service.
+        """
+        return OrderSubscriptionsService(
+            http_client=self.http_client,
+            endpoint_params={"order_id": order_id},
+        )
+
+
+class AsyncOrdersService(  # noqa: WPS215 WPS214
     AsyncCreateMixin[Order],
     AsyncDeleteMixin,
     AsyncUpdateMixin[Order],
@@ -187,3 +205,17 @@ class AsyncOrdersService(  # noqa: WPS215
         """
         response = await self._resource_do_request(resource_id, "GET", "template")
         return response.text
+
+    def subscriptions(self, order_id: str) -> AsyncOrderSubscriptionsService:
+        """Get the subscription service for the given Order id.
+
+        Args:
+            order_id: Order ID.
+
+        Returns:
+            Order Subscription service.
+        """
+        return AsyncOrderSubscriptionsService(
+            http_client=self.http_client,
+            endpoint_params={"order_id": order_id},
+        )
