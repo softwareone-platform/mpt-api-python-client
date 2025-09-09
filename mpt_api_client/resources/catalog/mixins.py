@@ -1,0 +1,75 @@
+from mpt_api_client.models import ResourceData
+
+
+class PublishableMixin[Model]:
+    """Publishable mixin adds the ability to review, publish and unpublish."""
+
+    def review(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to Pending.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "review", json=resource_data
+        )
+
+    def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to Published.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "publish", json=resource_data
+        )
+
+    def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to Unpublished.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "unpublish", json=resource_data
+        )
+
+
+class AsyncPublishableMixin[Model]:
+    """Publishable mixin adds the ability to review, publish and unpublish."""
+
+    async def review(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to reviewing.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "review", json=resource_data
+        )
+
+    async def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to Published.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "publish", json=resource_data
+        )
+
+    async def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Update state to Unpublished.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "unpublish", json=resource_data
+        )
