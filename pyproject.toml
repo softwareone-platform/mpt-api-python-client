@@ -58,7 +58,7 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 testpaths = "tests"
 pythonpath = "."
-addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml"
+addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml --import-mode=importlib"
 log_cli = false
 asyncio_mode = "auto"
 filterwarnings = [

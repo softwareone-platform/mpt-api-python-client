@@ -1,7 +1,7 @@
 from typing import Self
 
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
-from mpt_api_client.resources import AsyncCommerce, Commerce
+from mpt_api_client.resources import AsyncCatalog, AsyncCommerce, Catalog, Commerce
 
 
 class AsyncMPTClient:
@@ -28,7 +28,12 @@ class AsyncMPTClient:
         return cls(AsyncHTTPClient(base_url=base_url, api_token=api_token))
 
     @property
-    def commerce(self) -> "AsyncCommerce":
+    def catalog(self) -> AsyncCatalog:
+        """Catalog MPT API Client."""
+        return AsyncCatalog(http_client=self.http_client)
+
+    @property
+    def commerce(self) -> AsyncCommerce:
         """Commerce MPT API Client."""
         return AsyncCommerce(http_client=self.http_client)
 
@@ -57,7 +62,7 @@ class MPTClient:
         return cls(HTTPClient(base_url=base_url, api_token=api_token))
 
     @property
-    def commerce(self) -> "Commerce":
+    def commerce(self) -> Commerce:
         """Commerce MPT API Client.
 
         The Commerce API provides a comprehensive set of endpoints
@@ -65,3 +70,8 @@ class MPTClient:
         within a vendor-client-ops ecosystem.
         """
         return Commerce(http_client=self.http_client)
+
+    @property
+    def catalog(self) -> Catalog:
+        """Catalog MPT API Client."""
+        return Catalog(http_client=self.http_client)
