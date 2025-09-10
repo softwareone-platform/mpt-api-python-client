@@ -11,6 +11,10 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.catalog.products_item_groups import (
+    AsyncItemGroupsService,
+    ItemGroupsService,
+)
 from mpt_api_client.resources.catalog.products_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
@@ -43,6 +47,12 @@ class ProductsService(
 ):
     """Products service."""
 
+    def item_groups(self, product_id: str) -> ItemGroupsService:
+        """Return item_groups service."""
+        return ItemGroupsService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
     def parameter_groups(self, product_id: str) -> ParameterGroupsService:
         """Return parameter_groups service."""
         return ParameterGroupsService(
@@ -65,6 +75,12 @@ class AsyncProductsService(
     ProductsServiceConfig,
 ):
     """Products service."""
+
+    def item_groups(self, product_id: str) -> AsyncItemGroupsService:
+        """Return item_groups service."""
+        return AsyncItemGroupsService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
 
     def parameter_groups(self, product_id: str) -> AsyncParameterGroupsService:
         """Return parameter_groups service."""
