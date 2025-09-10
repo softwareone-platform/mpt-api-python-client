@@ -1,6 +1,10 @@
 import pytest
 
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
+from mpt_api_client.resources.catalog.products_item_groups import (
+    AsyncItemGroupsService,
+    ItemGroupsService,
+)
 from mpt_api_client.resources.catalog.products_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
@@ -38,6 +42,7 @@ def test_async_mixins_present(async_products_service, method):
 @pytest.mark.parametrize(
     ("service_method", "expected_service_class"),
     [
+        ("item_groups", ItemGroupsService),
         ("parameter_groups", ParameterGroupsService),
         ("product_parameters", ParametersService),
     ],
@@ -52,6 +57,7 @@ def test_property_services(products_service, service_method, expected_service_cl
 @pytest.mark.parametrize(
     ("service_method", "expected_service_class"),
     [
+        ("item_groups", AsyncItemGroupsService),
         ("parameter_groups", AsyncParameterGroupsService),
         ("product_parameters", AsyncParametersService),
     ],
