@@ -28,3 +28,11 @@ def test_mixins_present(subscription_service, method):
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_async_mixins_present(async_subscription_service, method):
     assert hasattr(async_subscription_service, method)
+
+
+def test_endpoint(subscription_service):
+    assert subscription_service.endpoint == "/public/v1/commerce/orders/ORD-123/subscriptions"
+
+
+def test_async_endpoint(async_subscription_service):
+    assert async_subscription_service.endpoint == "/public/v1/commerce/orders/ORD-123/subscriptions"
