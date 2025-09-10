@@ -11,6 +11,10 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.catalog.product_terms import (
+    AsyncTermService,
+    TermService,
+)
 from mpt_api_client.resources.catalog.products_documents import (
     AsyncDocumentService,
     DocumentService,
@@ -95,6 +99,10 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def terms(self, product_id: str) -> TermService:
+        """Return terms service."""
+        return TermService(http_client=self.http_client, endpoint_params={"product_id": product_id})
+
 
 class AsyncProductsService(
     AsyncCreateMixin[Product],
@@ -139,5 +147,11 @@ class AsyncProductsService(
     def templates(self, product_id: str) -> AsyncTemplatesService:
         """Return templates service."""
         return AsyncTemplatesService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def terms(self, product_id: str) -> AsyncTermService:
+        """Return terms service."""
+        return AsyncTermService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
