@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from mpt_api_client.resources.catalog.products_parameter_groups import (
@@ -9,14 +7,14 @@ from mpt_api_client.resources.catalog.products_parameter_groups import (
 
 
 @pytest.fixture
-def parameter_groups_service(http_client: Any) -> ParameterGroupsService:
+def parameter_groups_service(http_client):
     return ParameterGroupsService(
         http_client=http_client, endpoint_params={"product_id": "PRD-001"}
     )
 
 
 @pytest.fixture
-def async_parameter_groups_service(async_http_client: Any) -> AsyncParameterGroupsService:
+def async_parameter_groups_service(async_http_client):
     return AsyncParameterGroupsService(
         http_client=async_http_client, endpoint_params={"product_id": "PRD-001"}
     )

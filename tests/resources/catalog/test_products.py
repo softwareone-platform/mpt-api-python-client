@@ -5,6 +5,10 @@ from mpt_api_client.resources.catalog.products_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
 )
+from mpt_api_client.resources.catalog.products_parameters import (
+    AsyncParametersService,
+    ParametersService,
+)
 
 
 @pytest.fixture
@@ -31,15 +35,29 @@ def test_async_mixins_present(async_products_service, method):
     assert hasattr(async_products_service, method)
 
 
-def test_parameters_groups_service(products_service):
-    parameters_groups_service = products_service.parameter_groups("PRD-001")
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("parameter_groups", ParameterGroupsService),
+        ("product_parameters", ParametersService),
+    ],
+)
+def test_property_services(products_service, service_method, expected_service_class):
+    property_service = getattr(products_service, service_method)("PRD-001")
 
-    assert isinstance(parameters_groups_service, ParameterGroupsService)
-    assert parameters_groups_service.endpoint_params == {"product_id": "PRD-001"}
+    assert isinstance(property_service, expected_service_class)
+    assert property_service.endpoint_params == {"product_id": "PRD-001"}
 
 
-def test_async_parameters_groups_service(async_products_service):
-    parameters_groups_service = async_products_service.parameter_groups("PRD-001")
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("parameter_groups", AsyncParameterGroupsService),
+        ("product_parameters", AsyncParametersService),
+    ],
+)
+def test_async_property_services(async_products_service, service_method, expected_service_class):
+    property_service = getattr(async_products_service, service_method)("PRD-001")
 
-    assert isinstance(parameters_groups_service, AsyncParameterGroupsService)
-    assert parameters_groups_service.endpoint_params == {"product_id": "PRD-001"}
+    assert isinstance(property_service, expected_service_class)
+    assert property_service.endpoint_params == {"product_id": "PRD-001"}

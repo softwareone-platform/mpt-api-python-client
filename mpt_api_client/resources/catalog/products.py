@@ -15,6 +15,10 @@ from mpt_api_client.resources.catalog.products_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
 )
+from mpt_api_client.resources.catalog.products_parameters import (
+    AsyncParametersService,
+    ParametersService,
+)
 
 
 class Product(Model):
@@ -45,6 +49,12 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def product_parameters(self, product_id: str) -> ParametersService:
+        """Return product_parameters service."""
+        return ParametersService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
 
 class AsyncProductsService(
     AsyncCreateMixin[Product],
@@ -59,5 +69,11 @@ class AsyncProductsService(
     def parameter_groups(self, product_id: str) -> AsyncParameterGroupsService:
         """Return parameter_groups service."""
         return AsyncParameterGroupsService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def product_parameters(self, product_id: str) -> AsyncParametersService:
+        """Return product_parameters service."""
+        return AsyncParametersService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )

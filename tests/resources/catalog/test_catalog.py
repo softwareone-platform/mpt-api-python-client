@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from mpt_api_client.resources.catalog.catalog import AsyncCatalog, Catalog
@@ -8,12 +6,12 @@ from mpt_api_client.resources.catalog.products import AsyncProductsService, Prod
 
 
 @pytest.fixture
-def catalog(http_client: Any) -> Catalog:
+def catalog(http_client):
     return Catalog(http_client=http_client)
 
 
 @pytest.fixture
-def async_catalog(async_http_client: Any) -> AsyncCatalog:
+def async_catalog(async_http_client):
     return AsyncCatalog(http_client=async_http_client)
 
 
@@ -24,9 +22,7 @@ def async_catalog(async_http_client: Any) -> AsyncCatalog:
         ("items", ItemsService),
     ],
 )
-def test_catalog_properties(
-    catalog: Catalog, property_name: str, expected_service_class: type
-) -> None:
+def test_catalog_properties(catalog, property_name, expected_service_class):
     """Test that Catalog properties return correct instances."""
     service = getattr(catalog, property_name)
 
@@ -41,9 +37,7 @@ def test_catalog_properties(
         ("items", AsyncItemsService),
     ],
 )
-def test_async_catalog_properties(
-    async_catalog: AsyncCatalog, property_name: str, expected_service_class: type
-) -> None:
+def test_async_catalog_properties(async_catalog, property_name, expected_service_class):
     """Test that AsyncCatalog properties return correct instances."""
     service = getattr(async_catalog, property_name)
 
@@ -51,7 +45,7 @@ def test_async_catalog_properties(
     assert service.http_client is async_catalog.http_client
 
 
-def test_catalog_initialization(http_client: Any) -> None:
+def test_catalog_initialization(http_client):
     """Test that Catalog can be properly initialized with http_client."""
     catalog = Catalog(http_client=http_client)
 
@@ -59,7 +53,7 @@ def test_catalog_initialization(http_client: Any) -> None:
     assert isinstance(catalog, Catalog)
 
 
-def test_async_catalog_initialization(async_http_client: Any) -> None:
+def test_async_catalog_initialization(async_http_client):
     """Test that AsyncCatalog can be properly initialized with http_client."""
     async_catalog = AsyncCatalog(http_client=async_http_client)
 
