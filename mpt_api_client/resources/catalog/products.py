@@ -31,6 +31,10 @@ from mpt_api_client.resources.catalog.products_parameters import (
     AsyncParametersService,
     ParametersService,
 )
+from mpt_api_client.resources.catalog.products_templates import (
+    AsyncTemplatesService,
+    TemplatesService,
+)
 
 
 class Product(Model):
@@ -85,6 +89,12 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def templates(self, product_id: str) -> TemplatesService:
+        """Return templates service."""
+        return TemplatesService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
 
 class AsyncProductsService(
     AsyncCreateMixin[Product],
@@ -123,5 +133,11 @@ class AsyncProductsService(
     def product_parameters(self, product_id: str) -> AsyncParametersService:
         """Return product_parameters service."""
         return AsyncParametersService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def templates(self, product_id: str) -> AsyncTemplatesService:
+        """Return templates service."""
+        return AsyncTemplatesService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )

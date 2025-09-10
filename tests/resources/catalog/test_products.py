@@ -21,6 +21,10 @@ from mpt_api_client.resources.catalog.products_parameters import (
     AsyncParametersService,
     ParametersService,
 )
+from mpt_api_client.resources.catalog.products_templates import (
+    AsyncTemplatesService,
+    TemplatesService,
+)
 
 
 @pytest.fixture
@@ -55,6 +59,7 @@ def test_async_mixins_present(async_products_service, method):
         ("media", MediaService),
         ("documents", DocumentService),
         ("product_parameters", ParametersService),
+        ("templates", TemplatesService),
     ],
 )
 def test_property_services(products_service, service_method, expected_service_class):
@@ -72,6 +77,7 @@ def test_property_services(products_service, service_method, expected_service_cl
         ("media", AsyncMediaService),
         ("documents", AsyncDocumentService),
         ("product_parameters", AsyncParametersService),
+        ("templates", AsyncTemplatesService),
     ],
 )
 def test_async_property_services(async_products_service, service_method, expected_service_class):
