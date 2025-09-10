@@ -11,6 +11,10 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.catalog.products_documents import (
+    AsyncDocumentService,
+    DocumentService,
+)
 from mpt_api_client.resources.catalog.products_item_groups import (
     AsyncItemGroupsService,
     ItemGroupsService,
@@ -69,6 +73,12 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def documents(self, product_id: str) -> DocumentService:
+        """Return documents service."""
+        return DocumentService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
     def product_parameters(self, product_id: str) -> ParametersService:
         """Return product_parameters service."""
         return ParametersService(
@@ -101,6 +111,12 @@ class AsyncProductsService(
     def media(self, product_id: str) -> AsyncMediaService:
         """Return media service."""
         return AsyncMediaService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def documents(self, product_id: str) -> AsyncDocumentService:
+        """Return documents service."""
+        return AsyncDocumentService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
