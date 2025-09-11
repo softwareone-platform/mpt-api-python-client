@@ -1,4 +1,6 @@
+import httpx
 import pytest
+import respx
 
 from mpt_api_client.resources.catalog.product_terms import (
     AsyncTermService,
@@ -42,14 +44,16 @@ def async_products_service(async_http_client):
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
+    "method",
+    ["get", "create", "update", "delete", "review", "publish", "unpublish", "update_settings"],
 )
 def test_mixins_present(products_service, method):
     assert hasattr(products_service, method)
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
+    "method",
+    ["get", "create", "update", "delete", "review", "publish", "unpublish", "update_settings"],
 )
 def test_async_mixins_present(async_products_service, method):
     assert hasattr(async_products_service, method)
@@ -91,3 +95,43 @@ def test_async_property_services(async_products_service, service_method, expecte
 
     assert isinstance(property_service, expected_service_class)
     assert property_service.endpoint_params == {"product_id": "PRD-001"}
+
+
+def test_update_settings(products_service):
+    """Test updating product settings."""
+    product_id = "PRD-001"
+    settings_data = {"visibility": "public", "searchable": True, "featured": False}
+    expected_response = {"id": product_id, "name": "Test Product", "settings": settings_data}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/catalog/products/{product_id}/settings"
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
+
+        product = products_service.update_settings(product_id, settings_data)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/catalog/products/{product_id}/settings"
+    assert product.to_dict() == expected_response
+
+
+async def test_async_update_settings(async_products_service):
+    """Test updating product settings asynchronously."""
+    product_id = "PRD-002"
+    settings_data = {"visibility": "private", "searchable": False, "featured": True}
+    expected_response = {"id": product_id, "name": "Test Product Async", "settings": settings_data}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/catalog/products/{product_id}/settings"
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
+
+        product = await async_products_service.update_settings(product_id, settings_data)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/catalog/products/{product_id}/settings"
+    assert product.to_dict() == expected_response

@@ -6,7 +6,7 @@ from mpt_api_client.http.mixins import (
     DeleteMixin,
     UpdateMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
@@ -103,6 +103,10 @@ class ProductsService(
         """Return terms service."""
         return TermService(http_client=self.http_client, endpoint_params={"product_id": product_id})
 
+    def update_settings(self, product_id: str, settings: ResourceData) -> Product:
+        """Update product settings."""
+        return self._resource_action(product_id, "PUT", "settings", settings)
+
 
 class AsyncProductsService(
     AsyncCreateMixin[Product],
@@ -155,3 +159,7 @@ class AsyncProductsService(
         return AsyncTermService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
+
+    async def update_settings(self, product_id: str, settings: ResourceData) -> Product:
+        """Update product settings."""
+        return await self._resource_action(product_id, "PUT", "settings", settings)
