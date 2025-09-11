@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.catalog.authorizations import (
+    AsyncAuthorizationsService,
+    AuthorizationsService,
+)
 from mpt_api_client.resources.catalog.catalog import AsyncCatalog, Catalog
 from mpt_api_client.resources.catalog.items import AsyncItemsService, ItemsService
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
@@ -18,6 +22,7 @@ def async_catalog(async_http_client):
 @pytest.mark.parametrize(
     ("property_name", "expected_service_class"),
     [
+        ("authorizations", AuthorizationsService),
         ("products", ProductsService),
         ("items", ItemsService),
     ],
@@ -33,6 +38,7 @@ def test_catalog_properties(catalog, property_name, expected_service_class):
 @pytest.mark.parametrize(
     ("property_name", "expected_service_class"),
     [
+        ("authorizations", AsyncAuthorizationsService),
         ("products", AsyncProductsService),
         ("items", AsyncItemsService),
     ],
