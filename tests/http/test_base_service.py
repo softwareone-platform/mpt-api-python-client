@@ -30,7 +30,7 @@ def test_filter(base_dummy_service, filter_status_active):
     assert new_collection.query_rql == filter_status_active
 
 
-def test_multiple_filters(base_dummy_service) -> None:
+def test_multiple_filters(base_dummy_service):
     filter_query = RQLQuery(status="active")
     filter_query2 = RQLQuery(name="test")
 
@@ -40,7 +40,7 @@ def test_multiple_filters(base_dummy_service) -> None:
     assert new_collection.query_rql == filter_query & filter_query2
 
 
-def test_select(base_dummy_service) -> None:
+def test_select(base_dummy_service):
     new_collection = base_dummy_service.select("agreement", "-product")
 
     assert base_dummy_service.query_select is None
@@ -48,7 +48,7 @@ def test_select(base_dummy_service) -> None:
     assert new_collection.query_select == ["agreement", "-product"]
 
 
-def test_select_exception(base_dummy_service) -> None:
+def test_select_exception(base_dummy_service):
     with pytest.raises(ValueError):
         base_dummy_service.select("agreement").select("product")
 
@@ -68,7 +68,7 @@ def test_order_by_exception(base_dummy_service):
         base_dummy_service.order_by("created").order_by("name")
 
 
-def test_url(base_dummy_service, filter_status_active) -> None:
+def test_url(base_dummy_service, filter_status_active):
     custom_collection = (
         base_dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
@@ -85,7 +85,7 @@ def test_url(base_dummy_service, filter_status_active) -> None:
     )
 
 
-def test_clone(base_dummy_service, filter_status_active) -> None:
+def test_clone(base_dummy_service, filter_status_active):
     configured = (
         base_dummy_service.filter(filter_status_active)
         .order_by("created", "-name")

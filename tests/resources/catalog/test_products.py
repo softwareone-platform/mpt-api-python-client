@@ -1,6 +1,14 @@
 import pytest
 
+from mpt_api_client.resources.catalog.product_terms import (
+    AsyncTermService,
+    TermService,
+)
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
+from mpt_api_client.resources.catalog.products_documents import (
+    AsyncDocumentService,
+    DocumentService,
+)
 from mpt_api_client.resources.catalog.products_item_groups import (
     AsyncItemGroupsService,
     ItemGroupsService,
@@ -16,6 +24,10 @@ from mpt_api_client.resources.catalog.products_parameter_groups import (
 from mpt_api_client.resources.catalog.products_parameters import (
     AsyncParametersService,
     ParametersService,
+)
+from mpt_api_client.resources.catalog.products_templates import (
+    AsyncTemplatesService,
+    TemplatesService,
 )
 
 
@@ -49,7 +61,10 @@ def test_async_mixins_present(async_products_service, method):
         ("item_groups", ItemGroupsService),
         ("parameter_groups", ParameterGroupsService),
         ("media", MediaService),
+        ("documents", DocumentService),
         ("product_parameters", ParametersService),
+        ("templates", TemplatesService),
+        ("terms", TermService),
     ],
 )
 def test_property_services(products_service, service_method, expected_service_class):
@@ -65,7 +80,10 @@ def test_property_services(products_service, service_method, expected_service_cl
         ("item_groups", AsyncItemGroupsService),
         ("parameter_groups", AsyncParameterGroupsService),
         ("media", AsyncMediaService),
+        ("documents", AsyncDocumentService),
         ("product_parameters", AsyncParametersService),
+        ("templates", AsyncTemplatesService),
+        ("terms", AsyncTermService),
     ],
 )
 def test_async_property_services(async_products_service, service_method, expected_service_class):

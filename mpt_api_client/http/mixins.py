@@ -1,6 +1,16 @@
+import json
 from urllib.parse import urljoin
 
-from mpt_api_client.models import ResourceData
+from httpx import Response
+from httpx._types import FileTypes
+
+from mpt_api_client.models import FileModel, ResourceData
+
+
+def _json_to_file_payload(resource_data: ResourceData) -> bytes:
+    return json.dumps(
+        resource_data, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+    ).encode("utf-8")
 
 
 class CreateMixin[Model]:
@@ -48,6 +58,53 @@ class UpdateMixin[Model]:
         return self._resource_action(resource_id, "PUT", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
+class FileOperationsMixin[Model]:
+    """Mixin that provides create and download methods for file-based resources."""
+
+    def create(
+        self,
+        resource_data: ResourceData | None = None,
+        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
+        data_key: str = "_attachment_data",
+    ) -> Model:
+        """Create resource with file support.
+
+        Args:
+            resource_data: Resource data.
+            files: Files data.
+            data_key: Key to use for the JSON data in the multipart form.
+
+        Returns:
+            Created resource.
+        """
+        files = files or {}
+
+        if resource_data:
+            files[data_key] = (
+                None,
+                _json_to_file_payload(resource_data),
+                "application/json",
+            )
+
+        response = self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
+        response.raise_for_status()
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+    def download(self, resource_id: str) -> FileModel:
+        """Download the file for the given resource ID.
+
+        Args:
+            resource_id: Resource ID.
+
+        Returns:
+            File model containing the downloaded file.
+        """
+        response: Response = self._resource_do_request(  # type: ignore[attr-defined]
+            resource_id, method="GET", headers={"Accept": "*"}
+        )
+        return FileModel(response)
+
+
 class AsyncCreateMixin[Model]:
     """Create resource mixin."""
 
@@ -92,3 +149,50 @@ class AsyncUpdateMixin[Model]:
 
         """
         return await self._resource_action(resource_id, "PUT", json=resource_data)  # type: ignore[attr-defined, no-any-return]
+
+
+class AsyncFileOperationsMixin[Model]:
+    """Async mixin that provides create and download methods for file-based resources."""
+
+    async def create(
+        self,
+        resource_data: ResourceData | None = None,
+        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
+        data_key: str = "_attachment_data",
+    ) -> Model:
+        """Create resource with file support.
+
+        Args:
+            resource_data: Resource data.
+            files: Files data.
+            data_key: Key to use for the JSON data in the multipart form.
+
+        Returns:
+            Created resource.
+        """
+        files = files or {}
+
+        if resource_data:
+            files[data_key] = (
+                None,
+                _json_to_file_payload(resource_data),
+                "application/json",
+            )
+
+        response = await self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
+        response.raise_for_status()
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+    async def download(self, resource_id: str) -> FileModel:
+        """Download the file for the given resource ID.
+
+        Args:
+            resource_id: Resource ID.
+
+        Returns:
+            File model containing the downloaded file.
+        """
+        response = await self._resource_do_request(  # type: ignore[attr-defined]
+            resource_id, method="GET", headers={"Accept": "*"}
+        )
+        return FileModel(response)

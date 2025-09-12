@@ -11,6 +11,14 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.catalog.product_terms import (
+    AsyncTermService,
+    TermService,
+)
+from mpt_api_client.resources.catalog.products_documents import (
+    AsyncDocumentService,
+    DocumentService,
+)
 from mpt_api_client.resources.catalog.products_item_groups import (
     AsyncItemGroupsService,
     ItemGroupsService,
@@ -26,6 +34,10 @@ from mpt_api_client.resources.catalog.products_parameter_groups import (
 from mpt_api_client.resources.catalog.products_parameters import (
     AsyncParametersService,
     ParametersService,
+)
+from mpt_api_client.resources.catalog.products_templates import (
+    AsyncTemplatesService,
+    TemplatesService,
 )
 
 
@@ -69,11 +81,27 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def documents(self, product_id: str) -> DocumentService:
+        """Return documents service."""
+        return DocumentService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
     def product_parameters(self, product_id: str) -> ParametersService:
         """Return product_parameters service."""
         return ParametersService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
+
+    def templates(self, product_id: str) -> TemplatesService:
+        """Return templates service."""
+        return TemplatesService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def terms(self, product_id: str) -> TermService:
+        """Return terms service."""
+        return TermService(http_client=self.http_client, endpoint_params={"product_id": product_id})
 
 
 class AsyncProductsService(
@@ -104,8 +132,26 @@ class AsyncProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
+    def documents(self, product_id: str) -> AsyncDocumentService:
+        """Return documents service."""
+        return AsyncDocumentService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
     def product_parameters(self, product_id: str) -> AsyncParametersService:
         """Return product_parameters service."""
         return AsyncParametersService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def templates(self, product_id: str) -> AsyncTemplatesService:
+        """Return templates service."""
+        return AsyncTemplatesService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
+
+    def terms(self, product_id: str) -> AsyncTermService:
+        """Return terms service."""
+        return AsyncTermService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )

@@ -35,12 +35,12 @@ class AsyncDummyService(  # noqa: WPS215
 
 
 @pytest.fixture
-def dummy_service(http_client) -> DummyService:
+def dummy_service(http_client):
     return DummyService(http_client=http_client)
 
 
 @pytest.fixture
-def async_dummy_service(async_http_client) -> AsyncDummyService:
+def async_dummy_service(async_http_client):
     return AsyncDummyService(http_client=async_http_client)
 
 

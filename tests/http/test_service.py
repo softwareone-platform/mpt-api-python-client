@@ -64,7 +64,7 @@ def test_sync_fetch_one_with_filters(dummy_service, single_result_response, filt
     )
 
 
-def test_sync_fetch_page_with_filter(dummy_service, list_response, filter_status_active) -> None:
+def test_sync_fetch_page_with_filter(dummy_service, list_response, filter_status_active):
     custom_collection = (
         dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")

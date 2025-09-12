@@ -1,24 +1,20 @@
-import json
 from typing import override
 
-from httpx import Response
 from httpx._types import FileTypes
 
-from mpt_api_client.http import AsyncService, CreateMixin, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, DeleteMixin, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncFileOperationsMixin,
     AsyncUpdateMixin,
+    FileOperationsMixin,
     UpdateMixin,
 )
-from mpt_api_client.models import FileModel, Model, ResourceData
-from mpt_api_client.resources.catalog.mixins import AsyncPublishableMixin, PublishableMixin
-
-
-def _json_to_file_payload(resource_data: ResourceData) -> bytes:
-    return json.dumps(
-        resource_data, ensure_ascii=False, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.resources.catalog.mixins import (
+    AsyncPublishableMixin,
+    PublishableMixin,
+)
 
 
 class Media(Model):
@@ -34,7 +30,7 @@ class MediaServiceConfig:
 
 
 class MediaService(
-    CreateMixin[Media],
+    FileOperationsMixin[Media],
     DeleteMixin,
     UpdateMixin[Media],
     PublishableMixin[Media],
@@ -47,7 +43,8 @@ class MediaService(
     def create(
         self,
         resource_data: ResourceData | None = None,
-        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
+        files: dict[str, FileTypes] | None = None,
+        data_key: str = "_media_data",
     ) -> Media:
         """Create Media resource.
 
@@ -77,54 +74,16 @@ class MediaService(
         Args:
             resource_data: Resource data.
             files: Files data.
+            data_key: Key to use for the JSON data in the multipart form.
 
         Returns:
             Media resource.
         """
-        files = files or {}
-
-        # Note: This is a workaround to fulfill MPT API request format
-        #
-        # HTTPx does not support sending json and files in the same call
-        # currently only supports sending form-data and files in the same call.
-        # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-        #
-        # MPT API expects files and data to be submitted in a multipart form-data upload.
-        #
-        # Current workaround is to send the json data as an unnamed file.
-        # This ends adding the json as payload multipart data.
-        #
-        # json.dumps is setup using the same params of httpx json encoder to produce the same
-        # encodings.
-
-        if resource_data:
-            files["_media_data"] = (
-                None,
-                _json_to_file_payload(resource_data),
-                "application/json",
-            )
-
-        response = self.http_client.post(self.endpoint, files=files)
-        response.raise_for_status()
-        return Media.from_response(response)
-
-    def download(self, media_id: str) -> FileModel:
-        """Download the media file for the given media ID.
-
-        Args:
-            media_id: Media ID.
-
-        Returns:
-            Media file.
-        """
-        response: Response = self._resource_do_request(
-            media_id, method="GET", headers={"Accept": "*"}
-        )
-        return FileModel(response)
+        return super().create(resource_data=resource_data, files=files, data_key=data_key)
 
 
 class AsyncMediaService(
-    AsyncCreateMixin[Media],
+    AsyncFileOperationsMixin[Media],
     AsyncDeleteMixin,
     AsyncUpdateMixin[Media],
     AsyncPublishableMixin[Media],
@@ -137,52 +96,17 @@ class AsyncMediaService(
     async def create(
         self,
         resource_data: ResourceData | None = None,
-        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
+        files: dict[str, FileTypes] | None = None,
+        data_key: str = "_media_data",
     ) -> Media:
         """Create Media resource.
 
         Args:
             resource_data: Resource data.
             files: Files data.
+            data_key: Key to use for the JSON data in the multipart form.
 
         Returns:
             Media resource.
         """
-        files = files or {}
-
-        # Note: This is a workaround to fulfill MPT API request format
-        #
-        # HTTPx does not support sending json and files in the same call
-        # currently only supports sending form-data and files in the same call.
-        # https://www.python-httpx.org/quickstart/#sending-multipart-file-uploads
-        #
-        # MPT API expects files and data to be submitted in a multipart form-data upload.
-        #
-        # Current workaround is to send the json data as an unnamed file.
-        # This ends adding the json as payload multipart data.
-        #
-        # json.dumps is setup using the same params of httpx json encoder to produce the same
-        # encodings.
-
-        if resource_data:
-            files["_media_data"] = (
-                None,
-                _json_to_file_payload(resource_data),
-                "application/json",
-            )
-
-        response = await self.http_client.post(self.endpoint, files=files)
-        response.raise_for_status()
-        return Media.from_response(response)
-
-    async def download(self, media_id: str) -> FileModel:
-        """Download the media file for the given media ID.
-
-        Args:
-            media_id: Media ID.
-
-        Returns:
-            Media file.
-        """
-        response = await self._resource_do_request(media_id, method="GET", headers={"Accept": "*"})
-        return FileModel(response)
+        return await super().create(resource_data=resource_data, files=files, data_key=data_key)
