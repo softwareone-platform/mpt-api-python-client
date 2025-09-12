@@ -1,4 +1,8 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.catalog.authorizations import (
+    AsyncAuthorizationsService,
+    AuthorizationsService,
+)
 from mpt_api_client.resources.catalog.items import AsyncItemsService, ItemsService
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
 
@@ -8,6 +12,11 @@ class Catalog:
 
     def __init__(self, *, http_client: HTTPClient):
         self.http_client = http_client
+
+    @property
+    def authorizations(self) -> AuthorizationsService:
+        """Authorizations service."""
+        return AuthorizationsService(http_client=self.http_client)
 
     @property
     def products(self) -> ProductsService:
@@ -25,6 +34,11 @@ class AsyncCatalog:
 
     def __init__(self, *, http_client: AsyncHTTPClient):
         self.http_client = http_client
+
+    @property
+    def authorizations(self) -> AsyncAuthorizationsService:
+        """Authorizations service."""
+        return AsyncAuthorizationsService(http_client=self.http_client)
 
     @property
     def products(self) -> AsyncProductsService:
