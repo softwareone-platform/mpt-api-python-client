@@ -9,6 +9,10 @@ from mpt_api_client.resources.catalog.price_lists import (
     AsyncPriceListsService,
     PriceListsService,
 )
+from mpt_api_client.resources.catalog.pricing_policies import (
+    AsyncPricingPoliciesService,
+    PricingPoliciesService,
+)
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
 from mpt_api_client.resources.catalog.units_of_measure import (
     AsyncUnitsOfMeasureService,
@@ -36,6 +40,11 @@ class Catalog:
     def price_lists(self) -> PriceListsService:
         """Price Lists service."""
         return PriceListsService(http_client=self.http_client)
+
+    @property
+    def pricing_policies(self) -> PricingPoliciesService:
+        """Pricing policies service."""
+        return PricingPoliciesService(http_client=self.http_client)
 
     @property
     def products(self) -> ProductsService:
@@ -73,6 +82,11 @@ class AsyncCatalog:
     def price_lists(self) -> AsyncPriceListsService:
         """Price Lists service."""
         return AsyncPriceListsService(http_client=self.http_client)
+
+    @property
+    def pricing_policies(self) -> AsyncPricingPoliciesService:
+        """Pricing policies service."""
+        return AsyncPricingPoliciesService(http_client=self.http_client)
 
     @property
     def products(self) -> AsyncProductsService:
