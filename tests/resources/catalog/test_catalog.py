@@ -12,6 +12,10 @@ from mpt_api_client.resources.catalog.price_lists import (
     PriceListsService,
 )
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
+from mpt_api_client.resources.catalog.units_of_measure import (
+    AsyncUnitsOfMeasureService,
+    UnitsOfMeasureService,
+)
 
 
 @pytest.fixture
@@ -31,6 +35,7 @@ def async_catalog(async_http_client):
         ("listings", ListingsService),
         ("price_lists", PriceListsService),
         ("products", ProductsService),
+        ("units_of_measure", UnitsOfMeasureService),
         ("items", ItemsService),
     ],
 )
@@ -49,6 +54,7 @@ def test_catalog_properties(catalog, property_name, expected_service_class):
         ("listings", AsyncListingsService),
         ("price_lists", AsyncPriceListsService),
         ("products", AsyncProductsService),
+        ("units_of_measure", AsyncUnitsOfMeasureService),
         ("items", AsyncItemsService),
     ],
 )
