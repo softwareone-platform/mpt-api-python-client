@@ -6,6 +6,10 @@ from mpt_api_client.resources.catalog.authorizations import (
 )
 from mpt_api_client.resources.catalog.catalog import AsyncCatalog, Catalog
 from mpt_api_client.resources.catalog.items import AsyncItemsService, ItemsService
+from mpt_api_client.resources.catalog.price_lists import (
+    AsyncPriceListsService,
+    PriceListsService,
+)
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
 
 
@@ -23,6 +27,7 @@ def async_catalog(async_http_client):
     ("property_name", "expected_service_class"),
     [
         ("authorizations", AuthorizationsService),
+        ("price_lists", PriceListsService),
         ("products", ProductsService),
         ("items", ItemsService),
     ],
@@ -39,6 +44,7 @@ def test_catalog_properties(catalog, property_name, expected_service_class):
     ("property_name", "expected_service_class"),
     [
         ("authorizations", AsyncAuthorizationsService),
+        ("price_lists", AsyncPriceListsService),
         ("products", AsyncProductsService),
         ("items", AsyncItemsService),
     ],
