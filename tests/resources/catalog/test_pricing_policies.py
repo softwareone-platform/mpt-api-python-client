@@ -6,6 +6,10 @@ from mpt_api_client.resources.catalog.pricing_policies import (
     AsyncPricingPoliciesService,
     PricingPoliciesService,
 )
+from mpt_api_client.resources.catalog.pricing_policy_attachments import (
+    AsyncPricingPolicyAttachmentsService,
+    PricingPolicyAttachmentsService,
+)
 
 
 @pytest.fixture
@@ -108,3 +112,31 @@ async def test_async_disable(async_pricing_policies_service):
         )
 
         assert pricing_policy_disabled.to_dict() == pricing_policy_expected
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("attachments", PricingPolicyAttachmentsService),
+    ],
+)
+def test_property_services(pricing_policies_service, service_method, expected_service_class):
+    property_service = getattr(pricing_policies_service, service_method)("PRP-0000-0001")
+
+    assert isinstance(property_service, expected_service_class)
+    assert property_service.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("attachments", AsyncPricingPolicyAttachmentsService),
+    ],
+)
+def test_async_property_services(
+    async_pricing_policies_service, service_method, expected_service_class
+):
+    property_service = getattr(async_pricing_policies_service, service_method)("PRP-0000-0001")
+
+    assert isinstance(property_service, expected_service_class)
+    assert property_service.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
