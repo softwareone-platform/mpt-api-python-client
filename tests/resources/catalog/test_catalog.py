@@ -11,6 +11,10 @@ from mpt_api_client.resources.catalog.price_lists import (
     AsyncPriceListsService,
     PriceListsService,
 )
+from mpt_api_client.resources.catalog.pricing_policies import (
+    AsyncPricingPoliciesService,
+    PricingPoliciesService,
+)
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
 from mpt_api_client.resources.catalog.units_of_measure import (
     AsyncUnitsOfMeasureService,
@@ -34,6 +38,7 @@ def async_catalog(async_http_client):
         ("authorizations", AuthorizationsService),
         ("listings", ListingsService),
         ("price_lists", PriceListsService),
+        ("pricing_policies", PricingPoliciesService),
         ("products", ProductsService),
         ("units_of_measure", UnitsOfMeasureService),
         ("items", ItemsService),
@@ -53,6 +58,7 @@ def test_catalog_properties(catalog, property_name, expected_service_class):
         ("authorizations", AsyncAuthorizationsService),
         ("listings", AsyncListingsService),
         ("price_lists", AsyncPriceListsService),
+        ("pricing_policies", AsyncPricingPoliciesService),
         ("products", AsyncProductsService),
         ("units_of_measure", AsyncUnitsOfMeasureService),
         ("items", AsyncItemsService),
