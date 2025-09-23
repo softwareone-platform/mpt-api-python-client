@@ -10,6 +10,10 @@ from mpt_api_client.resources.catalog.price_lists import (
     PriceListsService,
 )
 from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
+from mpt_api_client.resources.catalog.units_of_measure import (
+    AsyncUnitsOfMeasureService,
+    UnitsOfMeasureService,
+)
 
 
 class Catalog:
@@ -37,6 +41,11 @@ class Catalog:
     def products(self) -> ProductsService:
         """Products service."""
         return ProductsService(http_client=self.http_client)
+
+    @property
+    def units_of_measure(self) -> UnitsOfMeasureService:
+        """Units of Measure service."""
+        return UnitsOfMeasureService(http_client=self.http_client)
 
     @property
     def items(self) -> ItemsService:  # noqa: WPS110
@@ -69,6 +78,11 @@ class AsyncCatalog:
     def products(self) -> AsyncProductsService:
         """Products service."""
         return AsyncProductsService(http_client=self.http_client)
+
+    @property
+    def units_of_measure(self) -> AsyncUnitsOfMeasureService:
+        """Units of Measure service."""
+        return AsyncUnitsOfMeasureService(http_client=self.http_client)
 
     @property
     def items(self) -> AsyncItemsService:  # noqa: WPS110
