@@ -7,6 +7,10 @@ from mpt_api_client.http import (
     Service,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.resources.catalog.pricing_policy_attachments import (
+    AsyncPricingPolicyAttachmentsService,
+    PricingPolicyAttachmentsService,
+)
 
 
 class PricingPolicy(Model):
@@ -28,6 +32,13 @@ class PricingPoliciesService(  # noqa: WPS215
     PricingPoliciesServiceConfig,
 ):
     """Pricing policies service."""
+
+    def attachments(self, pricing_policy_id: str) -> PricingPolicyAttachmentsService:
+        """Return pricing policy attachments service."""
+        return PricingPolicyAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"pricing_policy_id": pricing_policy_id},
+        )
 
     def activate(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
         """Activate pricing policy.
@@ -61,6 +72,13 @@ class AsyncPricingPoliciesService(
     PricingPoliciesServiceConfig,
 ):
     """Async pricing policies service."""
+
+    def attachments(self, pricing_policy_id: str) -> AsyncPricingPolicyAttachmentsService:
+        """Return pricing policy attachments service."""
+        return AsyncPricingPolicyAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"pricing_policy_id": pricing_policy_id},
+        )
 
     async def activate(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
         """Activate pricing policy.
