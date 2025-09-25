@@ -1,6 +1,7 @@
 from mpt_api_client.models import ResourceData
 
 
+# TODO: Consider moving publishable and activatable mixins to http/mixins
 class PublishableMixin[Model]:
     """Publishable mixin adds the ability to review, publish and unpublish."""
 
