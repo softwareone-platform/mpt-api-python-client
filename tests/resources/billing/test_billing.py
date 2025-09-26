@@ -3,6 +3,7 @@ import pytest
 from mpt_api_client.resources.billing.billing import AsyncBilling, Billing
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 from mpt_api_client.resources.billing.ledgers import AsyncLedgersService, LedgersService
+from mpt_api_client.resources.billing.statements import AsyncStatementsService, StatementsService
 
 
 @pytest.fixture
@@ -20,6 +21,7 @@ def async_billing(async_http_client):
     [
         ("journals", JournalsService),
         ("ledgers", LedgersService),
+        ("statements", StatementsService),
     ],
 )
 def test_billing_properties(billing, property_name, expected_service_class):
@@ -35,6 +37,7 @@ def test_billing_properties(billing, property_name, expected_service_class):
     [
         ("journals", AsyncJournalsService),
         ("ledgers", AsyncLedgersService),
+        ("statements", AsyncStatementsService),
     ],
 )
 def test_async_billing_properties(async_billing, property_name, expected_service_class):
