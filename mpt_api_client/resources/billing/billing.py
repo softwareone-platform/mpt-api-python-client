@@ -10,6 +10,10 @@ from mpt_api_client.resources.billing.custom_ledgers import (
 from mpt_api_client.resources.billing.invoices import AsyncInvoicesService, InvoicesService
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 from mpt_api_client.resources.billing.ledgers import AsyncLedgersService, LedgersService
+from mpt_api_client.resources.billing.manual_overrides import (
+    AsyncManualOverridesService,
+    ManualOverridesService,
+)
 from mpt_api_client.resources.billing.statements import AsyncStatementsService, StatementsService
 
 
@@ -49,6 +53,11 @@ class Billing:
         """Credit Memos service."""
         return CreditMemosService(http_client=self.http_client)
 
+    @property
+    def manual_overrides(self) -> ManualOverridesService:
+        """Manual overrides service."""
+        return ManualOverridesService(http_client=self.http_client)
+
 
 class AsyncBilling:
     """Billing MPT API Module."""
@@ -85,3 +94,8 @@ class AsyncBilling:
     def credit_memos(self) -> AsyncCreditMemosService:
         """Credit Memos service."""
         return AsyncCreditMemosService(http_client=self.http_client)
+
+    @property
+    def manual_overrides(self) -> AsyncManualOverridesService:
+        """Manual overrides service."""
+        return AsyncManualOverridesService(http_client=self.http_client)

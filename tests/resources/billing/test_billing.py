@@ -12,6 +12,10 @@ from mpt_api_client.resources.billing.custom_ledgers import (
 from mpt_api_client.resources.billing.invoices import AsyncInvoicesService, InvoicesService
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 from mpt_api_client.resources.billing.ledgers import AsyncLedgersService, LedgersService
+from mpt_api_client.resources.billing.manual_overrides import (
+    AsyncManualOverridesService,
+    ManualOverridesService,
+)
 from mpt_api_client.resources.billing.statements import AsyncStatementsService, StatementsService
 
 
@@ -34,6 +38,7 @@ def async_billing(async_http_client):
         ("invoices", InvoicesService),
         ("custom_ledgers", CustomLedgersService),
         ("credit_memos", CreditMemosService),
+        ("manual_overrides", ManualOverridesService),
     ],
 )
 def test_billing_properties(billing, property_name, expected_service_class):
@@ -53,6 +58,7 @@ def test_billing_properties(billing, property_name, expected_service_class):
         ("invoices", AsyncInvoicesService),
         ("custom_ledgers", AsyncCustomLedgersService),
         ("credit_memos", AsyncCreditMemosService),
+        ("manual_overrides", AsyncManualOverridesService),
     ],
 )
 def test_async_billing_properties(async_billing, property_name, expected_service_class):
