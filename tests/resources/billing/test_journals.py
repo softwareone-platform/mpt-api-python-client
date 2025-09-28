@@ -27,7 +27,7 @@ def async_journals_service(async_http_client):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete"],
+    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
 )
 def test_mixins_present(journals_service, method):
     assert hasattr(journals_service, method)
@@ -35,7 +35,7 @@ def test_mixins_present(journals_service, method):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete"],
+    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
 )
 def test_async_mixins_present(async_journals_service, method):
     assert hasattr(async_journals_service, method)

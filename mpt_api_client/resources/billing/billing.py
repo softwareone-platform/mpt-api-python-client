@@ -1,4 +1,8 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.billing.custom_ledgers import (
+    AsyncCustomLedgersService,
+    CustomLedgersService,
+)
 from mpt_api_client.resources.billing.invoices import AsyncInvoicesService, InvoicesService
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 from mpt_api_client.resources.billing.ledgers import AsyncLedgersService, LedgersService
@@ -31,6 +35,11 @@ class Billing:
         """Invoices service."""
         return InvoicesService(http_client=self.http_client)
 
+    @property
+    def custom_ledgers(self) -> CustomLedgersService:
+        """Custom ledgers service."""
+        return CustomLedgersService(http_client=self.http_client)
+
 
 class AsyncBilling:
     """Billing MPT API Module."""
@@ -57,3 +66,8 @@ class AsyncBilling:
     def invoices(self) -> AsyncInvoicesService:
         """Invoices service."""
         return AsyncInvoicesService(http_client=self.http_client)
+
+    @property
+    def custom_ledgers(self) -> AsyncCustomLedgersService:
+        """Custom ledgers service."""
+        return AsyncCustomLedgersService(http_client=self.http_client)
