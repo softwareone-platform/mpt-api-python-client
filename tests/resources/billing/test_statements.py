@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.billing.statement_charges import (
+    AsyncStatementChargesService,
+    StatementChargesService,
+)
 from mpt_api_client.resources.billing.statements import AsyncStatementsService, StatementsService
 
 
@@ -27,3 +31,29 @@ def test_mixins_present(statements_service, method):
 )
 def test_async_mixins_present(async_statements_service, method):
     assert hasattr(async_statements_service, method)
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("charges", StatementChargesService),
+    ],
+)
+def test_property_services(statements_service, service_method, expected_service_class):
+    service = getattr(statements_service, service_method)("STM-0000-0001")
+
+    assert isinstance(service, expected_service_class)
+    assert service.endpoint_params == {"statement_id": "STM-0000-0001"}
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("charges", AsyncStatementChargesService),
+    ],
+)
+def test_async_property_services(async_statements_service, service_method, expected_service_class):
+    service = getattr(async_statements_service, service_method)("STM-0000-0001")
+
+    assert isinstance(service, expected_service_class)
+    assert service.endpoint_params == {"statement_id": "STM-0000-0001"}
