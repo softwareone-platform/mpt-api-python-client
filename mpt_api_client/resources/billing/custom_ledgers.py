@@ -12,6 +12,10 @@ from mpt_api_client.resources.billing.custom_ledger_charges import (
     AsyncCustomLedgerChargesService,
     CustomLedgerChargesService,
 )
+from mpt_api_client.resources.billing.custom_ledger_upload import (
+    AsyncCustomLedgerUploadService,
+    CustomLedgerUploadService,
+)
 from mpt_api_client.resources.billing.mixins import AcceptableMixin, AsyncAcceptableMixin
 
 
@@ -44,6 +48,13 @@ class CustomLedgersService(
             endpoint_params={"custom_ledger_id": custom_ledger_id},
         )
 
+    def upload(self, custom_ledger_id: str) -> CustomLedgerUploadService:
+        """Get the Custom Ledger Upload service."""
+        return CustomLedgerUploadService(
+            http_client=self.http_client,
+            endpoint_params={"custom_ledger_id": custom_ledger_id},
+        )
+
 
 class AsyncCustomLedgersService(
     AsyncCreateMixin[CustomLedger],
@@ -58,6 +69,13 @@ class AsyncCustomLedgersService(
     def charges(self, custom_ledger_id: str) -> AsyncCustomLedgerChargesService:
         """Return custom ledger charges service."""
         return AsyncCustomLedgerChargesService(
+            http_client=self.http_client,
+            endpoint_params={"custom_ledger_id": custom_ledger_id},
+        )
+
+    def upload(self, custom_ledger_id: str) -> AsyncCustomLedgerUploadService:
+        """Get the Async Custom Ledger Upload service."""
+        return AsyncCustomLedgerUploadService(
             http_client=self.http_client,
             endpoint_params={"custom_ledger_id": custom_ledger_id},
         )
