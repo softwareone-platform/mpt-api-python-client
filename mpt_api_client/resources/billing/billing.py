@@ -1,6 +1,7 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 from mpt_api_client.resources.billing.ledgers import AsyncLedgersService, LedgersService
+from mpt_api_client.resources.billing.statements import AsyncStatementsService, StatementsService
 
 
 class Billing:
@@ -19,6 +20,11 @@ class Billing:
         """Ledgers service."""
         return LedgersService(http_client=self.http_client)
 
+    @property
+    def statements(self) -> StatementsService:
+        """Statements service."""
+        return StatementsService(http_client=self.http_client)
+
 
 class AsyncBilling:
     """Billing MPT API Module."""
@@ -35,3 +41,8 @@ class AsyncBilling:
     def ledgers(self) -> AsyncLedgersService:
         """Ledgers service."""
         return AsyncLedgersService(http_client=self.http_client)
+
+    @property
+    def statements(self) -> AsyncStatementsService:
+        """Statements service."""
+        return AsyncStatementsService(http_client=self.http_client)
