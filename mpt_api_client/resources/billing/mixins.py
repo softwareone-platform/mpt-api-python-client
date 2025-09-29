@@ -340,3 +340,55 @@ class AsyncIssuableMixin[Model]:
         return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "recalculate", json=resource_data
         )
+
+
+class AcceptableMixin[Model]:
+    """Acceptable mixin adds the ability to accept resources."""
+
+    def accept(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Accept resource.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "accept", json=resource_data
+        )
+
+    def queue(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Queue resource.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "queue", json=resource_data
+        )
+
+
+class AsyncAcceptableMixin[Model]:
+    """Acceptable mixin adds the ability to accept resources."""
+
+    async def accept(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Accept resource.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "accept", json=resource_data
+        )
+
+    async def queue(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Queue resource.
+
+        Args:
+            resource_id: Resource ID
+            resource_data: Resource data will be updated
+        """
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id, "POST", "queue", json=resource_data
+        )
