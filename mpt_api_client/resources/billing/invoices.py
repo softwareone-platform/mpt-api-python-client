@@ -1,6 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncCreateMixin, AsyncUpdateMixin, CreateMixin, UpdateMixin
 from mpt_api_client.models import Model
+from mpt_api_client.resources.billing.invoice_attachments import (
+    AsyncInvoiceAttachmentsService,
+    InvoiceAttachmentsService,
+)
 
 
 class Invoice(Model):
@@ -23,6 +27,13 @@ class InvoicesService(
 ):
     """Invoices service."""
 
+    def attachments(self, invoice_id: str) -> InvoiceAttachmentsService:
+        """Return invoice attachments service."""
+        return InvoiceAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"invoice_id": invoice_id},
+        )
+
 
 class AsyncInvoicesService(
     AsyncCreateMixin[Invoice],
@@ -31,3 +42,10 @@ class AsyncInvoicesService(
     InvoicesServiceConfig,
 ):
     """Async Invoices service."""
+
+    def attachments(self, invoice_id: str) -> AsyncInvoiceAttachmentsService:
+        """Return invoice attachments service."""
+        return AsyncInvoiceAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"invoice_id": invoice_id},
+        )
