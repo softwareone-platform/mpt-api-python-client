@@ -4,6 +4,10 @@ from mpt_api_client.http.mixins import (
     CreateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.billing.ledger_attachments import (
+    AsyncLedgerAttachmentsService,
+    LedgerAttachmentsService,
+)
 from mpt_api_client.resources.billing.ledger_charges import (
     AsyncLedgerChargesService,
     LedgerChargesService,
@@ -36,6 +40,13 @@ class LedgersService(
             endpoint_params={"ledger_id": ledger_id},
         )
 
+    def attachments(self, ledger_id: str) -> LedgerAttachmentsService:
+        """Return ledger attachments service."""
+        return LedgerAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"ledger_id": ledger_id},
+        )
+
 
 class AsyncLedgersService(
     AsyncCreateMixin[Ledger],
@@ -47,6 +58,13 @@ class AsyncLedgersService(
     def charges(self, ledger_id: str) -> AsyncLedgerChargesService:
         """Return ledger charges service."""
         return AsyncLedgerChargesService(
+            http_client=self.http_client,
+            endpoint_params={"ledger_id": ledger_id},
+        )
+
+    def attachments(self, ledger_id: str) -> AsyncLedgerAttachmentsService:
+        """Return ledger attachments service."""
+        return AsyncLedgerAttachmentsService(
             http_client=self.http_client,
             endpoint_params={"ledger_id": ledger_id},
         )
