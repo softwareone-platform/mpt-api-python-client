@@ -8,6 +8,10 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.billing.custom_ledger_attachments import (
+    AsyncCustomLedgerAttachmentsService,
+    CustomLedgerAttachmentsService,
+)
 from mpt_api_client.resources.billing.custom_ledger_charges import (
     AsyncCustomLedgerChargesService,
     CustomLedgerChargesService,
@@ -55,6 +59,13 @@ class CustomLedgersService(
             endpoint_params={"custom_ledger_id": custom_ledger_id},
         )
 
+    def attachments(self, custom_ledger_id: str) -> CustomLedgerAttachmentsService:
+        """Return custom ledger attachments service."""
+        return CustomLedgerAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"custom_ledger_id": custom_ledger_id},
+        )
+
 
 class AsyncCustomLedgersService(
     AsyncCreateMixin[CustomLedger],
@@ -76,6 +87,13 @@ class AsyncCustomLedgersService(
     def upload(self, custom_ledger_id: str) -> AsyncCustomLedgerUploadService:
         """Get the Async Custom Ledger Upload service."""
         return AsyncCustomLedgerUploadService(
+            http_client=self.http_client,
+            endpoint_params={"custom_ledger_id": custom_ledger_id},
+        )
+
+    def attachments(self, custom_ledger_id: str) -> AsyncCustomLedgerAttachmentsService:
+        """Return custom ledger attachments service."""
+        return AsyncCustomLedgerAttachmentsService(
             http_client=self.http_client,
             endpoint_params={"custom_ledger_id": custom_ledger_id},
         )
