@@ -1,4 +1,8 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.billing.credit_memos import (
+    AsyncCreditMemosService,
+    CreditMemosService,
+)
 from mpt_api_client.resources.billing.custom_ledgers import (
     AsyncCustomLedgersService,
     CustomLedgersService,
@@ -40,6 +44,11 @@ class Billing:
         """Custom ledgers service."""
         return CustomLedgersService(http_client=self.http_client)
 
+    @property
+    def credit_memos(self) -> CreditMemosService:
+        """Credit Memos service."""
+        return CreditMemosService(http_client=self.http_client)
+
 
 class AsyncBilling:
     """Billing MPT API Module."""
@@ -71,3 +80,8 @@ class AsyncBilling:
     def custom_ledgers(self) -> AsyncCustomLedgersService:
         """Custom ledgers service."""
         return AsyncCustomLedgersService(http_client=self.http_client)
+
+    @property
+    def credit_memos(self) -> AsyncCreditMemosService:
+        """Credit Memos service."""
+        return AsyncCreditMemosService(http_client=self.http_client)
