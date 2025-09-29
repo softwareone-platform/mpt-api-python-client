@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.billing.ledger_attachments import (
+    AsyncLedgerAttachmentsService,
+    LedgerAttachmentsService,
+)
 from mpt_api_client.resources.billing.ledger_charges import (
     AsyncLedgerChargesService,
     LedgerChargesService,
@@ -37,6 +41,7 @@ def test_async_mixins_present(async_ledgers_service, method):
     ("service_method", "expected_service_class"),
     [
         ("charges", LedgerChargesService),
+        ("attachments", LedgerAttachmentsService),
     ],
 )
 def test_property_services(ledgers_service, service_method, expected_service_class):
@@ -50,6 +55,7 @@ def test_property_services(ledgers_service, service_method, expected_service_cla
     ("service_method", "expected_service_class"),
     [
         ("charges", AsyncLedgerChargesService),
+        ("attachments", AsyncLedgerAttachmentsService),
     ],
 )
 def test_async_property_services(async_ledgers_service, service_method, expected_service_class):
