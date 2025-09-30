@@ -19,6 +19,10 @@ from mpt_api_client.resources.billing.journal_sellers import (
     AsyncJournalSellersService,
     JournalSellersService,
 )
+from mpt_api_client.resources.billing.journal_upload import (
+    AsyncJournalUploadService,
+    JournalUploadService,
+)
 from mpt_api_client.resources.billing.mixins import AsyncRegeneratableMixin, RegeneratableMixin
 
 
@@ -63,6 +67,12 @@ class JournalsService(
             http_client=self.http_client, endpoint_params={"journal_id": journal_id}
         )
 
+    def upload(self, journal_id: str) -> JournalUploadService:
+        """Return journal upload service."""
+        return JournalUploadService(
+            http_client=self.http_client, endpoint_params={"journal_id": journal_id}
+        )
+
 
 class AsyncJournalsService(
     AsyncCreateMixin[Journal],
@@ -90,5 +100,11 @@ class AsyncJournalsService(
     def charges(self, journal_id: str) -> AsyncJournalChargesService:
         """Return journal charges service."""
         return AsyncJournalChargesService(
+            http_client=self.http_client, endpoint_params={"journal_id": journal_id}
+        )
+
+    def upload(self, journal_id: str) -> AsyncJournalUploadService:
+        """Return journal upload service."""
+        return AsyncJournalUploadService(
             http_client=self.http_client, endpoint_params={"journal_id": journal_id}
         )

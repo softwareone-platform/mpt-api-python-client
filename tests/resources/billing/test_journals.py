@@ -12,6 +12,10 @@ from mpt_api_client.resources.billing.journal_sellers import (
     AsyncJournalSellersService,
     JournalSellersService,
 )
+from mpt_api_client.resources.billing.journal_upload import (
+    AsyncJournalUploadService,
+    JournalUploadService,
+)
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 
 
@@ -47,6 +51,7 @@ def test_async_mixins_present(async_journals_service, method):
         ("attachments", JournalAttachmentsService),
         ("sellers", JournalSellersService),
         ("charges", JournalChargesService),
+        ("upload", JournalUploadService),
     ],
 )
 def test_property_services(journals_service, service_method, expected_service_class):
@@ -62,6 +67,7 @@ def test_property_services(journals_service, service_method, expected_service_cl
         ("attachments", AsyncJournalAttachmentsService),
         ("sellers", AsyncJournalSellersService),
         ("charges", AsyncJournalChargesService),
+        ("upload", AsyncJournalUploadService),
     ],
 )
 def test_async_property_services(async_journals_service, service_method, expected_service_class):
