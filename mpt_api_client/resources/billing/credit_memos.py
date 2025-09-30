@@ -6,6 +6,10 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.billing.credit_memo_attachments import (
+    AsyncCreditMemoAttachmentsService,
+    CreditMemoAttachmentsService,
+)
 
 
 class CreditMemo(Model):
@@ -28,6 +32,13 @@ class CreditMemosService(
 ):
     """Credit Memos service."""
 
+    def attachments(self, credit_memo_id: str) -> CreditMemoAttachmentsService:
+        """Return credit memo attachments service."""
+        return CreditMemoAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"credit_memo_id": credit_memo_id},
+        )
+
 
 class AsyncCreditMemosService(
     AsyncCreateMixin[CreditMemo],
@@ -36,3 +47,10 @@ class AsyncCreditMemosService(
     CreditMemosServiceConfig,
 ):
     """Async Credit Memos service."""
+
+    def attachments(self, credit_memo_id: str) -> AsyncCreditMemoAttachmentsService:
+        """Return credit memo attachments service."""
+        return AsyncCreditMemoAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"credit_memo_id": credit_memo_id},
+        )
