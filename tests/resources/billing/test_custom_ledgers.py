@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.billing.custom_ledger_attachments import (
+    AsyncCustomLedgerAttachmentsService,
+    CustomLedgerAttachmentsService,
+)
 from mpt_api_client.resources.billing.custom_ledger_charges import (
     AsyncCustomLedgerChargesService,
     CustomLedgerChargesService,
@@ -39,6 +43,7 @@ def test_async_mixins_present(async_custom_ledgers_service, method):
     [
         ("charges", CustomLedgerChargesService),
         ("upload", CustomLedgerUploadService),
+        ("attachments", CustomLedgerAttachmentsService),
     ],
 )
 def test_property_services(custom_ledgers_service, service_method, expected_service_class):
@@ -53,6 +58,7 @@ def test_property_services(custom_ledgers_service, service_method, expected_serv
     [
         ("charges", AsyncCustomLedgerChargesService),
         ("upload", AsyncCustomLedgerUploadService),
+        ("attachments", AsyncCustomLedgerAttachmentsService),
     ],
 )
 def test_async_property_services(
