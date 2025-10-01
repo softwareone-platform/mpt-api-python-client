@@ -2,6 +2,8 @@ from typing import Self
 
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources import (
+    Accounts,
+    AsyncAccounts,
     AsyncAudit,
     AsyncBilling,
     AsyncCatalog,
@@ -56,6 +58,11 @@ class AsyncMPTClient:
         """Billing MPT API Client."""
         return AsyncBilling(http_client=self.http_client)
 
+    @property
+    def accounts(self) -> AsyncAccounts:
+        """Accounts MPT API Client."""
+        return AsyncAccounts(http_client=self.http_client)
+
 
 class MPTClient:
     """MPT API Client."""
@@ -104,3 +111,8 @@ class MPTClient:
     def billing(self) -> Billing:
         """Billing MPT API Client."""
         return Billing(http_client=self.http_client)
+
+    @property
+    def accounts(self) -> Accounts:
+        """Accounts MPT API Client."""
+        return Accounts(http_client=self.http_client)
