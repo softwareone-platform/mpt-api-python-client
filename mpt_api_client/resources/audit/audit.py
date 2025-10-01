@@ -1,4 +1,8 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.audit.event_types import (
+    AsyncEventTypesService,
+    EventTypesService,
+)
 from mpt_api_client.resources.audit.records import AsyncRecordsService, RecordsService
 
 
@@ -13,6 +17,11 @@ class Audit:
         """Records service."""
         return RecordsService(http_client=self.http_client)
 
+    @property
+    def event_types(self) -> EventTypesService:
+        """Event Types service."""
+        return EventTypesService(http_client=self.http_client)
+
 
 class AsyncAudit:
     """Async Audit MPT API Module."""
@@ -24,3 +33,8 @@ class AsyncAudit:
     def records(self) -> AsyncRecordsService:
         """Records service."""
         return AsyncRecordsService(http_client=self.http_client)
+
+    @property
+    def event_types(self) -> AsyncEventTypesService:
+        """Event Types service."""
+        return AsyncEventTypesService(http_client=self.http_client)

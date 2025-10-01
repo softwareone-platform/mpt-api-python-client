@@ -1,6 +1,7 @@
 import pytest
 
 from mpt_api_client.resources.audit.audit import AsyncAudit, Audit
+from mpt_api_client.resources.audit.event_types import AsyncEventTypesService, EventTypesService
 from mpt_api_client.resources.audit.records import AsyncRecordsService, RecordsService
 
 
@@ -18,6 +19,7 @@ def async_audit(async_http_client):
     ("property_name", "expected_service_class"),
     [
         ("records", RecordsService),
+        ("event_types", EventTypesService),
     ],
 )
 def test_audit_properties(audit, property_name, expected_service_class):
@@ -32,6 +34,7 @@ def test_audit_properties(audit, property_name, expected_service_class):
     ("property_name", "expected_service_class"),
     [
         ("records", AsyncRecordsService),
+        ("event_types", AsyncEventTypesService),
     ],
 )
 def test_async_audit_properties(async_audit, property_name, expected_service_class):

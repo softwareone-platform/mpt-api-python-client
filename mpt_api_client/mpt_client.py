@@ -1,7 +1,16 @@
 from typing import Self
 
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
-from mpt_api_client.resources import AsyncCatalog, AsyncCommerce, Catalog, Commerce
+from mpt_api_client.resources import (
+    AsyncAudit,
+    AsyncBilling,
+    AsyncCatalog,
+    AsyncCommerce,
+    Audit,
+    Billing,
+    Catalog,
+    Commerce,
+)
 
 
 class AsyncMPTClient:
@@ -36,6 +45,16 @@ class AsyncMPTClient:
     def commerce(self) -> AsyncCommerce:
         """Commerce MPT API Client."""
         return AsyncCommerce(http_client=self.http_client)
+
+    @property
+    def audit(self) -> AsyncAudit:
+        """Audit MPT API Client."""
+        return AsyncAudit(http_client=self.http_client)
+
+    @property
+    def billing(self) -> AsyncBilling:
+        """Billing MPT API Client."""
+        return AsyncBilling(http_client=self.http_client)
 
 
 class MPTClient:
@@ -75,3 +94,13 @@ class MPTClient:
     def catalog(self) -> Catalog:
         """Catalog MPT API Client."""
         return Catalog(http_client=self.http_client)
+
+    @property
+    def audit(self) -> Audit:
+        """Audit MPT API Client."""
+        return Audit(http_client=self.http_client)
+
+    @property
+    def billing(self) -> Billing:
+        """Billing MPT API Client."""
+        return Billing(http_client=self.http_client)
