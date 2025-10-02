@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
+from mpt_api_client.resources.accounts.api_tokens import ApiTokensService, AsyncApiTokensService
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
 from mpt_api_client.resources.accounts.user_groups import (
@@ -40,6 +41,11 @@ class Accounts:
         """User Groups service."""
         return UserGroupsService(http_client=self.http_client)
 
+    @property
+    def api_tokens(self) -> ApiTokensService:
+        """API Tokens service."""
+        return ApiTokensService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -71,3 +77,8 @@ class AsyncAccounts:
     def user_groups(self) -> AsyncUserGroupsService:
         """User Groups service."""
         return AsyncUserGroupsService(http_client=self.http_client)
+
+    @property
+    def api_tokens(self) -> AsyncApiTokensService:
+        """API Tokens service."""
+        return AsyncApiTokensService(http_client=self.http_client)
