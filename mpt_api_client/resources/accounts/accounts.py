@@ -1,5 +1,9 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
+from mpt_api_client.resources.accounts.cloud_tenants import (
+    AsyncCloudTenantsService,
+    CloudTenantsService,
+)
 
 
 class Accounts:
@@ -13,6 +17,11 @@ class Accounts:
         """Accounts service."""
         return AccountsService(http_client=self.http_client)
 
+    @property
+    def cloud_tenants(self) -> CloudTenantsService:
+        """Cloud Tenants service."""
+        return CloudTenantsService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -24,3 +33,8 @@ class AsyncAccounts:
     def accounts(self) -> AsyncAccountsService:
         """Accounts service."""
         return AsyncAccountsService(http_client=self.http_client)
+
+    @property
+    def cloud_tenants(self) -> AsyncCloudTenantsService:
+        """Cloud Tenants service."""
+        return AsyncCloudTenantsService(http_client=self.http_client)
