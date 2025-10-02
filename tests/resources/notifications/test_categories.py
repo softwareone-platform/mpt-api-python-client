@@ -53,7 +53,6 @@ def test_custom_category_actions(categories_service, action, input_status):
         ("unpublish", {"id": "CAT-123", "status": "to_unpublish"}),
     ],
 )
-@pytest.mark.asyncio
 async def test_async_custom_category_actions(async_categories_service, action, input_status):
     request_expected_content = b'{"id":"CAT-123","status":"%s"}' % input_status["status"].encode()
     response_expected_data = {"id": "CAT-123", "status": "new_status"}
