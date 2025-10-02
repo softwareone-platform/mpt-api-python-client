@@ -2,6 +2,10 @@ import pytest
 
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
 from mpt_api_client.resources.accounts.accounts import Accounts, AsyncAccounts
+from mpt_api_client.resources.accounts.api_tokens import (
+    ApiTokensService,
+    AsyncApiTokensService,
+)
 
 
 @pytest.fixture
@@ -15,7 +19,11 @@ def async_accounts(async_http_client):
 
 
 @pytest.mark.parametrize(
-    ("property_name", "expected_service_class"), [("accounts", AccountsService)]
+    ("property_name", "expected_service_class"),
+    [
+        ("accounts", AccountsService),
+        ("api_tokens", ApiTokensService),
+    ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
     """Test that Accounts properties return correct instances."""
@@ -26,7 +34,11 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
 
 
 @pytest.mark.parametrize(
-    ("property_name", "expected_service_class"), [("accounts", AsyncAccountsService)]
+    ("property_name", "expected_service_class"),
+    [
+        ("accounts", AsyncAccountsService),
+        ("api_tokens", AsyncApiTokensService),
+    ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):
     """Test that AsyncAccounts properties return correct instances."""
