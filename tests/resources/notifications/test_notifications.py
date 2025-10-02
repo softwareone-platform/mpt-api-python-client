@@ -5,6 +5,7 @@ from mpt_api_client.resources.notifications.categories import (
     AsyncCategoriesService,
     CategoriesService,
 )
+from mpt_api_client.resources.notifications.contacts import AsyncContactsService, ContactsService
 
 
 def test_notifications_init(http_client):
@@ -25,6 +26,7 @@ def test_async_notifications_init(async_http_client):
     ("attr_name", "expected"),
     [
         ("categories", CategoriesService),
+        ("contacts", ContactsService),
     ],
 )
 def test_notifications_properties(http_client, attr_name, expected):
@@ -39,6 +41,7 @@ def test_notifications_properties(http_client, attr_name, expected):
     ("attr_name", "expected"),
     [
         ("categories", AsyncCategoriesService),
+        ("contacts", AsyncContactsService),
     ],
 )
 def test_async_notifications_properties(http_client, attr_name, expected):
