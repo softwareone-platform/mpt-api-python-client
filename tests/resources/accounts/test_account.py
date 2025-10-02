@@ -13,11 +13,15 @@ def async_account_service(async_http_client):
     return AsyncAccountsService(http_client=async_http_client)
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update"])
+@pytest.mark.parametrize(
+    "method", ["get", "create", "update", "enable", "disable", "activate", "deactivate", "validate"]
+)
 def test_mixins_present(account_service, method):
     assert hasattr(account_service, method)
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update"])
+@pytest.mark.parametrize(
+    "method", ["get", "create", "update", "enable", "disable", "activate", "deactivate", "validate"]
+)
 def test_async_mixins_present(async_account_service, method):
     assert hasattr(async_account_service, method)
