@@ -9,10 +9,12 @@ from mpt_api_client.resources import (
     AsyncBilling,
     AsyncCatalog,
     AsyncCommerce,
+    AsyncNotifications,
     Audit,
     Billing,
     Catalog,
     Commerce,
+    Notifications,
 )
 from tests.conftest import API_TOKEN, API_URL
 
@@ -21,23 +23,22 @@ def get_mpt_client():
     return MPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
 
 
-def get_async_mpt_client():
-    return AsyncMPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
-
-
 @pytest.mark.parametrize(
-    ("domain_module", "domain_type"),
+    ("resource_name", "expected_type"),
     [
-        (get_mpt_client(), MPTClient),
-        (get_mpt_client().commerce, Commerce),
-        (get_mpt_client().catalog, Catalog),
-        (get_mpt_client().audit, Audit),
-        (get_mpt_client().billing, Billing),
-        (get_mpt_client().accounts, Accounts),
+        ("commerce", Commerce),
+        ("catalog", Catalog),
+        ("audit", Audit),
+        ("billing", Billing),
+        ("accounts", Accounts),
+        ("notifications", Notifications),
     ],
 )
-def test_mpt_client(domain_module, domain_type) -> None:
-    assert isinstance(domain_module, domain_type)
+def test_mpt_client(resource_name: str, expected_type: type) -> None:
+    mpt = MPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
+    resource = getattr(mpt, resource_name)
+    assert isinstance(mpt, MPTClient)
+    assert isinstance(resource, expected_type)
 
 
 def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -51,18 +52,22 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.parametrize(
-    ("domain_module", "domain_type"),
+    ("resource_name", "expected_type"),
     [
-        (get_async_mpt_client(), AsyncMPTClient),
-        (get_async_mpt_client().commerce, AsyncCommerce),
-        (get_async_mpt_client().catalog, AsyncCatalog),
-        (get_async_mpt_client().audit, AsyncAudit),
-        (get_async_mpt_client().billing, AsyncBilling),
-        (get_async_mpt_client().accounts, AsyncAccounts),
+        ("commerce", AsyncCommerce),
+        ("catalog", AsyncCatalog),
+        ("audit", AsyncAudit),
+        ("billing", AsyncBilling),
+        ("accounts", AsyncAccounts),
+        ("notifications", AsyncNotifications),
     ],
 )
-def test_async_mpt_client(domain_module, domain_type) -> None:
-    assert isinstance(domain_module, domain_type)
+def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
+    mpt = AsyncMPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
+    resource = getattr(mpt, resource_name)
+
+    assert isinstance(mpt, AsyncMPTClient)
+    assert isinstance(resource, expected_type)
 
 
 def test_async_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
