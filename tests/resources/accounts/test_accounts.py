@@ -6,6 +6,7 @@ from mpt_api_client.resources.accounts.api_tokens import (
     ApiTokensService,
     AsyncApiTokensService,
 )
+from mpt_api_client.resources.accounts.buyers import AsyncBuyersService, BuyersService
 from mpt_api_client.resources.accounts.cloud_tenants import (
     AsyncCloudTenantsService,
     CloudTenantsService,
@@ -41,6 +42,7 @@ def async_accounts(async_http_client):
         ("api_tokens", ApiTokensService),
         ("modules", ModulesService),
         ("cloud_tenants", CloudTenantsService),
+        ("buyers", BuyersService),
     ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
@@ -62,6 +64,7 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
         ("api_tokens", AsyncApiTokensService),
         ("modules", AsyncModulesService),
         ("cloud_tenants", AsyncCloudTenantsService),
+        ("buyers", AsyncBuyersService),
     ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):

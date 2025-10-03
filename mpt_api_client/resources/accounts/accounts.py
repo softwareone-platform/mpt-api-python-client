@@ -1,6 +1,7 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
 from mpt_api_client.resources.accounts.api_tokens import ApiTokensService, AsyncApiTokensService
+from mpt_api_client.resources.accounts.buyers import AsyncBuyersService, BuyersService
 from mpt_api_client.resources.accounts.cloud_tenants import (
     AsyncCloudTenantsService,
     CloudTenantsService,
@@ -61,6 +62,11 @@ class Accounts:
         """Cloud Tenants service."""
         return CloudTenantsService(http_client=self.http_client)
 
+    @property
+    def buyers(self) -> BuyersService:
+        """Buyers service."""
+        return BuyersService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -107,3 +113,8 @@ class AsyncAccounts:
     def cloud_tenants(self) -> AsyncCloudTenantsService:
         """Cloud Tenants service."""
         return AsyncCloudTenantsService(http_client=self.http_client)
+
+    @property
+    def buyers(self) -> AsyncBuyersService:
+        """Buyers service."""
+        return AsyncBuyersService(http_client=self.http_client)
