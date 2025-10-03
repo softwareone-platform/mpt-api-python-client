@@ -4,6 +4,7 @@ from mpt_api_client.resources.notifications.categories import (
     CategoriesService,
 )
 from mpt_api_client.resources.notifications.contacts import AsyncContactsService, ContactsService
+from mpt_api_client.resources.notifications.messages import AsyncMessagesService, MessagesService
 
 
 class Notifications:
@@ -22,6 +23,11 @@ class Notifications:
         """Contacts service."""
         return ContactsService(http_client=self.http_client)
 
+    @property
+    def messages(self) -> MessagesService:
+        """Messages service."""
+        return MessagesService(http_client=self.http_client)
+
 
 class AsyncNotifications:
     """Notifications MPT API Module."""
@@ -38,3 +44,8 @@ class AsyncNotifications:
     def contacts(self) -> AsyncContactsService:
         """Async Contacts service."""
         return AsyncContactsService(http_client=self.http_client)
+
+    @property
+    def messages(self) -> AsyncMessagesService:
+        """Async Messages service."""
+        return AsyncMessagesService(http_client=self.http_client)
