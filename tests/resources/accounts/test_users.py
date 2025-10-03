@@ -16,14 +16,14 @@ def async_users_service(async_http_client):
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check"]
+    "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check", "set_password"]
 )
 def test_mixins_present(users_service, method):
     assert hasattr(users_service, method)
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check"]
+    "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check", "set_password"]
 )
 def test_async_mixins_present(async_users_service, method):
     assert hasattr(async_users_service, method)
@@ -34,9 +34,10 @@ def test_async_mixins_present(async_users_service, method):
     [
         ("sso", {"id": "OBJ-0000-0001", "status": "update"}),
         ("sso_check", {"id": "OBJ-0000-0001", "status": "update"}),
+        ("set_password", {"id": "OBJ-0000-0001", "status": "update"}),
     ],
 )
-def test_sso_resource_actions(users_service, action, input_status):
+def test_resource_actions(users_service, action, input_status):
     request_expected_content = b'{"id":"OBJ-0000-0001","status":"update"}'
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
@@ -63,9 +64,10 @@ def test_sso_resource_actions(users_service, action, input_status):
     [
         ("sso", None),
         ("sso_check", None),
+        ("set_password", None),
     ],
 )
-def test_sso_resource_actions_no_data(users_service, action, input_status):
+def test_resource_actions_no_data(users_service, action, input_status):
     request_expected_content = b""
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
@@ -92,9 +94,10 @@ def test_sso_resource_actions_no_data(users_service, action, input_status):
     [
         ("sso", {"id": "OBJ-0000-0001", "status": "update"}),
         ("sso_check", {"id": "OBJ-0000-0001", "status": "update"}),
+        ("set_password", {"id": "OBJ-0000-0001", "status": "update"}),
     ],
 )
-async def test_async_sso_resource_actions(async_users_service, action, input_status):
+async def test_async_resource_actions(async_users_service, action, input_status):
     request_expected_content = b'{"id":"OBJ-0000-0001","status":"update"}'
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
@@ -121,9 +124,10 @@ async def test_async_sso_resource_actions(async_users_service, action, input_sta
     [
         ("sso", None),
         ("sso_check", None),
+        ("set_password", None),
     ],
 )
-async def test_async_sso_resource_actions_no_data(async_users_service, action, input_status):
+async def test_async_resource_actions_no_data(async_users_service, action, input_status):
     request_expected_content = b""
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
