@@ -10,6 +10,7 @@ from mpt_api_client.resources.accounts.cloud_tenants import (
     AsyncCloudTenantsService,
     CloudTenantsService,
 )
+from mpt_api_client.resources.accounts.erp_links import AsyncErpLinksService, ErpLinksService
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.modules import AsyncModulesService, ModulesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
@@ -76,6 +77,11 @@ class Accounts:
         """Account Users service."""
         return AccountUsersService(http_client=self.http_client)
 
+    @property
+    def erp_links(self) -> ErpLinksService:
+        """ERP Links service."""
+        return ErpLinksService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -132,3 +138,8 @@ class AsyncAccounts:
     def account_users(self) -> AsyncAccountUsersService:
         """Account Users service."""
         return AsyncAccountUsersService(http_client=self.http_client)
+
+    @property
+    def erp_links(self) -> AsyncErpLinksService:
+        """ERP Links service."""
+        return AsyncErpLinksService(http_client=self.http_client)
