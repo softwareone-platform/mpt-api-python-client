@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
+from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
 from mpt_api_client.resources.accounts.users import AsyncUsersService, UsersService
 
@@ -25,6 +26,11 @@ class Accounts:
         """Sellers service."""
         return SellersService(http_client=self.http_client)
 
+    @property
+    def licensees(self) -> LicenseesService:
+        """Licensees service."""
+        return LicenseesService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -46,3 +52,8 @@ class AsyncAccounts:
     def sellers(self) -> AsyncSellersService:
         """Sellers service."""
         return AsyncSellersService(http_client=self.http_client)
+
+    @property
+    def licensees(self) -> AsyncLicenseesService:
+        """Licensees service."""
+        return AsyncLicenseesService(http_client=self.http_client)
