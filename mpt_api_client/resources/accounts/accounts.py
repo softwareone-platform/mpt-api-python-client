@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
+from mpt_api_client.resources.accounts.erp_links import AsyncErpLinksService, ErpLinksService
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
 from mpt_api_client.resources.accounts.users import AsyncUsersService, UsersService
@@ -31,6 +32,11 @@ class Accounts:
         """Licensees service."""
         return LicenseesService(http_client=self.http_client)
 
+    @property
+    def erp_links(self) -> ErpLinksService:
+        """ERP Links service."""
+        return ErpLinksService(http_client=self.http_client)
+
 
 class AsyncAccounts:
     """Async Accounts MPT API Module."""
@@ -57,3 +63,8 @@ class AsyncAccounts:
     def licensees(self) -> AsyncLicenseesService:
         """Licensees service."""
         return AsyncLicenseesService(http_client=self.http_client)
+
+    @property
+    def erp_links(self) -> AsyncErpLinksService:
+        """ERP Links service."""
+        return AsyncErpLinksService(http_client=self.http_client)
