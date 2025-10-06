@@ -18,11 +18,11 @@ class MessagesService(
     Service[Message],
     MessagesServiceConfig,
 ):
-    """Notifications Messages service (no CRUD, no block/unblock)."""
+    """Notifications Messages service."""
 
 
 class AsyncMessagesService(
     AsyncService[Message],
     MessagesServiceConfig,
 ):
-    """Async Notifications Messages service (no CRUD, no block/unblock)."""
+    """Async Notifications Messages service."""
