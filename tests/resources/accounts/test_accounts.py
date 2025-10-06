@@ -2,6 +2,10 @@ import pytest
 
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
 from mpt_api_client.resources.accounts.accounts import Accounts, AsyncAccounts
+from mpt_api_client.resources.accounts.api_tokens import (
+    ApiTokensService,
+    AsyncApiTokensService,
+)
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
 from mpt_api_client.resources.accounts.user_groups import (
@@ -29,6 +33,7 @@ def async_accounts(async_http_client):
         ("sellers", SellersService),
         ("licensees", LicenseesService),
         ("user_groups", UserGroupsService),
+        ("api_tokens", ApiTokensService),
     ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
@@ -47,6 +52,7 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
         ("sellers", AsyncSellersService),
         ("licensees", AsyncLicenseesService),
         ("user_groups", AsyncUserGroupsService),
+        ("api_tokens", AsyncApiTokensService),
     ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):
