@@ -1,4 +1,5 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.notifications.batches import AsyncBatchesService, BatchesService
 from mpt_api_client.resources.notifications.categories import (
     AsyncCategoriesService,
     CategoriesService,
@@ -28,6 +29,11 @@ class Notifications:
         """Messages service."""
         return MessagesService(http_client=self.http_client)
 
+    @property
+    def batches(self) -> BatchesService:
+        """Batches service."""
+        return BatchesService(http_client=self.http_client)
+
 
 class AsyncNotifications:
     """Notifications MPT API Module."""
@@ -49,3 +55,8 @@ class AsyncNotifications:
     def messages(self) -> AsyncMessagesService:
         """Async Messages service."""
         return AsyncMessagesService(http_client=self.http_client)
+
+    @property
+    def batches(self) -> AsyncBatchesService:
+        """Async Batches service."""
+        return AsyncBatchesService(http_client=self.http_client)

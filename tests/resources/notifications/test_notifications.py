@@ -1,6 +1,7 @@
 import pytest
 
 from mpt_api_client.resources import AsyncNotifications, Notifications
+from mpt_api_client.resources.notifications.batches import AsyncBatchesService, BatchesService
 from mpt_api_client.resources.notifications.categories import (
     AsyncCategoriesService,
     CategoriesService,
@@ -29,12 +30,13 @@ def test_async_notifications_init(async_http_client):
         ("categories", CategoriesService),
         ("contacts", ContactsService),
         ("messages", MessagesService),
+        ("batches", BatchesService),
     ],
 )
 def test_notifications_properties(http_client, attr_name, expected):
-    commerce = Notifications(http_client=http_client)
+    notifications = Notifications(http_client=http_client)
 
-    service = getattr(commerce, attr_name)
+    service = getattr(notifications, attr_name)
 
     assert isinstance(service, expected)
 
@@ -45,11 +47,12 @@ def test_notifications_properties(http_client, attr_name, expected):
         ("categories", AsyncCategoriesService),
         ("contacts", AsyncContactsService),
         ("messages", AsyncMessagesService),
+        ("batches", AsyncBatchesService),
     ],
 )
 def test_async_notifications_properties(http_client, attr_name, expected):
-    commerce = AsyncNotifications(http_client=http_client)
+    notifications = AsyncNotifications(http_client=http_client)
 
-    service = getattr(commerce, attr_name)
+    service = getattr(notifications, attr_name)
 
     assert isinstance(service, expected)
