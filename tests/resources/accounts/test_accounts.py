@@ -15,6 +15,7 @@ from mpt_api_client.resources.accounts.cloud_tenants import (
     AsyncCloudTenantsService,
     CloudTenantsService,
 )
+from mpt_api_client.resources.accounts.erp_links import AsyncErpLinksService, ErpLinksService
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.modules import AsyncModulesService, ModulesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
@@ -48,6 +49,7 @@ def async_accounts(async_http_client):
         ("cloud_tenants", CloudTenantsService),
         ("buyers", BuyersService),
         ("account_users", AccountUsersService),
+        ("erp_links", ErpLinksService),
     ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
@@ -71,6 +73,7 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
         ("cloud_tenants", AsyncCloudTenantsService),
         ("buyers", AsyncBuyersService),
         ("account_users", AsyncAccountUsersService),
+        ("erp_links", AsyncErpLinksService),
     ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):
