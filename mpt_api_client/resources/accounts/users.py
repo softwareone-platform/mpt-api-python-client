@@ -52,6 +52,17 @@ class UsersService(
         """
         return self._resource_action(resource_id, "POST", "sso-check", json=resource_data)
 
+    def set_password(self, resource_id: str, password: str) -> User:
+        """Set password for a user.
+
+        Args:
+            resource_id: Resource ID
+            password: New password
+        """
+        resource_data = {"password": password}
+
+        return self._resource_action(resource_id, "POST", "set-password", json=resource_data)
+
 
 class AsyncUsersService(
     AsyncUpdateMixin[User],
@@ -79,3 +90,14 @@ class AsyncUsersService(
             resource_data: Resource data will be updated
         """
         return await self._resource_action(resource_id, "POST", "sso-check", json=resource_data)
+
+    async def set_password(self, resource_id: str, password: str) -> User:
+        """Set password for a user.
+
+        Args:
+            resource_id: Resource ID
+            password: New password
+        """
+        resource_data = {"password": password}
+
+        return await self._resource_action(resource_id, "POST", "set-password", json=resource_data)
