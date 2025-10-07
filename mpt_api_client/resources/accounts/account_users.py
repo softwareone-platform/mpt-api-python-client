@@ -4,6 +4,10 @@ from mpt_api_client.http.mixins import (
     CreateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.accounts.account_user_groups import (
+    AccountUserGroupsService,
+    AsyncAccountUserGroupsService,
+)
 from mpt_api_client.resources.accounts.mixins import (
     AsyncInvitableMixin,
     InvitableMixin,
@@ -30,6 +34,13 @@ class AccountUsersService(
 ):
     """Account Users Service."""
 
+    def groups(self, account_user_id: str) -> AccountUserGroupsService:
+        """Return account user groups service."""
+        return AccountUserGroupsService(
+            http_client=self.http_client,
+            endpoint_params={"account_user_id": account_user_id},
+        )
+
 
 class AsyncAccountUsersService(
     AsyncCreateMixin[AccountUser],
@@ -38,3 +49,10 @@ class AsyncAccountUsersService(
     AccountUsersServiceConfig,
 ):
     """Asynchronous Account Users Service."""
+
+    def groups(self, account_user_id: str) -> AsyncAccountUserGroupsService:
+        """Return account user groups service."""
+        return AsyncAccountUserGroupsService(
+            http_client=self.http_client,
+            endpoint_params={"account_user_id": account_user_id},
+        )
