@@ -49,7 +49,6 @@ class BatchesService(
             )
 
         response = self.http_client.post(self.endpoint, files=files)
-        response.raise_for_status()
         return self._model_class.from_response(response)
 
     def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
@@ -63,7 +62,7 @@ class BatchesService(
             FileModel containing the attachment.
         """
         response = self.http_client.get(f"{self.endpoint}/{batch_id}/attachments/{attachment_id}")
-        response.raise_for_status()
+
         return FileModel(response)
 
 
@@ -99,7 +98,6 @@ class AsyncBatchesService(
             )
 
         response = await self.http_client.post(self.endpoint, files=files)
-        response.raise_for_status()
         return self._model_class.from_response(response)
 
     async def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
@@ -115,5 +113,4 @@ class AsyncBatchesService(
         response = await self.http_client.get(
             f"{self.endpoint}/{batch_id}/attachments/{attachment_id}"
         )
-        response.raise_for_status()
         return FileModel(response)

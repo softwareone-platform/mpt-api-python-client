@@ -1,6 +1,32 @@
 import os
+from typing import Any, override
 
-from httpx import Client, HTTPTransport
+from httpx import (
+    URL,
+    USE_CLIENT_DEFAULT,
+    Client,
+    HTTPError,
+    HTTPStatusError,
+    HTTPTransport,
+    Response,
+)
+from httpx._client import UseClientDefault
+from httpx._types import (
+    AuthTypes,
+    CookieTypes,
+    HeaderTypes,
+    QueryParamTypes,
+    RequestContent,
+    RequestData,
+    RequestExtensions,
+    TimeoutTypes,
+)
+from respx.types import RequestFiles
+
+from mpt_api_client.exceptions import (
+    MPTError,
+    transform_http_status_exception,
+)
 
 
 class HTTPClient(Client):
@@ -12,7 +38,7 @@ class HTTPClient(Client):
         base_url: str | None = None,
         api_token: str | None = None,
         timeout: float = 5.0,
-        retries: int = 0,
+        retries: int = 5,
     ):
         api_token = api_token or os.getenv("MPT_TOKEN")
         if not api_token:
@@ -40,3 +66,43 @@ class HTTPClient(Client):
             timeout=timeout,
             transport=HTTPTransport(retries=retries),
         )
+
+    @override
+    def request(  # noqa: WPS211
+        self,
+        method: str,
+        url: URL | str,
+        *,
+        content: RequestContent | None = None,  # noqa: WPS110
+        data: RequestData | None = None,  # noqa: WPS110
+        files: RequestFiles | None = None,
+        json: Any | None = None,
+        params: QueryParamTypes | None = None,  # noqa: WPS110
+        headers: HeaderTypes | None = None,
+        cookies: CookieTypes | None = None,
+        auth: AuthTypes | UseClientDefault | None = USE_CLIENT_DEFAULT,
+        follow_redirects: bool | UseClientDefault = USE_CLIENT_DEFAULT,
+        timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
+        extensions: RequestExtensions | None = None,
+    ) -> Response:
+        try:
+            response = super().request(
+                method,
+                url,
+                content=content,
+                data=data,
+                files=files,
+                json=json,
+                params=params,
+                headers=headers,
+                cookies=cookies,
+                auth=auth,
+            )
+        except HTTPError as err:
+            raise MPTError(f"HTTP Error: {err}") from err
+
+        try:
+            response.raise_for_status()
+        except HTTPStatusError as http_status_exception:
+            raise transform_http_status_exception(http_status_exception) from http_status_exception
+        return response
