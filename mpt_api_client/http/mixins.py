@@ -23,7 +23,6 @@ class CreateMixin[Model]:
             New resource created.
         """
         response = self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
-        response.raise_for_status()
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -37,8 +36,7 @@ class DeleteMixin:
         Args:
             resource_id: Resource ID.
         """
-        response = self._resource_do_request(resource_id, "DELETE")  # type: ignore[attr-defined]
-        response.raise_for_status()
+        self._resource_do_request(resource_id, "DELETE")  # type: ignore[attr-defined]
 
 
 class UpdateMixin[Model]:
@@ -87,7 +85,7 @@ class FileOperationsMixin[Model]:
             )
 
         response = self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
-        response.raise_for_status()
+
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
     def download(self, resource_id: str) -> FileModel:
@@ -115,7 +113,6 @@ class AsyncCreateMixin[Model]:
             New resource created.
         """
         response = await self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
-        response.raise_for_status()
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -130,8 +127,7 @@ class AsyncDeleteMixin:
             resource_id: Resource ID.
         """
         url = urljoin(f"{self.endpoint}/", resource_id)  # type: ignore[attr-defined]
-        response = await self.http_client.delete(url)  # type: ignore[attr-defined]
-        response.raise_for_status()
+        await self.http_client.delete(url)  # type: ignore[attr-defined]
 
 
 class AsyncUpdateMixin[Model]:
@@ -180,7 +176,7 @@ class AsyncFileOperationsMixin[Model]:
             )
 
         response = await self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
-        response.raise_for_status()
+
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
     async def download(self, resource_id: str) -> FileModel:

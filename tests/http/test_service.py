@@ -2,6 +2,7 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.exceptions import MPTAPIError
 from tests.conftest import DummyModel
 from tests.http.conftest import DummyService
 
@@ -263,5 +264,5 @@ def test_sync_iterate_handles_api_errors(dummy_service):
 
         iterator = dummy_service.iterate()
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MPTAPIError):
             list(iterator)

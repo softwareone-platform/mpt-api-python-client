@@ -2,6 +2,7 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.exceptions import MPTAPIError
 from tests.conftest import DummyModel
 from tests.http.conftest import AsyncDummyService
 
@@ -256,3 +257,15 @@ async def test_async_get(async_dummy_service):
     assert accept_header in request.headers.raw
     assert isinstance(resource, DummyModel)
     assert resource.to_dict() == resource_data
+
+
+async def test_sync_iterate_handles_api_errors(async_dummy_service):
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=httpx.Response(
+                httpx.codes.INTERNAL_SERVER_ERROR, json={"error": "Internal Server Error"}
+            )
+        )
+
+        with pytest.raises(MPTAPIError):
+            [resource async for resource in async_dummy_service.iterate()]
