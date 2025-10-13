@@ -2,6 +2,7 @@ import pytest
 import respx
 from httpx import ConnectTimeout, Response, codes
 
+from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from tests.conftest import API_TOKEN, API_URL
 
@@ -51,7 +52,7 @@ async def test_async_http_call_success(async_http_client):
 async def test_async_http_call_failure(async_http_client):
     timeout_route = respx.get(f"{API_URL}/timeout").mock(side_effect=ConnectTimeout("Mock Timeout"))
 
-    with pytest.raises(ConnectTimeout):
+    with pytest.raises(MPTError, match="HTTP Error: Mock Timeout"):
         await async_http_client.get("/timeout")
 
     assert timeout_route.called

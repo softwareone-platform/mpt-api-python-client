@@ -1,10 +1,11 @@
 from typing import override
 
+from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.models import Model
 
 
-class MethodNotAllowedError(Exception):
+class MethodNotAllowedError(MPTError):
     """Method not allowed error."""
 
 
