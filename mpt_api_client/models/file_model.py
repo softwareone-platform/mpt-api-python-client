@@ -1,6 +1,6 @@
 import re
 
-from httpx import Response
+from mpt_api_client.http.types import Response
 
 
 class FileModel:

@@ -1,9 +1,7 @@
 import json
 from urllib.parse import urljoin
 
-from httpx import Response
-from httpx._types import FileTypes
-
+from mpt_api_client.http.types import FileTypes, Response
 from mpt_api_client.models import FileModel, ResourceData
 
 
@@ -22,7 +20,7 @@ class CreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = self.http_client.request("post", self.endpoint, json=resource_data)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -84,7 +82,7 @@ class FileOperationsMixin[Model]:
                 "application/json",
             )
 
-        response = self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
+        response = self.http_client.request("post", self.endpoint, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -112,7 +110,7 @@ class AsyncCreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = await self.http_client.post(self.endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = await self.http_client.request("post", self.endpoint, json=resource_data)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -127,7 +125,7 @@ class AsyncDeleteMixin:
             resource_id: Resource ID.
         """
         url = urljoin(f"{self.endpoint}/", resource_id)  # type: ignore[attr-defined]
-        await self.http_client.delete(url)  # type: ignore[attr-defined]
+        await self.http_client.request("delete", url)  # type: ignore[attr-defined]
 
 
 class AsyncUpdateMixin[Model]:
@@ -175,7 +173,7 @@ class AsyncFileOperationsMixin[Model]:
                 "application/json",
             )
 
-        response = await self.http_client.post(self.endpoint, files=files)  # type: ignore[attr-defined]
+        response = await self.http_client.request("post", self.endpoint, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 

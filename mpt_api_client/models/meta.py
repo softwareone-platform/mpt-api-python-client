@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Self
 
-from httpx import Response
+from mpt_api_client.http.types import Response
 
 
 @dataclass

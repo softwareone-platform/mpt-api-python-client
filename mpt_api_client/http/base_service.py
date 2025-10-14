@@ -1,8 +1,7 @@
 import copy
 from typing import Any, Self
 
-import httpx
-
+from mpt_api_client.http.types import Response
 from mpt_api_client.models import Collection, Meta
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.rql import RQLQuery
@@ -122,7 +121,7 @@ class ServiceBase[Client, Model: BaseModel]:  # noqa: WPS214
         return new_client
 
     @classmethod
-    def _create_collection(cls, response: httpx.Response) -> Collection[Model]:
+    def _create_collection(cls, response: Response) -> Collection[Model]:
         meta = Meta.from_response(response)
         return Collection(
             resources=[

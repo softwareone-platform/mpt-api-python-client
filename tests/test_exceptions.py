@@ -52,6 +52,19 @@ def test_api_error_str_and_repr():
     )
 
 
+def test_api_error_str_no_errors():
+    payload = {
+        "status": "400",
+        "title": "Bad Request",
+        "detail": "Invalid input",
+        "traceId": "abc123",
+    }
+
+    exception = MPTAPIError(status_code=400, payload=payload)
+
+    assert str(exception) == "400 Bad Request - Invalid input (abc123)"
+
+
 def test_transform_http_status_exception():
     payload = {
         "status": "400",
