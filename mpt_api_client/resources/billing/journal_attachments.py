@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -25,6 +27,7 @@ class JournalAttachmentsServiceConfig:
 class JournalAttachmentsService(
     FileOperationsMixin[JournalAttachment],
     DeleteMixin,
+    GetMixin[JournalAttachment],
     UpdateMixin[JournalAttachment],
     Service[JournalAttachment],
     JournalAttachmentsServiceConfig,
@@ -35,6 +38,7 @@ class JournalAttachmentsService(
 class AsyncJournalAttachmentsService(
     AsyncFileOperationsMixin[JournalAttachment],
     AsyncDeleteMixin,
+    AsyncGetMixin[JournalAttachment],
     AsyncUpdateMixin[JournalAttachment],
     AsyncService[JournalAttachment],
     JournalAttachmentsServiceConfig,

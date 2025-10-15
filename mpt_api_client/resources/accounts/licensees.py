@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -28,6 +30,7 @@ class LicenseesService(
     DeleteMixin,
     UpdateMixin[Licensee],
     EnablableMixin[Licensee],
+    GetMixin[Licensee],
     Service[Licensee],
     LicenseesServiceConfig,
 ):
@@ -39,6 +42,7 @@ class AsyncLicenseesService(
     AsyncDeleteMixin,
     AsyncUpdateMixin[Licensee],
     AsyncEnablableMixin[Licensee],
+    AsyncGetMixin[Licensee],
     AsyncService[Licensee],
     LicenseesServiceConfig,
 ):

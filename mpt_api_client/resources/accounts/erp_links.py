@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -25,6 +27,7 @@ class ErpLinksService(
     CreateMixin[ErpLink],
     UpdateMixin[ErpLink],
     BlockableMixin[ErpLink],
+    GetMixin[ErpLink],
     Service[ErpLink],
     ErpLinksServiceConfig,
 ):
@@ -35,6 +38,7 @@ class AsyncErpLinksService(
     AsyncCreateMixin[ErpLink],
     AsyncUpdateMixin[ErpLink],
     AsyncBlockableMixin[ErpLink],
+    AsyncGetMixin[ErpLink],
     AsyncService[ErpLink],
     ErpLinksServiceConfig,
 ):

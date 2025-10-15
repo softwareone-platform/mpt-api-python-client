@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -26,6 +28,7 @@ class CloudTenantsService(
     CreateMixin[CloudTenant],
     DeleteMixin,
     UpdateMixin[CloudTenant],
+    GetMixin[CloudTenant],
     Service[CloudTenant],
     CloudTenantsServiceConfig,
 ):
@@ -36,6 +39,7 @@ class AsyncCloudTenantsService(
     AsyncCreateMixin[CloudTenant],
     AsyncDeleteMixin,
     AsyncUpdateMixin[CloudTenant],
+    AsyncGetMixin[CloudTenant],
     AsyncService[CloudTenant],
     CloudTenantsServiceConfig,
 ):

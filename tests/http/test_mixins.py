@@ -284,3 +284,34 @@ def test_sync_file_create_no_data(media_service):
         b"Image content\r\n" in request.content
     )
     assert new_media.to_dict() == media_data
+
+
+def test_sync_get_mixin(dummy_service):
+    """Test GetMixin get method."""
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
+
+        resource = dummy_service.get("RES-123", select=["id", "name"])
+
+    request = mock_route.calls[0].request
+    accept_header = (b"Accept", b"application/json")
+    assert accept_header in request.headers.raw
+    assert resource.to_dict() == resource_data
+
+
+async def test_async_get(async_dummy_service):
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
+
+        resource = await async_dummy_service.get("RES-123", select=["id", "name"])
+
+    request = mock_route.calls[0].request
+    accept_header = (b"Accept", b"application/json")
+    assert accept_header in request.headers.raw
+    assert resource.to_dict() == resource_data

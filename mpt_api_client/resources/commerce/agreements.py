@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -29,6 +31,7 @@ class AgreementsServiceConfig:
 class AgreementsService(  # noqa: WPS215
     CreateMixin[Agreement],
     UpdateMixin[Agreement],
+    GetMixin[Agreement],
     DeleteMixin,
     Service[Agreement],
     AgreementsServiceConfig,
@@ -65,6 +68,7 @@ class AgreementsService(  # noqa: WPS215
 class AsyncAgreementsService(  # noqa: WPS215
     AsyncCreateMixin[Agreement],
     AsyncUpdateMixin[Agreement],
+    AsyncGetMixin[Agreement],
     AsyncDeleteMixin,
     AsyncService[Agreement],
     AgreementsServiceConfig,

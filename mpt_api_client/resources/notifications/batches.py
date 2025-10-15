@@ -1,7 +1,7 @@
 from httpx._types import FileTypes
 
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import _json_to_file_payload
+from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin, _json_to_file_payload
 from mpt_api_client.models import FileModel, Model, ResourceData
 
 
@@ -18,6 +18,7 @@ class BatchesServiceConfig:
 
 
 class BatchesService(
+    GetMixin[Batch],
     Service[Batch],
     BatchesServiceConfig,
 ):
@@ -67,6 +68,7 @@ class BatchesService(
 
 
 class AsyncBatchesService(
+    AsyncGetMixin[Batch],
     AsyncService[Batch],
     BatchesServiceConfig,
 ):

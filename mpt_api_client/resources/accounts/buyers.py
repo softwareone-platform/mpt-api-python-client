@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -38,6 +40,7 @@ class BuyersService(
     ActivatableMixin[Buyer],
     EnablableMixin[Buyer],
     ValidateMixin[Buyer],
+    GetMixin[Buyer],
     Service[Buyer],
     BuyersServiceConfig,
 ):
@@ -69,6 +72,7 @@ class AsyncBuyersService(
     AsyncActivatableMixin[Buyer],
     AsyncEnablableMixin[Buyer],
     AsyncValidateMixin[Buyer],
+    AsyncGetMixin[Buyer],
     AsyncService[Buyer],
     BuyersServiceConfig,
 ):

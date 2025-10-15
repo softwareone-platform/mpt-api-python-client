@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -28,6 +30,7 @@ class ApiTokensService(
     DeleteMixin,
     UpdateMixin[ApiToken],
     EnablableMixin[ApiToken],
+    GetMixin[ApiToken],
     Service[ApiToken],
     ApiTokensServiceConfig,
 ):
@@ -39,6 +42,7 @@ class AsyncApiTokensService(
     AsyncDeleteMixin,
     AsyncUpdateMixin[ApiToken],
     AsyncEnablableMixin[ApiToken],
+    AsyncGetMixin[ApiToken],
     AsyncService[ApiToken],
     ApiTokensServiceConfig,
 ):

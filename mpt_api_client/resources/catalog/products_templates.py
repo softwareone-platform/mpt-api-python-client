@@ -1,8 +1,12 @@
-from mpt_api_client.http import AsyncService, CreateMixin, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    CreateMixin,
+    DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -23,6 +27,7 @@ class TemplatesServiceConfig:
 class TemplatesService(
     CreateMixin[Template],
     DeleteMixin,
+    GetMixin[Template],
     UpdateMixin[Template],
     Service[Template],
     TemplatesServiceConfig,
@@ -33,6 +38,7 @@ class TemplatesService(
 class AsyncTemplatesService(
     AsyncCreateMixin[Template],
     AsyncDeleteMixin,
+    AsyncGetMixin[Template],
     AsyncUpdateMixin[Template],
     AsyncService[Template],
     TemplatesServiceConfig,

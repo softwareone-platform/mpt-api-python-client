@@ -1,7 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
+    AsyncGetMixin,
     CreateMixin,
+    GetMixin,
 )
 from mpt_api_client.models import Model
 
@@ -18,9 +20,11 @@ class RecordsServiceConfig:
     _collection_key = "data"
 
 
-class RecordsService(CreateMixin[Record], Service[Record], RecordsServiceConfig):
+class RecordsService(CreateMixin[Record], GetMixin[Record], Service[Record], RecordsServiceConfig):
     """Records service."""
 
 
-class AsyncRecordsService(AsyncCreateMixin[Record], AsyncService[Record], RecordsServiceConfig):
+class AsyncRecordsService(
+    AsyncCreateMixin[Record], AsyncGetMixin[Record], AsyncService[Record], RecordsServiceConfig
+):
     """Async records service."""

@@ -1,5 +1,3 @@
-from typing import override
-
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.models import Model
@@ -24,16 +22,6 @@ class AccountsServiceConfig:
 class AccountsService(Service[Contact], AccountsServiceConfig):
     """Accounts service."""
 
-    @override
-    def get(self, resource_id: str, select: list[str] | str | None = None) -> Contact:
-        # TODO: delete. This method does not exist in the api
-        raise MethodNotAllowedError("Operation not allowed")
-
 
 class AsyncAccountsService(AsyncService[Contact], AccountsServiceConfig):
     """Async Accounts service."""
-
-    @override
-    async def get(self, resource_id: str, select: list[str] | str | None = None) -> Contact:
-        # TODO: delete. This method does not exist in the api
-        raise MethodNotAllowedError("Operation not allowed")

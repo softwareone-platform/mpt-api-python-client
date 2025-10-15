@@ -1,7 +1,11 @@
-from mpt_api_client.http import AsyncDeleteMixin, AsyncService, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
+    DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
 )
 from mpt_api_client.models import Model
 
@@ -21,6 +25,7 @@ class AgreementsAttachmentServiceConfig:
 class AgreementsAttachmentService(
     FileOperationsMixin[AgreementAttachment],
     DeleteMixin,
+    GetMixin[AgreementAttachment],
     Service[AgreementAttachment],
     AgreementsAttachmentServiceConfig,
 ):
@@ -30,6 +35,7 @@ class AgreementsAttachmentService(
 class AsyncAgreementsAttachmentService(
     AsyncFileOperationsMixin[AgreementAttachment],
     AsyncDeleteMixin,
+    AsyncGetMixin[AgreementAttachment],
     AsyncService[AgreementAttachment],
     AgreementsAttachmentServiceConfig,
 ):

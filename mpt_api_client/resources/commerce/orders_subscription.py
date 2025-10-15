@@ -1,8 +1,12 @@
-from mpt_api_client.http import AsyncService, CreateMixin, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    CreateMixin,
+    DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -23,6 +27,7 @@ class OrderSubscriptionsServiceConfig:
 class OrderSubscriptionsService(  # noqa: WPS215
     CreateMixin[OrderSubscription],
     DeleteMixin,
+    GetMixin[OrderSubscription],
     UpdateMixin[OrderSubscription],
     Service[OrderSubscription],
     OrderSubscriptionsServiceConfig,
@@ -33,6 +38,7 @@ class OrderSubscriptionsService(  # noqa: WPS215
 class AsyncOrderSubscriptionsService(  # noqa: WPS215
     AsyncCreateMixin[OrderSubscription],
     AsyncDeleteMixin,
+    AsyncGetMixin[OrderSubscription],
     AsyncUpdateMixin[OrderSubscription],
     AsyncService[OrderSubscription],
     OrderSubscriptionsServiceConfig,

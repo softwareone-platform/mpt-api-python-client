@@ -2,12 +2,15 @@ from typing import override
 
 from httpx._types import FileTypes
 
-from mpt_api_client.http import AsyncService, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model, ResourceData
@@ -32,6 +35,7 @@ class MediaServiceConfig:
 class MediaService(
     FileOperationsMixin[Media],
     DeleteMixin,
+    GetMixin[Media],
     UpdateMixin[Media],
     PublishableMixin[Media],
     Service[Media],
@@ -85,6 +89,7 @@ class MediaService(
 class AsyncMediaService(
     AsyncFileOperationsMixin[Media],
     AsyncDeleteMixin,
+    AsyncGetMixin[Media],
     AsyncUpdateMixin[Media],
     AsyncPublishableMixin[Media],
     AsyncService[Media],

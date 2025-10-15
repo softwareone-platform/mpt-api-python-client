@@ -1,9 +1,12 @@
-from mpt_api_client.http import AsyncService, CreateMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -41,6 +44,7 @@ class JournalsServiceConfig:
 class JournalsService(
     CreateMixin[Journal],
     DeleteMixin,
+    GetMixin[Journal],
     UpdateMixin[Journal],
     RegeneratableMixin[Journal],
     Service[Journal],
@@ -77,6 +81,7 @@ class JournalsService(
 class AsyncJournalsService(
     AsyncCreateMixin[Journal],
     AsyncDeleteMixin,
+    AsyncGetMixin[Journal],
     AsyncUpdateMixin[Journal],
     AsyncRegeneratableMixin[Journal],
     AsyncService[Journal],
