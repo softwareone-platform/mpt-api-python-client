@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
     DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -27,6 +29,7 @@ class SellersServiceConfig:
 class SellersService(
     CreateMixin[Seller],
     DeleteMixin,
+    GetMixin[Seller],
     UpdateMixin[Seller],
     ActivatableMixin[Seller],
     Service[Seller],
@@ -47,6 +50,7 @@ class SellersService(
 class AsyncSellersService(
     AsyncCreateMixin[Seller],
     AsyncDeleteMixin,
+    AsyncGetMixin[Seller],
     AsyncUpdateMixin[Seller],
     AsyncActivatableMixin[Seller],
     AsyncService[Seller],

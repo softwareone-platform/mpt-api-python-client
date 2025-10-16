@@ -1,9 +1,12 @@
-from mpt_api_client.http import AsyncService, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -25,6 +28,7 @@ class DocumentServiceConfig:
 class DocumentService(
     FileOperationsMixin[Document],
     DeleteMixin,
+    GetMixin[Document],
     UpdateMixin[Document],
     PublishableMixin[Document],
     Service[Document],
@@ -36,6 +40,7 @@ class DocumentService(
 class AsyncDocumentService(
     AsyncFileOperationsMixin[Document],
     AsyncDeleteMixin,
+    AsyncGetMixin[Document],
     AsyncUpdateMixin[Document],
     AsyncPublishableMixin[Document],
     AsyncService[Document],

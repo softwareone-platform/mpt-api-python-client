@@ -1,4 +1,5 @@
 from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin
 from mpt_api_client.models import Model
 
 
@@ -15,6 +16,7 @@ class LedgerChargesServiceConfig:
 
 
 class LedgerChargesService(
+    GetMixin[LedgerCharge],
     Service[LedgerCharge],
     LedgerChargesServiceConfig,
 ):
@@ -22,6 +24,7 @@ class LedgerChargesService(
 
 
 class AsyncLedgerChargesService(
+    AsyncGetMixin[LedgerCharge],
     AsyncService[LedgerCharge],
     LedgerChargesServiceConfig,
 ):

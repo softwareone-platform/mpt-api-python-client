@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -25,6 +27,7 @@ class InvoiceAttachmentsServiceConfig:
 class InvoiceAttachmentsService(
     FileOperationsMixin[InvoiceAttachment],
     DeleteMixin,
+    GetMixin[InvoiceAttachment],
     UpdateMixin[InvoiceAttachment],
     Service[InvoiceAttachment],
     InvoiceAttachmentsServiceConfig,
@@ -35,6 +38,7 @@ class InvoiceAttachmentsService(
 class AsyncInvoiceAttachmentsService(
     AsyncFileOperationsMixin[InvoiceAttachment],
     AsyncDeleteMixin,
+    AsyncGetMixin[InvoiceAttachment],
     AsyncUpdateMixin[InvoiceAttachment],
     AsyncService[InvoiceAttachment],
     InvoiceAttachmentsServiceConfig,

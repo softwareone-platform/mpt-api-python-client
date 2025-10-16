@@ -1,8 +1,12 @@
-from mpt_api_client.http import AsyncService, CreateMixin, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    CreateMixin,
+    DeleteMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -28,6 +32,7 @@ class TermServiceConfig:
 class TermService(
     CreateMixin[Term],
     DeleteMixin,
+    GetMixin[Term],
     UpdateMixin[Term],
     PublishableMixin[Term],
     Service[Term],
@@ -46,6 +51,7 @@ class TermService(
 class AsyncTermService(
     AsyncCreateMixin[Term],
     AsyncDeleteMixin,
+    AsyncGetMixin[Term],
     AsyncUpdateMixin[Term],
     AsyncPublishableMixin[Term],
     AsyncService[Term],

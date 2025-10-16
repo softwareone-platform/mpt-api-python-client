@@ -1,9 +1,12 @@
-from mpt_api_client.http import AsyncService, DeleteMixin, Service
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncDeleteMixin,
     AsyncFileOperationsMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
+    DeleteMixin,
     FileOperationsMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -28,6 +31,7 @@ class TermVariantServiceConfig:
 class TermVariantService(
     FileOperationsMixin[TermVariant],
     DeleteMixin,
+    GetMixin[TermVariant],
     UpdateMixin[TermVariant],
     PublishableMixin[TermVariant],
     Service[TermVariant],
@@ -39,6 +43,7 @@ class TermVariantService(
 class AsyncTermVariantService(
     AsyncFileOperationsMixin[TermVariant],
     AsyncDeleteMixin,
+    AsyncGetMixin[TermVariant],
     AsyncUpdateMixin[TermVariant],
     AsyncPublishableMixin[TermVariant],
     AsyncService[TermVariant],

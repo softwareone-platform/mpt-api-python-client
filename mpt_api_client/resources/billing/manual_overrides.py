@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
+    AsyncGetMixin,
     AsyncUpdateMixin,
     CreateMixin,
+    GetMixin,
     UpdateMixin,
 )
 from mpt_api_client.models import Model
@@ -23,6 +25,7 @@ class ManualOverridesServiceConfig:
 class ManualOverridesService(
     CreateMixin[ManualOverride],
     UpdateMixin[ManualOverride],
+    GetMixin[ManualOverride],
     Service[ManualOverride],
     ManualOverridesServiceConfig,
 ):
@@ -32,6 +35,7 @@ class ManualOverridesService(
 class AsyncManualOverridesService(
     AsyncCreateMixin[ManualOverride],
     AsyncUpdateMixin[ManualOverride],
+    AsyncGetMixin[ManualOverride],
     AsyncService[ManualOverride],
     ManualOverridesServiceConfig,
 ):

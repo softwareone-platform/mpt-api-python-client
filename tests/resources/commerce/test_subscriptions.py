@@ -18,6 +18,16 @@ def async_subscriptions_service(async_http_client):
     return AsyncSubscriptionsService(http_client=async_http_client)
 
 
+@pytest.mark.parametrize("method", ["get", "create", "delete"])
+def test_methods_present(subscriptions_service, method):
+    assert hasattr(subscriptions_service, method)
+
+
+@pytest.mark.parametrize("method", ["get", "create", "delete"])
+def test_async_methods_present(async_subscriptions_service, method):
+    assert hasattr(async_subscriptions_service, method)
+
+
 async def test_async_terminate(async_subscriptions_service):
     subscription_expected = {"id": "SUB-123", "status": "Terminated", "name": "Terminated SUB-123"}
     with respx.mock:

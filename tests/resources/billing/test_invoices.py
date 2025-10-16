@@ -24,7 +24,7 @@ def async_invoices_service(async_http_client):
     "method",
     ["get", "create", "update"],
 )
-def test_mixins_present(invoices_service, method):
+def test_methods_present(invoices_service, method):
     assert hasattr(invoices_service, method)
 
 
@@ -32,7 +32,7 @@ def test_mixins_present(invoices_service, method):
     "method",
     ["get", "create", "update"],
 )
-def test_async_mixins_present(async_invoices_service, method):
+def test_async_methods_present(async_invoices_service, method):
     assert hasattr(async_invoices_service, method)
 
 

@@ -3,14 +3,19 @@ import pytest
 
 from mpt_api_client import RQLQuery
 from mpt_api_client.http import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
     AsyncService,
-    CreateMixin,
-    DeleteMixin,
     Service,
 )
-from mpt_api_client.http.mixins import AsyncUpdateMixin, UpdateMixin
+from mpt_api_client.http.mixins import (
+    AsyncCreateMixin,
+    AsyncDeleteMixin,
+    AsyncGetMixin,
+    AsyncUpdateMixin,
+    CreateMixin,
+    DeleteMixin,
+    GetMixin,
+    UpdateMixin,
+)
 from tests.conftest import DummyModel
 
 
@@ -18,6 +23,7 @@ class DummyService(  # noqa: WPS215
     CreateMixin[DummyModel],
     DeleteMixin,
     UpdateMixin[DummyModel],
+    GetMixin[DummyModel],
     Service[DummyModel],
 ):
     _endpoint = "/api/v1/test"
@@ -28,6 +34,7 @@ class AsyncDummyService(  # noqa: WPS215
     AsyncCreateMixin[DummyModel],
     AsyncDeleteMixin,
     AsyncUpdateMixin[DummyModel],
+    AsyncGetMixin[DummyModel],
     AsyncService[DummyModel],
 ):
     _endpoint = "/api/v1/test"

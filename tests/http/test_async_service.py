@@ -3,7 +3,6 @@ import pytest
 import respx
 
 from mpt_api_client.exceptions import MPTAPIError
-from tests.conftest import DummyModel
 from tests.http.conftest import AsyncDummyService
 
 
@@ -241,22 +240,6 @@ async def test_async_iterate_lazy_evaluation(async_dummy_service):
 
         assert first_resource.id == "ID-1"
         assert mock_route.call_count == 1
-
-
-async def test_async_get(async_dummy_service):
-    resource_data = {"id": "RES-123", "name": "Test Resource"}
-    with respx.mock:
-        mock_route = respx.get(
-            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
-        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
-
-        resource = await async_dummy_service.get("RES-123", select=["id", "name"])
-
-    request = mock_route.calls[0].request
-    accept_header = (b"Accept", b"application/json")
-    assert accept_header in request.headers.raw
-    assert isinstance(resource, DummyModel)
-    assert resource.to_dict() == resource_data
 
 
 async def test_sync_iterate_handles_api_errors(async_dummy_service):

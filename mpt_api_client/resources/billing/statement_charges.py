@@ -1,4 +1,5 @@
 from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin
 from mpt_api_client.models import Model
 
 
@@ -15,6 +16,7 @@ class StatementChargesServiceConfig:
 
 
 class StatementChargesService(
+    GetMixin[StatementCharge],
     Service[StatementCharge],
     StatementChargesServiceConfig,
 ):
@@ -22,6 +24,7 @@ class StatementChargesService(
 
 
 class AsyncStatementChargesService(
+    AsyncGetMixin[StatementCharge],
     AsyncService[StatementCharge],
     StatementChargesServiceConfig,
 ):
