@@ -49,7 +49,7 @@ class BatchesService(
                 "application/json",
             )
 
-        response = self.http_client.post(self.endpoint, files=files)
+        response = self.http_client.request("post", self.endpoint, files=files)
         return self._model_class.from_response(response)
 
     def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
@@ -62,7 +62,9 @@ class BatchesService(
         Returns:
             FileModel containing the attachment.
         """
-        response = self.http_client.get(f"{self.endpoint}/{batch_id}/attachments/{attachment_id}")
+        response = self.http_client.request(
+            "get", f"{self.endpoint}/{batch_id}/attachments/{attachment_id}"
+        )
 
         return FileModel(response)
 
@@ -99,7 +101,7 @@ class AsyncBatchesService(
                 "application/json",
             )
 
-        response = await self.http_client.post(self.endpoint, files=files)
+        response = await self.http_client.request("post", self.endpoint, files=files)
         return self._model_class.from_response(response)
 
     async def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
@@ -112,7 +114,7 @@ class AsyncBatchesService(
         Returns:
             FileModel containing the attachment.
         """
-        response = await self.http_client.get(
-            f"{self.endpoint}/{batch_id}/attachments/{attachment_id}"
+        response = await self.http_client.request(
+            "get", f"{self.endpoint}/{batch_id}/attachments/{attachment_id}"
         )
         return FileModel(response)

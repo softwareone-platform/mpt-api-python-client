@@ -1,8 +1,8 @@
 from typing import Any, ClassVar, Self, override
 
 from box import Box
-from httpx import Response
 
+from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
 
 ResourceData = dict[str, Any]

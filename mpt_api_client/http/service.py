@@ -1,11 +1,9 @@
 from collections.abc import Iterator
 from urllib.parse import urljoin
 
-import httpx
-
 from mpt_api_client.http.base_service import ServiceBase
 from mpt_api_client.http.client import HTTPClient
-from mpt_api_client.http.types import QueryParam
+from mpt_api_client.http.types import QueryParam, Response
 from mpt_api_client.models import Collection, ResourceData
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.collection import ResourceList
@@ -76,17 +74,17 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
                 break
             offset = items_collection.meta.pagination.next_offset()
 
-    def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> httpx.Response:
+    def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> Response:
         """Fetch one page of resources.
 
         Returns:
-            httpx.Response object.
+            Response object.
 
         Raises:
             HTTPStatusError: if the response status code is not 200.
         """
         pagination_params: dict[str, int] = {"limit": limit, "offset": offset}
-        return self.http_client.get(self.build_url(pagination_params))
+        return self.http_client.request("get", self.build_url(pagination_params))
 
     def _resource_do_request(  # noqa: WPS211
         self,
@@ -96,7 +94,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
         json: ResourceData | ResourceList | None = None,
         query_params: QueryParam | None = None,
         headers: dict[str, str] | None = None,
-    ) -> httpx.Response:
+    ) -> Response:
         """Perform an action on a specific resource using `HTTP_METHOD /endpoint/{resource_id}`.
 
         Args:
@@ -116,7 +114,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
         resource_url = urljoin(f"{self.endpoint}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
         return self.http_client.request(
-            method, url, json=json, params=query_params, headers=headers
+            method, url, json=json, query_params=query_params, headers=headers
         )
 
     def _resource_action(
