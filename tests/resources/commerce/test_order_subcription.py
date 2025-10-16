@@ -31,8 +31,8 @@ def test_async_mixins_present(async_subscription_service, method):
 
 
 def test_endpoint(subscription_service):
-    assert subscription_service.endpoint == "/public/v1/commerce/orders/ORD-123/subscriptions"
+    assert subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"
 
 
 def test_async_endpoint(async_subscription_service):
-    assert async_subscription_service.endpoint == "/public/v1/commerce/orders/ORD-123/subscriptions"
+    assert async_subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"

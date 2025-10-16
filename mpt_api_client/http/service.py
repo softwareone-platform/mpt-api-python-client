@@ -84,7 +84,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
             HTTPStatusError: if the response status code is not 200.
         """
         pagination_params: dict[str, int] = {"limit": limit, "offset": offset}
-        return self.http_client.request("get", self.build_url(pagination_params))
+        return self.http_client.request("get", self.build_path(pagination_params))
 
     def _resource_do_request(  # noqa: WPS211
         self,
@@ -111,7 +111,7 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
         Raises:
             HTTPError: If the action fails.
         """
-        resource_url = urljoin(f"{self.endpoint}/", resource_id)
+        resource_url = urljoin(f"{self.path}/", resource_id)
         url = urljoin(f"{resource_url}/", action) if action else resource_url
         return self.http_client.request(
             method, url, json=json, query_params=query_params, headers=headers

@@ -21,13 +21,13 @@ def async_custom_ledger_attachments_service(async_http_client):
 
 
 def test_endpoint(custom_ledger_attachments_service):
-    assert custom_ledger_attachments_service.endpoint == (
+    assert custom_ledger_attachments_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/attachments"
     )
 
 
 def test_async_endpoint(async_custom_ledger_attachments_service):
-    assert async_custom_ledger_attachments_service.endpoint == (
+    assert async_custom_ledger_attachments_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/attachments"
     )
 

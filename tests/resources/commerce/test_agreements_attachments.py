@@ -21,11 +21,11 @@ def async_attachment_service(async_http_client) -> AsyncAgreementsAttachmentServ
 
 
 def test_endpoint(attachment_service) -> None:
-    assert attachment_service.endpoint == "/public/v1/commerce/agreements/AGR-123/attachments"
+    assert attachment_service.path == "/public/v1/commerce/agreements/AGR-123/attachments"
 
 
 def test_async_endpoint(async_attachment_service) -> None:
-    assert async_attachment_service.endpoint == "/public/v1/commerce/agreements/AGR-123/attachments"
+    assert async_attachment_service.path == "/public/v1/commerce/agreements/AGR-123/attachments"
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "download"])

@@ -25,11 +25,11 @@ def async_term_service(async_http_client: Any) -> AsyncTermService:
 
 
 def test_endpoint(term_service: TermService) -> None:
-    assert term_service.endpoint == "/public/v1/catalog/products/PRD-001/terms"
+    assert term_service.path == "/public/v1/catalog/products/PRD-001/terms"
 
 
 def test_async_endpoint(async_term_service: AsyncTermService) -> None:
-    assert async_term_service.endpoint == "/public/v1/catalog/products/PRD-001/terms"
+    assert async_term_service.path == "/public/v1/catalog/products/PRD-001/terms"
 
 
 @pytest.mark.parametrize(

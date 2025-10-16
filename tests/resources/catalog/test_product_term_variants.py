@@ -21,13 +21,11 @@ def async_term_variant_service(async_http_client: Any) -> AsyncTermVariantServic
 
 
 def test_endpoint(term_variant_service: TermVariantService) -> None:
-    assert term_variant_service.endpoint == "/public/v1/catalog/products/terms/TRM-001/variants"
+    assert term_variant_service.path == "/public/v1/catalog/products/terms/TRM-001/variants"
 
 
 def test_async_endpoint(async_term_variant_service: AsyncTermVariantService) -> None:
-    assert (
-        async_term_variant_service.endpoint == "/public/v1/catalog/products/terms/TRM-001/variants"
-    )
+    assert async_term_variant_service.path == "/public/v1/catalog/products/terms/TRM-001/variants"
 
 
 @pytest.mark.parametrize(

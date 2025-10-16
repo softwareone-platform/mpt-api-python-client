@@ -21,11 +21,11 @@ def async_journal_charges_service(async_http_client):
 
 
 def test_endpoint(journal_charges_service):
-    assert journal_charges_service.endpoint == "/public/v1/billing/journals/JRN-0000-0001/charges"
+    assert journal_charges_service.path == "/public/v1/billing/journals/JRN-0000-0001/charges"
 
 
 def test_async_endpoint(async_journal_charges_service):
-    assert async_journal_charges_service.endpoint == (
+    assert async_journal_charges_service.path == (
         "/public/v1/billing/journals/JRN-0000-0001/charges"
     )
 

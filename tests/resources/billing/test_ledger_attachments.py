@@ -21,15 +21,12 @@ def async_ledger_attachments_service(async_http_client) -> AsyncLedgerAttachment
 
 
 def test_endpoint(ledger_attachments_service) -> None:
-    assert (
-        ledger_attachments_service.endpoint
-        == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
-    )
+    assert ledger_attachments_service.path == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
 
 
 def test_async_endpoint(async_ledger_attachments_service) -> None:
     assert (
-        async_ledger_attachments_service.endpoint
+        async_ledger_attachments_service.path
         == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
     )
 

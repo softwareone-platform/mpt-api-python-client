@@ -22,12 +22,12 @@ def async_price_list_items_service(async_http_client):
 
 @pytest.fixture
 def test_endpoint(price_list_items_service):
-    assert price_list_items_service.endpoint == "/public/v1/catalog/price-lists/ITM-0000-0001/items"
+    assert price_list_items_service.path == "/public/v1/catalog/price-lists/ITM-0000-0001/items"
 
 
 @pytest.fixture
 def async_test_endpoint(async_price_list_items_service):
-    assert async_price_list_items_service.endpoint == (
+    assert async_price_list_items_service.path == (
         "/public/v1/catalog/price-lists/ITM-0000-0001/items"
     )
 

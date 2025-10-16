@@ -19,11 +19,11 @@ def async_templates_service(async_http_client):
 
 
 def test_endpoint(templates_service):
-    assert templates_service.endpoint == "/public/v1/catalog/products/PRD-001/templates"
+    assert templates_service.path == "/public/v1/catalog/products/PRD-001/templates"
 
 
 def test_async_endpoint(async_templates_service):
-    assert async_templates_service.endpoint == "/public/v1/catalog/products/PRD-001/templates"
+    assert async_templates_service.path == "/public/v1/catalog/products/PRD-001/templates"
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update", "fetch_page", "iterate"])

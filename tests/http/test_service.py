@@ -111,22 +111,8 @@ def test_sync_get(dummy_service):
 def test_sync_init_defaults(http_client):
     collection_client = DummyService(http_client=http_client)
 
-    assert collection_client.query_rql is None
-    assert collection_client.query_order_by is None
-    assert collection_client.query_select is None
-    assert collection_client.build_url() == "/api/v1/test"
-
-
-def test_sync_init_with_filter(http_client, filter_status_active):
-    collection_client = DummyService(
-        http_client=http_client,
-        query_rql=filter_status_active,
-    )
-
-    assert collection_client.query_rql == filter_status_active
-    assert collection_client.query_order_by is None
-    assert collection_client.query_select is None
-    assert collection_client.build_url() == "/api/v1/test?eq(status,active)"
+    assert collection_client.endpoint_params == {}
+    assert collection_client.build_path() == "/api/v1/test"
 
 
 def test_sync_iterate_single_page(dummy_service, single_page_response):

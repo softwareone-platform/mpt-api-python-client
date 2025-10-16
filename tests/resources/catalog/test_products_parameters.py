@@ -19,11 +19,11 @@ def async_parameters_service(async_http_client):
 
 
 def test_endpoint(parameters_service):
-    assert parameters_service.endpoint == "/public/v1/catalog/products/PRD-001/parameters"
+    assert parameters_service.path == "/public/v1/catalog/products/PRD-001/parameters"
 
 
 def test_async_endpoint(async_parameters_service):
-    assert async_parameters_service.endpoint == "/public/v1/catalog/products/PRD-001/parameters"
+    assert async_parameters_service.path == "/public/v1/catalog/products/PRD-001/parameters"
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])

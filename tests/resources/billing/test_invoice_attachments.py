@@ -22,14 +22,13 @@ def async_invoice_attachments_service(async_http_client):
 
 def test_endpoint(invoice_attachments_service):
     assert (
-        invoice_attachments_service.endpoint
-        == "/public/v1/billing/invoices/INV-0000-0001/attachments"
+        invoice_attachments_service.path == "/public/v1/billing/invoices/INV-0000-0001/attachments"
     )
 
 
 def test_async_endpoint(async_invoice_attachments_service):
     assert (
-        async_invoice_attachments_service.endpoint
+        async_invoice_attachments_service.path
         == "/public/v1/billing/invoices/INV-0000-0001/attachments"
     )
 

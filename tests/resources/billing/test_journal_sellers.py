@@ -21,14 +21,11 @@ def async_journal_sellers_service(async_http_client):
 
 
 def test_endpoint(journal_sellers_service):
-    assert journal_sellers_service.endpoint == "/public/v1/billing/journals/JRN-0000-0001/sellers"
+    assert journal_sellers_service.path == "/public/v1/billing/journals/JRN-0000-0001/sellers"
 
 
 def test_async_endpoint(async_journal_sellers_service):
-    assert (
-        async_journal_sellers_service.endpoint
-        == "/public/v1/billing/journals/JRN-0000-0001/sellers"
-    )
+    assert async_journal_sellers_service.path == "/public/v1/billing/journals/JRN-0000-0001/sellers"
 
 
 @pytest.mark.parametrize("method", ["get"])
