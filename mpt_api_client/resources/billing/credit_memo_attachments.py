@@ -1,13 +1,11 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncDeleteMixin,
+    AsyncCollectionMixin,
     AsyncFileOperationsMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    DeleteMixin,
+    AsyncModifiableResourceMixin,
+    CollectionMixin,
     FileOperationsMixin,
-    GetMixin,
-    UpdateMixin,
+    ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
 
@@ -26,9 +24,8 @@ class CreditMemoAttachmentsServiceConfig:
 
 class CreditMemoAttachmentsService(
     FileOperationsMixin[CreditMemoAttachment],
-    DeleteMixin,
-    GetMixin[CreditMemoAttachment],
-    UpdateMixin[CreditMemoAttachment],
+    ModifiableResourceMixin[CreditMemoAttachment],
+    CollectionMixin[CreditMemoAttachment],
     Service[CreditMemoAttachment],
     CreditMemoAttachmentsServiceConfig,
 ):
@@ -37,9 +34,8 @@ class CreditMemoAttachmentsService(
 
 class AsyncCreditMemoAttachmentsService(
     AsyncFileOperationsMixin[CreditMemoAttachment],
-    AsyncDeleteMixin,
-    AsyncGetMixin[CreditMemoAttachment],
-    AsyncUpdateMixin[CreditMemoAttachment],
+    AsyncModifiableResourceMixin[CreditMemoAttachment],
+    AsyncCollectionMixin[CreditMemoAttachment],
     AsyncService[CreditMemoAttachment],
     CreditMemoAttachmentsServiceConfig,
 ):

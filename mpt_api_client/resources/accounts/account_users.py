@@ -1,7 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncGetMixin,
+    CollectionMixin,
     CreateMixin,
     GetMixin,
 )
@@ -32,6 +34,7 @@ class AccountUsersService(
     CreateMixin[AccountUser],
     InvitableMixin[AccountUser],
     GetMixin[AccountUser],
+    CollectionMixin[AccountUser],
     Service[AccountUser],
     AccountUsersServiceConfig,
 ):
@@ -49,6 +52,7 @@ class AsyncAccountUsersService(
     AsyncCreateMixin[AccountUser],
     AsyncInvitableMixin[AccountUser],
     AsyncGetMixin[AccountUser],
+    AsyncCollectionMixin[AccountUser],
     AsyncService[AccountUser],
     AccountUsersServiceConfig,
 ):

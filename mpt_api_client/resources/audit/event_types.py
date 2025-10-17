@@ -1,7 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncGetMixin,
     AsyncUpdateMixin,
+    CollectionMixin,
     GetMixin,
     UpdateMixin,
 )
@@ -21,7 +23,11 @@ class EventTypesServiceConfig:
 
 
 class EventTypesService(
-    UpdateMixin[EventType], GetMixin[EventType], Service[EventType], EventTypesServiceConfig
+    UpdateMixin[EventType],
+    GetMixin[EventType],
+    CollectionMixin[EventType],
+    Service[EventType],
+    EventTypesServiceConfig,
 ):
     """Event Types service."""
 
@@ -29,6 +35,7 @@ class EventTypesService(
 class AsyncEventTypesService(
     AsyncUpdateMixin[EventType],
     AsyncGetMixin[EventType],
+    AsyncCollectionMixin[EventType],
     AsyncService[EventType],
     EventTypesServiceConfig,
 ):

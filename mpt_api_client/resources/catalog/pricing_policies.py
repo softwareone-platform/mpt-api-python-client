@@ -2,7 +2,14 @@ from mpt_api_client.http import (
     AsyncService,
     Service,
 )
-from mpt_api_client.http.mixins import AsyncCreateMixin, AsyncDeleteMixin, CreateMixin, DeleteMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncCreateMixin,
+    AsyncDeleteMixin,
+    CollectionMixin,
+    CreateMixin,
+    DeleteMixin,
+)
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.pricing_policy_attachments import (
     AsyncPricingPolicyAttachmentsService,
@@ -25,6 +32,7 @@ class PricingPoliciesServiceConfig:
 class PricingPoliciesService(  # noqa: WPS215
     CreateMixin[PricingPolicy],
     DeleteMixin,
+    CollectionMixin[PricingPolicy],
     Service[PricingPolicy],
     PricingPoliciesServiceConfig,
 ):
@@ -65,6 +73,7 @@ class PricingPoliciesService(  # noqa: WPS215
 class AsyncPricingPoliciesService(
     AsyncCreateMixin[PricingPolicy],
     AsyncDeleteMixin,
+    AsyncCollectionMixin[PricingPolicy],
     AsyncService[PricingPolicy],
     PricingPoliciesServiceConfig,
 ):

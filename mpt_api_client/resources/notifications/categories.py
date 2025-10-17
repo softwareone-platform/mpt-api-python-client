@@ -1,11 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
 
@@ -23,9 +21,8 @@ class CategoriesServiceConfig:
 
 
 class CategoriesService(
-    CreateMixin[Category],
-    UpdateMixin[Category],
-    DeleteMixin,
+    ManagedResourceMixin[Category],
+    CollectionMixin[Category],
     Service[Category],
     CategoriesServiceConfig,
 ):
@@ -51,9 +48,8 @@ class CategoriesService(
 
 
 class AsyncCategoriesService(
-    AsyncCreateMixin[Category],
-    AsyncUpdateMixin[Category],
-    AsyncDeleteMixin,
+    AsyncManagedResourceMixin[Category],
+    AsyncCollectionMixin[Category],
     AsyncService[Category],
     CategoriesServiceConfig,
 ):

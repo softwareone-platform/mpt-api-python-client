@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.commerce.agreements_attachments import (
@@ -28,11 +24,9 @@ class AgreementsServiceConfig:
     _collection_key = "data"
 
 
-class AgreementsService(  # noqa: WPS215
-    CreateMixin[Agreement],
-    UpdateMixin[Agreement],
-    GetMixin[Agreement],
-    DeleteMixin,
+class AgreementsService(
+    ManagedResourceMixin[Agreement],
+    CollectionMixin[Agreement],
     Service[Agreement],
     AgreementsServiceConfig,
 ):
@@ -65,11 +59,9 @@ class AgreementsService(  # noqa: WPS215
         )
 
 
-class AsyncAgreementsService(  # noqa: WPS215
-    AsyncCreateMixin[Agreement],
-    AsyncUpdateMixin[Agreement],
-    AsyncGetMixin[Agreement],
-    AsyncDeleteMixin,
+class AsyncAgreementsService(
+    AsyncManagedResourceMixin[Agreement],
+    AsyncCollectionMixin[Agreement],
     AsyncService[Agreement],
     AgreementsServiceConfig,
 ):

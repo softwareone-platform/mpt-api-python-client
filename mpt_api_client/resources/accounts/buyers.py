@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
@@ -34,13 +30,11 @@ class BuyersServiceConfig:
 
 
 class BuyersService(
-    CreateMixin[Buyer],
-    DeleteMixin,
-    UpdateMixin[Buyer],
     ActivatableMixin[Buyer],
     EnablableMixin[Buyer],
     ValidateMixin[Buyer],
-    GetMixin[Buyer],
+    ManagedResourceMixin[Buyer],
+    CollectionMixin[Buyer],
     Service[Buyer],
     BuyersServiceConfig,
 ):
@@ -66,13 +60,11 @@ class BuyersService(
 
 
 class AsyncBuyersService(
-    AsyncCreateMixin[Buyer],
-    AsyncDeleteMixin,
-    AsyncUpdateMixin[Buyer],
     AsyncActivatableMixin[Buyer],
     AsyncEnablableMixin[Buyer],
     AsyncValidateMixin[Buyer],
-    AsyncGetMixin[Buyer],
+    AsyncManagedResourceMixin[Buyer],
+    AsyncCollectionMixin[Buyer],
     AsyncService[Buyer],
     BuyersServiceConfig,
 ):

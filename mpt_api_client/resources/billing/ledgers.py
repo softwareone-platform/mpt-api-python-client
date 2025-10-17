@@ -1,7 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncGetMixin,
+    CollectionMixin,
     CreateMixin,
     GetMixin,
 )
@@ -31,6 +33,7 @@ class LedgersServiceConfig:
 class LedgersService(
     CreateMixin[Ledger],
     GetMixin[Ledger],
+    CollectionMixin[Ledger],
     Service[Ledger],
     LedgersServiceConfig,
 ):
@@ -54,6 +57,7 @@ class LedgersService(
 class AsyncLedgersService(
     AsyncCreateMixin[Ledger],
     AsyncGetMixin[Ledger],
+    AsyncCollectionMixin[Ledger],
     AsyncService[Ledger],
     LedgersServiceConfig,
 ):

@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 
@@ -24,22 +20,18 @@ class SubscribersServiceConfig:
     _collection_key = "data"
 
 
-class SubscribersService(  # noqa: WPS215
-    CreateMixin[Subscriber],
-    UpdateMixin[Subscriber],
-    GetMixin[Subscriber],
-    DeleteMixin,
+class SubscribersService(
+    ManagedResourceMixin[Subscriber],
+    CollectionMixin[Subscriber],
     Service[Subscriber],
     SubscribersServiceConfig,
 ):
     """Subscribers service."""
 
 
-class AsyncSubscribersService(  # noqa: WPS215
-    AsyncCreateMixin[Subscriber],
-    AsyncUpdateMixin[Subscriber],
-    AsyncGetMixin[Subscriber],
-    AsyncDeleteMixin,
+class AsyncSubscribersService(
+    AsyncManagedResourceMixin[Subscriber],
+    AsyncCollectionMixin[Subscriber],
     AsyncService[Subscriber],
     SubscribersServiceConfig,
 ):

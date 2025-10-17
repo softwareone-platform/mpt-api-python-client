@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncGetMixin,
     AsyncUpdateMixin,
+    CollectionMixin,
     CreateMixin,
     GetMixin,
     UpdateMixin,
@@ -41,6 +43,7 @@ class AccountsService(
     EnablableMixin[Account],
     ValidateMixin[Account],
     GetMixin[Account],
+    CollectionMixin[Account],
     Service[Account],
     AccountsServiceConfig,
 ):
@@ -60,6 +63,7 @@ class AsyncAccountsService(
     AsyncEnablableMixin[Account],
     AsyncValidateMixin[Account],
     AsyncGetMixin[Account],
+    AsyncCollectionMixin[Account],
     AsyncService[Account],
     AccountsServiceConfig,
 ):

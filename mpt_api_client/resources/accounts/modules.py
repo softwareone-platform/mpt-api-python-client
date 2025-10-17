@@ -1,5 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncGetMixin,
+    CollectionMixin,
+    GetMixin,
+)
 from mpt_api_client.models import Model
 
 
@@ -15,9 +20,13 @@ class ModulesServiceConfig:
     _collection_key = "data"
 
 
-class ModulesService(GetMixin[Module], Service[Module], ModulesServiceConfig):
+class ModulesService(
+    GetMixin[Module], CollectionMixin[Module], Service[Module], ModulesServiceConfig
+):
     """Modules Service."""
 
 
-class AsyncModulesService(AsyncGetMixin[Module], AsyncService[Module], ModulesServiceConfig):
+class AsyncModulesService(
+    AsyncGetMixin[Module], AsyncCollectionMixin[Model], AsyncService[Module], ModulesServiceConfig
+):
     """Asynchronous Modules Service."""

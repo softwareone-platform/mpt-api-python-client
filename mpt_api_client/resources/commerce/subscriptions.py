@@ -3,9 +3,11 @@ from mpt_api_client.http import (
     Service,
 )
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncDeleteMixin,
     AsyncGetMixin,
+    CollectionMixin,
     CreateMixin,
     DeleteMixin,
     GetMixin,
@@ -29,6 +31,7 @@ class SubscriptionsService(  # noqa: WPS215
     CreateMixin[Subscription],
     DeleteMixin,
     GetMixin[Subscription],
+    CollectionMixin[Subscription],
     Service[Subscription],
     SubscriptionsServiceConfig,
 ):
@@ -63,6 +66,7 @@ class AsyncSubscriptionsService(  # noqa: WPS215
     AsyncCreateMixin[Subscription],
     AsyncDeleteMixin,
     AsyncGetMixin[Subscription],
+    AsyncCollectionMixin[Subscription],
     AsyncService[Subscription],
     SubscriptionsServiceConfig,
 ):

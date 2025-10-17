@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.custom_ledger_attachments import (
@@ -38,10 +34,8 @@ class CustomLedgersServiceConfig:
 
 
 class CustomLedgersService(
-    CreateMixin[CustomLedger],
-    DeleteMixin,
-    GetMixin[CustomLedger],
-    UpdateMixin[CustomLedger],
+    ManagedResourceMixin[CustomLedger],
+    CollectionMixin[CustomLedger],
     AcceptableMixin[CustomLedger],
     Service[CustomLedger],
     CustomLedgersServiceConfig,
@@ -71,10 +65,8 @@ class CustomLedgersService(
 
 
 class AsyncCustomLedgersService(
-    AsyncCreateMixin[CustomLedger],
-    AsyncDeleteMixin,
-    AsyncGetMixin[CustomLedger],
-    AsyncUpdateMixin[CustomLedger],
+    AsyncManagedResourceMixin[CustomLedger],
+    AsyncCollectionMixin[CustomLedger],
     AsyncAcceptableMixin[CustomLedger],
     AsyncService[CustomLedger],
     CustomLedgersServiceConfig,

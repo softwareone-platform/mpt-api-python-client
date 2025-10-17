@@ -1,5 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncFileOperationsMixin, FileOperationsMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncFileOperationsMixin,
+    CollectionMixin,
+    FileOperationsMixin,
+)
 from mpt_api_client.models import Model
 
 
@@ -17,6 +22,7 @@ class JournalUploadServiceConfig:
 
 class JournalUploadService(
     FileOperationsMixin[JournalUpload],
+    CollectionMixin[JournalUpload],
     Service[JournalUpload],
     JournalUploadServiceConfig,
 ):
@@ -25,6 +31,7 @@ class JournalUploadService(
 
 class AsyncJournalUploadService(
     AsyncFileOperationsMixin[JournalUpload],
+    AsyncCollectionMixin[JournalUpload],
     AsyncService[JournalUpload],
     JournalUploadServiceConfig,
 ):

@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncDeleteMixin,
     AsyncGetMixin,
     AsyncUpdateMixin,
+    CollectionMixin,
     DeleteMixin,
     GetMixin,
     UpdateMixin,
@@ -32,6 +34,7 @@ class UsersService(
     DeleteMixin,
     BlockableMixin[User],
     GetMixin[User],
+    CollectionMixin[User],
     Service[User],
     UsersServiceConfig,
 ):
@@ -72,6 +75,7 @@ class AsyncUsersService(
     AsyncDeleteMixin,
     AsyncBlockableMixin[User],
     AsyncGetMixin[User],
+    AsyncCollectionMixin[User],
     AsyncService[User],
     UsersServiceConfig,
 ):

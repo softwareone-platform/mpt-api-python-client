@@ -1,5 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncGetMixin,
+    CollectionMixin,
+    GetMixin,
+)
 from mpt_api_client.models import Model
 
 
@@ -17,6 +22,7 @@ class MessagesServiceConfig:
 
 class MessagesService(
     GetMixin[Message],
+    CollectionMixin[Message],
     Service[Message],
     MessagesServiceConfig,
 ):
@@ -25,6 +31,7 @@ class MessagesService(
 
 class AsyncMessagesService(
     AsyncGetMixin[Message],
+    AsyncCollectionMixin[Message],
     AsyncService[Message],
     MessagesServiceConfig,
 ):

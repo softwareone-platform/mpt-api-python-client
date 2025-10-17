@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
@@ -27,11 +23,9 @@ class SellersServiceConfig:
 
 
 class SellersService(
-    CreateMixin[Seller],
-    DeleteMixin,
-    GetMixin[Seller],
-    UpdateMixin[Seller],
     ActivatableMixin[Seller],
+    ManagedResourceMixin[Seller],
+    CollectionMixin[Seller],
     Service[Seller],
     SellersServiceConfig,
 ):
@@ -48,11 +42,9 @@ class SellersService(
 
 
 class AsyncSellersService(
-    AsyncCreateMixin[Seller],
-    AsyncDeleteMixin,
-    AsyncGetMixin[Seller],
-    AsyncUpdateMixin[Seller],
     AsyncActivatableMixin[Seller],
+    AsyncManagedResourceMixin[Seller],
+    AsyncCollectionMixin[Seller],
     AsyncService[Seller],
     SellersServiceConfig,
 ):

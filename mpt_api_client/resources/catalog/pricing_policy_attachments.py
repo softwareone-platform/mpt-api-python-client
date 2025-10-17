@@ -1,13 +1,11 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncDeleteMixin,
+    AsyncCollectionMixin,
     AsyncFileOperationsMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    DeleteMixin,
+    AsyncModifiableResourceMixin,
+    CollectionMixin,
     FileOperationsMixin,
-    GetMixin,
-    UpdateMixin,
+    ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.catalog.mixins import ActivatableMixin, AsyncActivatableMixin
@@ -27,10 +25,9 @@ class PricingPolicyAttachmentsServiceConfig:
 
 class PricingPolicyAttachmentsService(
     FileOperationsMixin[PricingPolicyAttachment],
-    DeleteMixin,
-    GetMixin[PricingPolicyAttachment],
-    UpdateMixin[PricingPolicyAttachment],
     ActivatableMixin[PricingPolicyAttachment],
+    ModifiableResourceMixin[PricingPolicyAttachment],
+    CollectionMixin[PricingPolicyAttachment],
     Service[PricingPolicyAttachment],
     PricingPolicyAttachmentsServiceConfig,
 ):
@@ -39,10 +36,9 @@ class PricingPolicyAttachmentsService(
 
 class AsyncPricingPolicyAttachmentsService(
     AsyncFileOperationsMixin[PricingPolicyAttachment],
-    AsyncDeleteMixin,
-    AsyncGetMixin[PricingPolicyAttachment],
-    AsyncUpdateMixin[PricingPolicyAttachment],
     AsyncActivatableMixin[PricingPolicyAttachment],
+    AsyncModifiableResourceMixin[PricingPolicyAttachment],
+    AsyncCollectionMixin[PricingPolicyAttachment],
     AsyncService[PricingPolicyAttachment],
     PricingPolicyAttachmentsServiceConfig,
 ):

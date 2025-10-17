@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.accounts.accounts_user_groups import (
@@ -33,11 +29,9 @@ class AccountsUsersServiceConfig:
 
 
 class AccountsUsersService(
-    UpdateMixin[AccountsUser],
-    DeleteMixin,
-    CreateMixin[AccountsUser],
+    ManagedResourceMixin[AccountsUser],
     InvitableMixin[AccountsUser],
-    GetMixin[AccountsUser],
+    CollectionMixin[AccountsUser],
     Service[AccountsUser],
     AccountsUsersServiceConfig,
 ):
@@ -55,11 +49,9 @@ class AccountsUsersService(
 
 
 class AsyncAccountsUsersService(
-    AsyncUpdateMixin[AccountsUser],
-    AsyncDeleteMixin,
-    AsyncCreateMixin[AccountsUser],
+    AsyncManagedResourceMixin[AccountsUser],
     AsyncInvitableMixin[AccountsUser],
-    AsyncGetMixin[AccountsUser],
+    AsyncCollectionMixin[AccountsUser],
     AsyncService[AccountsUser],
     AccountsUsersServiceConfig,
 ):
