@@ -1,5 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncGetMixin, GetMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncGetMixin,
+    CollectionMixin,
+    GetMixin,
+)
 from mpt_api_client.models import Model
 
 
@@ -17,6 +22,7 @@ class JournalSellersServiceConfig:
 
 class JournalSellersService(
     GetMixin[JournalSeller],
+    CollectionMixin[JournalSeller],
     Service[JournalSeller],
     JournalSellersServiceConfig,
 ):
@@ -25,6 +31,7 @@ class JournalSellersService(
 
 class AsyncJournalSellersService(
     AsyncGetMixin[JournalSeller],
+    AsyncCollectionMixin[JournalSeller],
     AsyncService[JournalSeller],
     JournalSellersServiceConfig,
 ):

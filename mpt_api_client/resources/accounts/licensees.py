@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.accounts.mixins import AsyncEnablableMixin, EnablableMixin
@@ -26,11 +22,9 @@ class LicenseesServiceConfig:
 
 
 class LicenseesService(
-    CreateMixin[Licensee],
-    DeleteMixin,
-    UpdateMixin[Licensee],
     EnablableMixin[Licensee],
-    GetMixin[Licensee],
+    ManagedResourceMixin[Licensee],
+    CollectionMixin[Licensee],
     Service[Licensee],
     LicenseesServiceConfig,
 ):
@@ -38,11 +32,9 @@ class LicenseesService(
 
 
 class AsyncLicenseesService(
-    AsyncCreateMixin[Licensee],
-    AsyncDeleteMixin,
-    AsyncUpdateMixin[Licensee],
     AsyncEnablableMixin[Licensee],
-    AsyncGetMixin[Licensee],
+    AsyncManagedResourceMixin[Licensee],
+    AsyncCollectionMixin[Licensee],
     AsyncService[Licensee],
     LicenseesServiceConfig,
 ):

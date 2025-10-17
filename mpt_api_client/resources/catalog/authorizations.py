@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 
@@ -25,10 +21,8 @@ class AuthorizationsServiceConfig:
 
 
 class AuthorizationsService(
-    CreateMixin[Authorization],
-    DeleteMixin,
-    GetMixin[Authorization],
-    UpdateMixin[Authorization],
+    ManagedResourceMixin[Authorization],
+    CollectionMixin[Authorization],
     Service[Authorization],
     AuthorizationsServiceConfig,
 ):
@@ -36,10 +30,8 @@ class AuthorizationsService(
 
 
 class AsyncAuthorizationsService(
-    AsyncCreateMixin[Authorization],
-    AsyncDeleteMixin,
-    AsyncGetMixin[Authorization],
-    AsyncUpdateMixin[Authorization],
+    AsyncManagedResourceMixin[Authorization],
+    AsyncCollectionMixin[Authorization],
     AsyncService[Authorization],
     AuthorizationsServiceConfig,
 ):

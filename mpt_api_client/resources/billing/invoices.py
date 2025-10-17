@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncGetMixin,
     AsyncUpdateMixin,
+    CollectionMixin,
     CreateMixin,
     GetMixin,
     UpdateMixin,
@@ -30,6 +32,7 @@ class InvoicesService(
     CreateMixin[Invoice],
     UpdateMixin[Invoice],
     GetMixin[Invoice],
+    CollectionMixin[Invoice],
     Service[Invoice],
     InvoicesServiceConfig,
 ):
@@ -47,6 +50,7 @@ class AsyncInvoicesService(
     AsyncCreateMixin[Invoice],
     AsyncUpdateMixin[Invoice],
     AsyncGetMixin[Invoice],
+    AsyncCollectionMixin[Invoice],
     AsyncService[Invoice],
     InvoicesServiceConfig,
 ):

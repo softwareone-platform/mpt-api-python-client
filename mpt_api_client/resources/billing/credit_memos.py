@@ -1,8 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
     AsyncCreateMixin,
     AsyncGetMixin,
     AsyncUpdateMixin,
+    CollectionMixin,
     CreateMixin,
     GetMixin,
     UpdateMixin,
@@ -30,6 +32,7 @@ class CreditMemosService(
     CreateMixin[CreditMemo],
     UpdateMixin[CreditMemo],
     GetMixin[CreditMemo],
+    CollectionMixin[CreditMemo],
     Service[CreditMemo],
     CreditMemosServiceConfig,
 ):
@@ -47,6 +50,7 @@ class AsyncCreditMemosService(
     AsyncCreateMixin[CreditMemo],
     AsyncUpdateMixin[CreditMemo],
     AsyncGetMixin[CreditMemo],
+    AsyncCollectionMixin[CreditMemo],
     AsyncService[CreditMemo],
     CreditMemosServiceConfig,
 ):
