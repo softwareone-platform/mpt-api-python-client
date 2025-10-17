@@ -21,13 +21,11 @@ def async_ledger_charges_service(async_http_client):
 
 
 def test_endpoint(ledger_charges_service):
-    assert ledger_charges_service.endpoint == "/public/v1/billing/ledgers/LED-0000-0001/charges"
+    assert ledger_charges_service.path == "/public/v1/billing/ledgers/LED-0000-0001/charges"
 
 
 def test_async_endpoint(async_ledger_charges_service):
-    assert (
-        async_ledger_charges_service.endpoint == "/public/v1/billing/ledgers/LED-0000-0001/charges"
-    )
+    assert async_ledger_charges_service.path == "/public/v1/billing/ledgers/LED-0000-0001/charges"
 
 
 @pytest.mark.parametrize("method", ["get"])

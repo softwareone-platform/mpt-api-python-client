@@ -22,14 +22,13 @@ def async_journal_attachments_service(async_http_client) -> AsyncJournalAttachme
 
 def test_endpoint(journal_attachments_service) -> None:
     assert (
-        journal_attachments_service.endpoint
-        == "/public/v1/billing/journals/JRN-0000-0001/attachments"
+        journal_attachments_service.path == "/public/v1/billing/journals/JRN-0000-0001/attachments"
     )
 
 
 def test_async_endpoint(async_journal_attachments_service) -> None:
     assert (
-        async_journal_attachments_service.endpoint
+        async_journal_attachments_service.path
         == "/public/v1/billing/journals/JRN-0000-0001/attachments"
     )
 

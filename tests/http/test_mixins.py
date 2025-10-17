@@ -5,6 +5,7 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client import RQLQuery
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
@@ -119,9 +120,7 @@ def test_sync_update_resource(dummy_service):
     assert json.loads(request.content.decode()) == resource_data
 
 
-# FileOperationsMixin tests
 async def test_async_file_create_with_data(async_media_service):
-    """Test FileOperationsMixin async create method with resource data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -151,7 +150,6 @@ async def test_async_file_create_with_data(async_media_service):
 
 
 async def test_async_file_create_no_data(async_media_service):
-    """Test FileOperationsMixin async create method without resource data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -176,7 +174,6 @@ async def test_async_file_create_no_data(async_media_service):
 
 
 async def test_async_file_download(async_media_service):
-    """Test FileOperationsMixin async download method."""
     media_content = b"Image file content or binary data"
 
     with respx.mock:
@@ -204,7 +201,6 @@ async def test_async_file_download(async_media_service):
 
 
 def test_sync_file_download(media_service):
-    """Test FileOperationsMixin download method."""
     media_content = b"Image file content or binary data"
 
     with respx.mock:
@@ -232,7 +228,6 @@ def test_sync_file_download(media_service):
 
 
 def test_sync_file_create_with_data(media_service):
-    """Test FileOperationsMixin create method with resource data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -262,7 +257,6 @@ def test_sync_file_create_with_data(media_service):
 
 
 def test_sync_file_create_no_data(media_service):
-    """Test FileOperationsMixin create method without resource data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -286,15 +280,21 @@ def test_sync_file_create_no_data(media_service):
     assert new_media.to_dict() == media_data
 
 
-def test_sync_get_mixin(dummy_service):
-    """Test GetMixin get method."""
+@pytest.mark.parametrize(
+    "select_value",
+    [
+        ["id", "name"],
+        "id,name",
+    ],
+)
+def test_sync_get_mixin(dummy_service, select_value):
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
         mock_route = respx.get(
             "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
         ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
 
-        resource = dummy_service.get("RES-123", select=["id", "name"])
+        resource = dummy_service.get("RES-123", select=select_value)
 
     request = mock_route.calls[0].request
     accept_header = (b"Accept", b"application/json")
@@ -315,3 +315,87 @@ async def test_async_get(async_dummy_service):
     accept_header = (b"Accept", b"application/json")
     assert accept_header in request.headers.raw
     assert resource.to_dict() == resource_data
+
+
+async def test_async_get_select_str(async_dummy_service):
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/api/v1/test/RES-123", params={"select": "id,name"}
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=resource_data))
+
+        resource = await async_dummy_service.get("RES-123", select="id,name")
+
+    request = mock_route.calls[0].request
+    accept_header = (b"Accept", b"application/json")
+    assert accept_header in request.headers.raw
+    assert resource.to_dict() == resource_data
+
+
+def test_queryable_mixin_order_by(dummy_service):
+    ordered_service = dummy_service.order_by("created", "-name")
+
+    assert ordered_service != dummy_service
+    assert dummy_service.query_state.order_by is None
+    assert ordered_service.query_state.order_by == ["created", "-name"]
+    assert ordered_service.http_client is dummy_service.http_client
+    assert ordered_service.endpoint_params == dummy_service.endpoint_params
+
+
+def test_queryable_mixin_order_by_exception(dummy_service):
+    ordered_service = dummy_service.order_by("created")
+
+    with pytest.raises(
+        ValueError, match=r"Ordering is already set. Cannot set ordering multiple times."
+    ):
+        ordered_service.order_by("name")
+
+
+def test_queryable_mixin_filter(dummy_service, filter_status_active):
+    filtered_service = dummy_service.filter(filter_status_active)
+
+    assert filtered_service != dummy_service
+    assert dummy_service.query_state.filter is None
+    assert filtered_service.query_state.filter == filter_status_active
+    assert filtered_service.http_client is dummy_service.http_client
+    assert filtered_service.endpoint_params == dummy_service.endpoint_params
+
+
+def test_queryable_mixin_filters(dummy_service):
+    filter1 = RQLQuery(status="active")
+    filter2 = RQLQuery(name="test")
+
+    filtered_service = dummy_service.filter(filter1).filter(filter2)
+
+    assert dummy_service.query_state.filter is None
+    assert filtered_service.query_state.filter == filter1 & filter2
+
+
+def test_queryable_mixin_select(dummy_service):
+    selected_service = dummy_service.select("id", "name", "-audit")
+
+    assert selected_service != dummy_service
+    assert dummy_service.query_state.select is None
+    assert selected_service.query_state.select == ["id", "name", "-audit"]
+    assert selected_service.http_client is dummy_service.http_client
+    assert selected_service.endpoint_params == dummy_service.endpoint_params
+
+
+def test_queryable_mixin_select_exception(dummy_service):
+    selected_service = dummy_service.select("id", "name")
+
+    with pytest.raises(
+        ValueError, match=r"Select fields are already set. Cannot set select fields multiple times."
+    ):
+        selected_service.select("other_field")
+
+
+def test_queryable_mixin_method_chaining(dummy_service, filter_status_active):
+    chained_service = (
+        dummy_service.filter(filter_status_active).order_by("created", "-name").select("id", "name")
+    )
+
+    assert chained_service != dummy_service
+    assert chained_service.query_state.filter == filter_status_active
+    assert chained_service.query_state.order_by == ["created", "-name"]
+    assert chained_service.query_state.select == ["id", "name"]

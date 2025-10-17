@@ -23,13 +23,13 @@ def async_account_user_groups_service(async_http_client):
 
 
 def test_endpoint(account_user_groups_service):
-    assert account_user_groups_service.endpoint == (
+    assert account_user_groups_service.path == (
         "/public/v1/accounts/account-users/ACC-0000-0001/groups"
     )
 
 
 def test_async_endpoint(async_account_user_groups_service):
-    assert async_account_user_groups_service.endpoint == (
+    assert async_account_user_groups_service.path == (
         "/public/v1/accounts/account-users/ACC-0000-0001/groups"
     )
 

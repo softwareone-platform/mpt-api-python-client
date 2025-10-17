@@ -21,14 +21,12 @@ def async_parameter_groups_service(async_http_client):
 
 
 def test_endpoint(parameter_groups_service):
-    assert (
-        parameter_groups_service.endpoint == "/public/v1/catalog/products/PRD-001/parameter-groups"
-    )
+    assert parameter_groups_service.path == "/public/v1/catalog/products/PRD-001/parameter-groups"
 
 
 def test_async_endpoint(async_parameter_groups_service):
     assert (
-        async_parameter_groups_service.endpoint
+        async_parameter_groups_service.path
         == "/public/v1/catalog/products/PRD-001/parameter-groups"
     )
 

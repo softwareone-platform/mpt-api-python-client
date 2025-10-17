@@ -19,11 +19,11 @@ def async_media_service(async_http_client) -> AsyncMediaService:
 
 
 def test_endpoint(media_service) -> None:
-    assert media_service.endpoint == "/public/v1/catalog/products/PRD-001/media"
+    assert media_service.path == "/public/v1/catalog/products/PRD-001/media"
 
 
 def test_async_endpoint(async_media_service) -> None:
-    assert async_media_service.endpoint == "/public/v1/catalog/products/PRD-001/media"
+    assert async_media_service.path == "/public/v1/catalog/products/PRD-001/media"
 
 
 @pytest.mark.parametrize(

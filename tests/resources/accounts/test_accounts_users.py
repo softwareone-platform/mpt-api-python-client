@@ -25,11 +25,11 @@ def async_accounts_users_service(async_http_client):
 
 
 def test_endpoint(accounts_users_service):
-    assert accounts_users_service.endpoint == "/public/v1/accounts/ACC-0000-0001/users"
+    assert accounts_users_service.path == "/public/v1/accounts/ACC-0000-0001/users"
 
 
 def test_async_endpoint(async_accounts_users_service):
-    assert async_accounts_users_service.endpoint == "/public/v1/accounts/ACC-0000-0001/users"
+    assert async_accounts_users_service.path == "/public/v1/accounts/ACC-0000-0001/users"
 
 
 @pytest.mark.parametrize(

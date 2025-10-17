@@ -19,11 +19,11 @@ def async_item_groups_service(async_http_client):
 
 
 def test_endpoint(item_groups_service):
-    assert item_groups_service.endpoint == "/public/v1/catalog/products/PRD-001/item-groups"
+    assert item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
 
 
 def test_async_endpoint(async_item_groups_service):
-    assert async_item_groups_service.endpoint == "/public/v1/catalog/products/PRD-001/item-groups"
+    assert async_item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])

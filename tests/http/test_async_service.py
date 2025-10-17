@@ -3,6 +3,7 @@ import pytest
 import respx
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.http.query_state import QueryState
 from tests.http.conftest import AsyncDummyService
 
 
@@ -96,22 +97,22 @@ async def test_async_fetch_page_with_filter(
 
 
 def test_async_init_defaults(async_dummy_service):
-    assert async_dummy_service.query_rql is None
-    assert async_dummy_service.query_order_by is None
-    assert async_dummy_service.query_select is None
-    assert async_dummy_service.build_url() == "/api/v1/test"
+    assert async_dummy_service.query_state.filter is None
+    assert async_dummy_service.query_state.order_by is None
+    assert async_dummy_service.query_state.select is None
+    assert async_dummy_service.build_path() == "/api/v1/test"
 
 
 def test_async_init_with_filter(async_http_client, filter_status_active):
     collection_client = AsyncDummyService(
         http_client=async_http_client,
-        query_rql=filter_status_active,
+        query_state=QueryState(rql=filter_status_active),
     )
 
-    assert collection_client.query_rql == filter_status_active
-    assert collection_client.query_order_by is None
-    assert collection_client.query_select is None
-    assert collection_client.build_url() == "/api/v1/test?eq(status,active)"
+    assert collection_client.query_state.filter == filter_status_active
+    assert collection_client.query_state.order_by is None
+    assert collection_client.query_state.select is None
+    assert collection_client.build_path() == "/api/v1/test?eq(status,active)"
 
 
 async def test_async_iterate_single_page(async_dummy_service, single_page_response):

@@ -19,11 +19,11 @@ def async_document_service(async_http_client) -> AsyncDocumentService:
 
 
 def test_endpoint(document_service) -> None:
-    assert document_service.endpoint == "/public/v1/catalog/products/PRD-001/documents"
+    assert document_service.path == "/public/v1/catalog/products/PRD-001/documents"
 
 
 def test_async_endpoint(async_document_service) -> None:
-    assert async_document_service.endpoint == "/public/v1/catalog/products/PRD-001/documents"
+    assert async_document_service.path == "/public/v1/catalog/products/PRD-001/documents"
 
 
 @pytest.mark.parametrize(

@@ -24,14 +24,14 @@ def async_pricing_policy_attachments_service(
 
 def test_endpoint(pricing_policy_attachments_service) -> None:
     assert (
-        pricing_policy_attachments_service.endpoint
+        pricing_policy_attachments_service.path
         == "/public/v1/catalog/pricing-policies/PRP-0000-0001/attachments"
     )
 
 
 def test_async_endpoint(async_pricing_policy_attachments_service) -> None:
     assert (
-        async_pricing_policy_attachments_service.endpoint
+        async_pricing_policy_attachments_service.path
         == "/public/v1/catalog/pricing-policies/PRP-0000-0001/attachments"
     )
 

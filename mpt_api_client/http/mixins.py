@@ -1,8 +1,11 @@
 import json
+from typing import Self
 from urllib.parse import urljoin
 
+from mpt_api_client.http.query_state import QueryState
 from mpt_api_client.http.types import FileTypes, Response
 from mpt_api_client.models import FileModel, ResourceData
+from mpt_api_client.rql import RQLQuery
 
 
 def _json_to_file_payload(resource_data: ResourceData) -> bytes:
@@ -20,7 +23,7 @@ class CreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = self.http_client.request("post", self.endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = self.http_client.request("post", self.path, json=resource_data)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -82,7 +85,7 @@ class FileOperationsMixin[Model]:
                 "application/json",
             )
 
-        response = self.http_client.request("post", self.endpoint, files=files)  # type: ignore[attr-defined]
+        response = self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -110,7 +113,7 @@ class AsyncCreateMixin[Model]:
         Returns:
             New resource created.
         """
-        response = await self.http_client.request("post", self.endpoint, json=resource_data)  # type: ignore[attr-defined]
+        response = await self.http_client.request("post", self.path, json=resource_data)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -124,7 +127,7 @@ class AsyncDeleteMixin:
         Args:
             resource_id: Resource ID.
         """
-        url = urljoin(f"{self.endpoint}/", resource_id)  # type: ignore[attr-defined]
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
         await self.http_client.request("delete", url)  # type: ignore[attr-defined]
 
 
@@ -173,7 +176,7 @@ class AsyncFileOperationsMixin[Model]:
                 "application/json",
             )
 
-        response = await self.http_client.request("post", self.endpoint, files=files)  # type: ignore[attr-defined]
+        response = await self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -227,3 +230,74 @@ class AsyncGetMixin[Model]:
         if isinstance(select, list):
             select = ",".join(select) if select else None
         return await self._resource_action(resource_id=resource_id, query_params={"select": select})  # type: ignore[attr-defined, no-any-return]
+
+
+class QueryableMixin:
+    """Mixin providing query functionality for filtering, ordering, and selecting fields."""
+
+    def order_by(self, *fields: str) -> Self:
+        """Returns new collection with ordering setup.
+
+        Returns:
+            New collection with ordering setup.
+
+        Raises:
+            ValueError: If ordering has already been set.
+        """
+        if self.query_state.order_by is not None:  # type: ignore[attr-defined]
+            raise ValueError("Ordering is already set. Cannot set ordering multiple times.")
+        return self._create_new_instance(
+            query_state=QueryState(
+                rql=self.query_state.filter,  # type: ignore[attr-defined]
+                order_by=list(fields),
+                select=self.query_state.select,  # type: ignore[attr-defined]
+            )
+        )
+
+    def filter(self, rql: RQLQuery) -> Self:
+        """Creates a new collection with the filter added to the filter collection.
+
+        Returns:
+            New copy of the collection with the filter added.
+        """
+        existing_filter = self.query_state.filter  # type: ignore[attr-defined]
+        combined_filter = existing_filter & rql if existing_filter else rql
+        return self._create_new_instance(
+            QueryState(
+                rql=combined_filter,
+                order_by=self.query_state.order_by,  # type: ignore[attr-defined]
+                select=self.query_state.select,  # type: ignore[attr-defined]
+            )
+        )
+
+    def select(self, *fields: str) -> Self:
+        """Set select fields. Raises ValueError if select fields are already set.
+
+        Returns:
+            New copy of the collection with the select fields set.
+
+        Raises:
+            ValueError: If select fields are already set.
+        """
+        if self.query_state.select is not None:  # type: ignore[attr-defined]
+            raise ValueError(
+                "Select fields are already set. Cannot set select fields multiple times."
+            )
+        return self._create_new_instance(
+            QueryState(
+                rql=self.query_state.filter,  # type: ignore[attr-defined]
+                order_by=self.query_state.order_by,  # type: ignore[attr-defined]
+                select=list(fields),
+            ),
+        )
+
+    def _create_new_instance(
+        self,
+        query_state: QueryState,
+    ) -> Self:
+        """Create a new instance with the given parameters."""
+        return self.__class__(
+            http_client=self.http_client,  # type: ignore[call-arg,attr-defined]
+            query_state=query_state,
+            endpoint_params=self.endpoint_params,  # type: ignore[attr-defined]
+        )

@@ -21,13 +21,11 @@ def async_statement_charges_service(async_http_client):
 
 
 def test_endpoint(statement_charges_service):
-    assert statement_charges_service.endpoint == (
-        "/public/v1/billing/statements/STM-0000-0001/charges"
-    )
+    assert statement_charges_service.path == ("/public/v1/billing/statements/STM-0000-0001/charges")
 
 
 def test_async_endpoint(async_statement_charges_service):
-    assert async_statement_charges_service.endpoint == (
+    assert async_statement_charges_service.path == (
         "/public/v1/billing/statements/STM-0000-0001/charges"
     )
 

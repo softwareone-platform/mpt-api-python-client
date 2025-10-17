@@ -22,14 +22,14 @@ def async_credit_memo_attachments_service(async_http_client):
 
 def test_endpoint(credit_memo_attachments_service):
     assert (
-        credit_memo_attachments_service.endpoint
+        credit_memo_attachments_service.path
         == "/public/v1/billing/credit-memos/CRM-0000-0001/attachments"
     )
 
 
 def test_async_endpoint(async_credit_memo_attachments_service):
     assert (
-        async_credit_memo_attachments_service.endpoint
+        async_credit_memo_attachments_service.path
         == "/public/v1/billing/credit-memos/CRM-0000-0001/attachments"
     )
 
