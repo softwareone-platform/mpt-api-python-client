@@ -4,14 +4,12 @@ from httpx._types import FileTypes
 
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncDeleteMixin,
+    AsyncCollectionMixin,
     AsyncFileOperationsMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    DeleteMixin,
+    AsyncModifiableResourceMixin,
+    CollectionMixin,
     FileOperationsMixin,
-    GetMixin,
-    UpdateMixin,
+    ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.mixins import (
@@ -34,10 +32,9 @@ class MediaServiceConfig:
 
 class MediaService(
     FileOperationsMixin[Media],
-    DeleteMixin,
-    GetMixin[Media],
-    UpdateMixin[Media],
     PublishableMixin[Media],
+    ModifiableResourceMixin[Media],
+    CollectionMixin[Media],
     Service[Media],
     MediaServiceConfig,
 ):
@@ -88,10 +85,9 @@ class MediaService(
 
 class AsyncMediaService(
     AsyncFileOperationsMixin[Media],
-    AsyncDeleteMixin,
-    AsyncGetMixin[Media],
-    AsyncUpdateMixin[Media],
     AsyncPublishableMixin[Media],
+    AsyncModifiableResourceMixin[Media],
+    AsyncCollectionMixin[Media],
     AsyncService[Media],
     MediaServiceConfig,
 ):

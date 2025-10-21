@@ -1,12 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
 
@@ -24,10 +21,8 @@ class ContactsServiceConfig:
 
 
 class ContactsService(
-    CreateMixin[Contact],
-    UpdateMixin[Contact],
-    DeleteMixin,
-    GetMixin[Contact],
+    ManagedResourceMixin[Contact],
+    CollectionMixin[Contact],
     Service[Contact],
     ContactsServiceConfig,
 ):
@@ -43,10 +38,8 @@ class ContactsService(
 
 
 class AsyncContactsService(
-    AsyncCreateMixin[Contact],
-    AsyncUpdateMixin[Contact],
-    AsyncDeleteMixin,
-    GetMixin[Contact],
+    AsyncManagedResourceMixin[Contact],
+    AsyncCollectionMixin[Contact],
     AsyncService[Contact],
     ContactsServiceConfig,
 ):

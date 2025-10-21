@@ -1,5 +1,12 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncGetMixin, AsyncUpdateMixin, GetMixin, UpdateMixin
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncGetMixin,
+    AsyncUpdateMixin,
+    CollectionMixin,
+    GetMixin,
+    UpdateMixin,
+)
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.mixins import AsyncIssuableMixin, IssuableMixin
 from mpt_api_client.resources.billing.statement_charges import (
@@ -24,6 +31,7 @@ class StatementsService(
     UpdateMixin[Statement],
     IssuableMixin[Statement],
     GetMixin[Statement],
+    CollectionMixin[Statement],
     Service[Statement],
     StatementsServiceConfig,
 ):
@@ -41,6 +49,7 @@ class AsyncStatementsService(
     AsyncUpdateMixin[Statement],
     AsyncIssuableMixin[Statement],
     AsyncGetMixin[Statement],
+    AsyncCollectionMixin[Statement],
     AsyncService[Statement],
     StatementsServiceConfig,
 ):

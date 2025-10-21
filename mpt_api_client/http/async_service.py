@@ -1,11 +1,10 @@
-from collections.abc import AsyncIterator
 from urllib.parse import urljoin
 
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.base_service import ServiceBase
 from mpt_api_client.http.types import QueryParam, Response
-from mpt_api_client.models import Collection, ResourceData
 from mpt_api_client.models import Model as BaseModel
+from mpt_api_client.models import ResourceData
 from mpt_api_client.models.collection import ResourceList
 
 
@@ -20,72 +19,6 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
         new_order = order_collection.create(order_data)
 
     """
-
-    async def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[Model]:
-        """Fetch one page of resources.
-
-        Returns:
-            Collection of resources.
-        """
-        response = await self._fetch_page_as_response(limit=limit, offset=offset)
-        return self._create_collection(response)
-
-    async def fetch_one(self) -> Model:
-        """Fetch one resource, expect exactly one result.
-
-        Returns:
-            One resource.
-
-        Raises:
-            ValueError: If the total matching records are not exactly one.
-        """
-        response = await self._fetch_page_as_response(limit=1, offset=0)
-        resource_list = self._create_collection(response)
-        total_records = len(resource_list)
-        if resource_list.meta:
-            total_records = resource_list.meta.pagination.total
-        if total_records == 0:
-            raise ValueError("Expected one result, but got zero results")
-        if total_records > 1:
-            raise ValueError(f"Expected one result, but got {total_records} results")
-
-        return resource_list[0]
-
-    async def iterate(self, batch_size: int = 100) -> AsyncIterator[Model]:
-        """Iterate over all resources, yielding GenericResource objects.
-
-        Args:
-            batch_size: Number of resources to fetch per request
-
-        Returns:
-            Iterator of resources.
-        """
-        offset = 0
-        limit = batch_size  # Default page size
-
-        while True:
-            response = await self._fetch_page_as_response(limit=limit, offset=offset)
-            items_collection = self._create_collection(response)
-            for resource in items_collection:
-                yield resource
-
-            if not items_collection.meta:
-                break
-            if not items_collection.meta.pagination.has_next():
-                break
-            offset = items_collection.meta.pagination.next_offset()
-
-    async def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> Response:
-        """Fetch one page of resources.
-
-        Returns:
-            Response object.
-
-        Raises:
-            HTTPStatusError: if the response status code is not 200.
-        """
-        pagination_params: dict[str, int] = {"limit": limit, "offset": offset}
-        return await self.http_client.request("get", self.build_path(pagination_params))
 
     async def _resource_do_request(  # noqa: WPS211
         self,

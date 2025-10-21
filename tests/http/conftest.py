@@ -7,23 +7,17 @@ from mpt_api_client.http import (
     Service,
 )
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from tests.conftest import DummyModel
 
 
 class DummyService(  # noqa: WPS215
-    CreateMixin[DummyModel],
-    DeleteMixin,
-    UpdateMixin[DummyModel],
-    GetMixin[DummyModel],
+    ManagedResourceMixin[DummyModel],
+    CollectionMixin[DummyModel],
     Service[DummyModel],
 ):
     _endpoint = "/api/v1/test"
@@ -31,10 +25,8 @@ class DummyService(  # noqa: WPS215
 
 
 class AsyncDummyService(  # noqa: WPS215
-    AsyncCreateMixin[DummyModel],
-    AsyncDeleteMixin,
-    AsyncUpdateMixin[DummyModel],
-    AsyncGetMixin[DummyModel],
+    AsyncManagedResourceMixin[DummyModel],
+    AsyncCollectionMixin[DummyModel],
     AsyncService[DummyModel],
 ):
     _endpoint = "/api/v1/test"

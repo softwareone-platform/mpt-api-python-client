@@ -1,13 +1,9 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
-    AsyncGetMixin,
-    AsyncUpdateMixin,
-    CreateMixin,
-    DeleteMixin,
-    GetMixin,
-    UpdateMixin,
+    AsyncCollectionMixin,
+    AsyncManagedResourceMixin,
+    CollectionMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.journal_attachments import (
@@ -42,11 +38,9 @@ class JournalsServiceConfig:
 
 
 class JournalsService(
-    CreateMixin[Journal],
-    DeleteMixin,
-    GetMixin[Journal],
-    UpdateMixin[Journal],
     RegeneratableMixin[Journal],
+    ManagedResourceMixin[Journal],
+    CollectionMixin[Journal],
     Service[Journal],
     JournalsServiceConfig,
 ):
@@ -79,11 +73,9 @@ class JournalsService(
 
 
 class AsyncJournalsService(
-    AsyncCreateMixin[Journal],
-    AsyncDeleteMixin,
-    AsyncGetMixin[Journal],
-    AsyncUpdateMixin[Journal],
     AsyncRegeneratableMixin[Journal],
+    AsyncManagedResourceMixin[Journal],
+    AsyncCollectionMixin[Journal],
     AsyncService[Journal],
     JournalsServiceConfig,
 ):
