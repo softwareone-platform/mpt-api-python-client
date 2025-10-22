@@ -6,7 +6,7 @@ from httpx import ConnectTimeout, Response, codes
 
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http.client import HTTPClient
-from tests.conftest import API_TOKEN, API_URL
+from tests.unit.conftest import API_TOKEN, API_URL
 
 
 def test_http_initialization(mocker):

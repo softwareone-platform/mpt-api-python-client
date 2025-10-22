@@ -12,7 +12,7 @@ from mpt_api_client.http.mixins import (
     CollectionMixin,
     ManagedResourceMixin,
 )
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 class DummyService(  # noqa: WPS215

@@ -9,6 +9,8 @@ services:
     tty: true
     volumes:
       - .:/mpt_api_client
+    env_file:
+      - .env
 
   app_test:
     container_name: mpt_api_client_test
@@ -31,6 +33,8 @@ services:
     tty: true
     volumes:
       - .:/mpt_api_client
+    env_file:
+      - .env
 
   format:
     container_name: mpt_api_client_format
@@ -41,3 +45,15 @@ services:
     command: bash -c "ruff check . --select I --fix && ruff format ."
     volumes:
       - .:/mpt_api_client
+
+  e2e:
+    container_name: mpt_api_client_test
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    working_dir: /mpt_api_client
+    command: bash -c "pytest -m e2e -p no:randomly --junitxml=e2e-report.xml"
+    volumes:
+      - .:/mpt_api_client
+    env_file:
+      - .env

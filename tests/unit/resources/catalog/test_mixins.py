@@ -10,7 +10,7 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 class DummyPublishableService(  # noqa: WPS215

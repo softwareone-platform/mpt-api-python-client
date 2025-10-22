@@ -26,8 +26,18 @@ jobs:
     - name: "Build test containers"
       run: docker compose build app_test
 
+    - name: "Create environment file"
+      run: touch .env
+
     - name: "Run validation & test"
       run: docker compose run --service-ports app_test
+
+    - name: "Run E2E test"
+      run: docker compose run --service-ports -e MPT_API_BASE_URL=$MPT_API_BASE_URL -e MPT_API_TOKEN=$MPT_API_TOKEN e2e
+      env:
+        MPT_API_BASE_URL: ${{ secrets.MPT_API_BASE_URL }}
+        MPT_API_TOKEN: ${{ secrets.MPT_API_TOKEN }}
+
 
     - name: "Run SonarCloud Scan"
       uses: SonarSource/sonarqube-scan-action@master
