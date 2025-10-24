@@ -17,7 +17,7 @@ from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
 )
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 @pytest.fixture

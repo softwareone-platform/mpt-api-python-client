@@ -37,10 +37,11 @@ dev = [
     "pytest-deadfixtures==2.2.*",
     "pytest-mock==3.14.*",
     "pytest-randomly==3.16.*",
+    "pytest-rerunfailures>=16.1",
     "pytest-xdist==3.6.*",
     "responses==0.25.*",
     "respx==0.22.*",
-    "ruff==0.12.11",  # force ruff version to have same formatting everywhere
+    "ruff==0.12.11", # force ruff version to have same formatting everywhere
     "typing-extensions==4.13.*",
     "wemake-python-styleguide==1.3.*",
 ]
@@ -58,12 +59,16 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 testpaths = "tests"
 pythonpath = "."
-addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml --import-mode=importlib"
+addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml --import-mode=importlib -m 'not e2e'"
 log_cli = false
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore:Support for class-based `config` is deprecated:DeprecationWarning",
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+]
+markers = [
+  "e2e: marks tests as e2e"
 ]
 
 [tool.coverage.run]

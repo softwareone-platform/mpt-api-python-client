@@ -16,7 +16,7 @@ from mpt_api_client.resources import (
     Commerce,
     Notifications,
 )
-from tests.conftest import API_TOKEN, API_URL
+from tests.unit.conftest import API_TOKEN, API_URL
 
 
 def get_mpt_client():

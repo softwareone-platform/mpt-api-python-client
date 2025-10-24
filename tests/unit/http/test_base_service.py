@@ -1,7 +1,7 @@
 from mpt_api_client.http import Service
 from mpt_api_client.http.query_state import QueryState
-from tests.conftest import DummyModel
-from tests.http.conftest import DummyService
+from tests.unit.conftest import DummyModel
+from tests.unit.http.conftest import DummyService
 
 
 class ParametrisedDummyService(  # noqa: WPS215

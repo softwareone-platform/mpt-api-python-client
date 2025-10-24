@@ -14,7 +14,7 @@ from mpt_api_client.resources.billing.mixins import (
     RecalculatableMixin,
     RegeneratableMixin,
 )
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 class DummyRegeneratableService(

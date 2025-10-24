@@ -15,7 +15,7 @@ from mpt_api_client.resources.accounts.mixins import (
     InvitableMixin,
     ValidateMixin,
 )
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 class DummyActivatableService(

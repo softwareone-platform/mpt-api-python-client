@@ -1,7 +1,7 @@
 import pytest
 
 from mpt_api_client.models import Collection
-from tests.conftest import DummyModel
+from tests.unit.conftest import DummyModel
 
 
 @pytest.fixture
