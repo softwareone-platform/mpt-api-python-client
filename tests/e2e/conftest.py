@@ -1,6 +1,8 @@
+import logging
 import os
 
 import pytest
+from reportportal_client import RPLogger
 
 from mpt_api_client import MPTClient
 
@@ -18,3 +20,11 @@ def base_url():
 @pytest.fixture
 def mpt_client(api_token, base_url):
     return MPTClient.from_config(api_token=api_token, base_url=base_url)
+
+
+@pytest.fixture(scope="session")
+def rp_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logging.setLoggerClass(RPLogger)
+    return logger
