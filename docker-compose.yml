@@ -12,22 +12,11 @@ services:
     env_file:
       - .env
 
-  app_test:
-    container_name: mpt_api_client_test
+  bash: &dev_base
+    image: mpt_api_client_dev
     build:
       context: .
       dockerfile: dev.Dockerfile
-    working_dir: /mpt_api_client
-    command: bash -c "ruff format --check . && ruff check . && flake8 . && mypy . && uv lock --check && pytest"
-    volumes:
-      - .:/mpt_api_client
-
-  bash:
-    container_name: mpt_api_client_bash
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    command: bash
     working_dir: /mpt_api_client
     stdin_open: true
     tty: true
@@ -36,24 +25,14 @@ services:
     env_file:
       - .env
 
+  app_test:
+    <<: *dev_base
+    command: bash -c "ruff format --check . && ruff check . && flake8 . && mypy . && uv lock --check && pytest tests/unit"
+
   format:
-    container_name: mpt_api_client_format
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /mpt_api_client
+    <<: *dev_base
     command: bash -c "ruff check . --select I --fix && ruff format ."
-    volumes:
-      - .:/mpt_api_client
 
   e2e:
-    container_name: mpt_api_client_test
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    working_dir: /mpt_api_client
-    command: bash -c "pytest -m e2e -p no:randomly --junitxml=e2e-report.xml"
-    volumes:
-      - .:/mpt_api_client
-    env_file:
-      - .env
+    <<: *dev_base
+    command: bash -c "pytest -p no:randomly --junitxml=e2e-report.xml tests/e2e"
