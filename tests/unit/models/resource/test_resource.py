@@ -54,3 +54,19 @@ def test_wrong_data_type():
     response = Response(200, json=1)
     with pytest.raises(TypeError, match=r"Response data must be a dict."):
         Model.from_response(response)
+
+
+def test_id_property_with_string_id():
+    resource_data = {"id": "abc-123"}
+    resource = Model(resource_data)
+
+    assert resource.id == "abc-123"
+    assert isinstance(resource.id, str)
+
+
+def test_id_property_with_numeric_id():
+    resource_data = {"id": 1024}
+    resource = Model(resource_data)
+
+    assert resource.id == "1024"
+    assert isinstance(resource.id, str)

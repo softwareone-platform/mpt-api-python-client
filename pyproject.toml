@@ -26,6 +26,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "dependency-injector>=4.48.2",
     "freezegun==1.5.*",
     "ipdb==0.13.*",
     "ipython==9.*",

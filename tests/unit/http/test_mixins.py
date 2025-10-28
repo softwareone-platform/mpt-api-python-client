@@ -262,6 +262,7 @@ def test_sync_file_create_with_data(media_service):
         b"Content-Type: image/jpeg\r\n\r\n"
         b"Image content\r\n" in request.content
     )
+    assert "multipart/form-data" in request.headers["Content-Type"]
     assert new_media.to_dict() == media_data
 
 
