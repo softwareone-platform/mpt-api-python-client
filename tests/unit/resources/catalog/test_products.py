@@ -135,3 +135,47 @@ async def test_async_update_settings(async_products_service):
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/catalog/products/{product_id}/settings"
     assert product.to_dict() == expected_response
+
+
+def test_product_create(products_service, tmp_path):
+    """Test creating a product (sync)."""
+    product_data = {"name": "New Product", "category": "Books"}
+    expected_response = {"id": "PRD-123", "name": "New Product", "category": "Books"}
+
+    # Create a temporary icon file
+    icon_path = tmp_path / "icon.png"
+    icon_path.write_bytes(b"fake image data")
+    with icon_path.open("rb") as icon_file, respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/catalog/products").mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
+        )
+
+        product = products_service.create(product_data, icon=icon_file)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/catalog/products"
+    assert product.to_dict() == expected_response
+
+
+async def test_async_product_create(async_products_service, tmp_path):
+    """Test creating a product (async)."""
+    product_data = {"name": "Async Product", "category": "Music"}
+    expected_response = {"id": "PRD-456", "name": "Async Product", "category": "Music"}
+
+    # Create a temporary icon file
+    icon_path = tmp_path / "icon.png"
+    icon_path.write_bytes(b"fake image data")
+    with icon_path.open("rb") as icon_file, respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/catalog/products").mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
+        )
+
+        product = await async_products_service.create(product_data, icon=icon_file)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/catalog/products"
+    assert product.to_dict() == expected_response

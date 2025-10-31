@@ -1,10 +1,13 @@
+import json
+
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncManagedResourceMixin,
+    AsyncModifiableResourceMixin,
     CollectionMixin,
-    ManagedResourceMixin,
+    ModifiableResourceMixin,
 )
+from mpt_api_client.http.types import FileTypes
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
@@ -54,12 +57,37 @@ class ProductsServiceConfig:
 
 class ProductsService(
     PublishableMixin[Product],
-    ManagedResourceMixin[Product],
+    ModifiableResourceMixin[Product],
     CollectionMixin[Product],
     Service[Product],
     ProductsServiceConfig,
 ):
     """Products service."""
+
+    def create(
+        self,
+        resource_data: ResourceData,
+        icon: FileTypes,
+    ) -> Product:
+        """Create product with icon.
+
+        Args:
+            resource_data: Product data.
+            icon: Icon image in jpg, png, GIF, etc.
+
+        Returns:
+            Created resource.
+        """
+        files: dict[str, FileTypes] = {}
+        files["product"] = (
+            None,
+            json.dumps(resource_data),
+            "application/json",
+        )
+        files["icon"] = icon
+        response = self.http_client.request("post", self.path, files=files)
+
+        return self._model_class.from_response(response)
 
     def item_groups(self, product_id: str) -> ItemGroupsService:
         """Return item_groups service."""
@@ -108,12 +136,36 @@ class ProductsService(
 
 class AsyncProductsService(
     AsyncPublishableMixin[Product],
-    AsyncManagedResourceMixin[Product],
+    AsyncModifiableResourceMixin[Product],
     AsyncCollectionMixin[Product],
     AsyncService[Product],
     ProductsServiceConfig,
 ):
     """Products service."""
+
+    async def create(
+        self,
+        resource_data: ResourceData,
+        icon: FileTypes,
+    ) -> Product:
+        """Create product with icon.
+
+        Args:
+            resource_data: Product data.
+            icon: Icon image in jpg, png, GIF, etc.
+
+        Returns:
+            Created resource.
+        """
+        files: dict[str, FileTypes] = {}
+        files["product"] = (
+            None,
+            json.dumps(resource_data),
+            "application/json",
+        )
+        files["icon"] = icon
+        response = await self.http_client.request("post", self.path, files=files)
+        return self._model_class.from_response(response)
 
     def item_groups(self, product_id: str) -> AsyncItemGroupsService:
         """Return item_groups service."""

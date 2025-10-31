@@ -86,7 +86,6 @@ class FileOperationsMixin[Model]:
                 _json_to_file_payload(resource_data),
                 "application/json",
             )
-
         response = self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]

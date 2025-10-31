@@ -13,5 +13,5 @@ def test_custom_data_key():
 
     resource = ChargeResourceMock.from_response(response)
 
-    assert resource.id == 1
+    assert resource.id == "1"
     assert resource.amount == 100

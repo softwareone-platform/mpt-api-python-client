@@ -35,7 +35,7 @@ def test_attribute_getter(mocker, meta_data):
 
     resource = Model.from_response(response)
 
-    assert resource.id == 1
+    assert resource.id == "1"
     assert resource.name.given == "Albert"
 
 
@@ -43,10 +43,10 @@ def test_attribute_setter():
     resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
     resource = Model(resource_data)
 
-    resource.id = 2
+    resource.id = "2"
     resource.name.given = "John"
 
-    assert resource.id == 2
+    assert resource.id == "2"
     assert resource.name.given == "John"
 
 
