@@ -52,6 +52,11 @@ class Model:
         meta = Meta.from_response(response)
         return cls.new(response_data, meta)
 
+    @property
+    def id(self) -> str:
+        """Returns the resource ID."""
+        return str(self._resource_data.get("id", ""))  # type: ignore[no-untyped-call]
+
     def to_dict(self) -> dict[str, Any]:
         """Returns the resource as a dictionary."""
         return self._resource_data.to_dict()

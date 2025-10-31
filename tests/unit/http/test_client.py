@@ -19,7 +19,6 @@ def test_http_initialization(mocker):
         headers={
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": "Bearer test-token",
-            "content-type": "application/json",
         },
         timeout=5.0,
         transport=mocker.ANY,
@@ -38,7 +37,6 @@ def test_env_initialization(monkeypatch, mocker):
         headers={
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {API_TOKEN}",
-            "content-type": "application/json",
         },
         timeout=5.0,
         transport=mocker.ANY,
