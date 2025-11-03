@@ -5,7 +5,7 @@ import pytest
 
 @pytest.fixture
 def product_icon():
-    return pathlib.Path.open(pathlib.Path(__file__).parent / "logo.png", "rb")
+    return pathlib.Path.open(pathlib.Path(__file__).parents[2] / "logo.png", "rb")
 
 
 @pytest.fixture

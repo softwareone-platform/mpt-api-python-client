@@ -25,7 +25,7 @@ def created_seller(mpt_ops, seller, logger):
         try:
             mpt_ops.accounts.sellers.delete(ret_seller.id)
         except MPTAPIError:
-            logger.exception("TEARDOWN - Unable to delete seller %s", ret_seller.id)
+            print("TEARDOWN - Unable to delete seller %s", ret_seller.id)  # noqa: WPS421
 
 
 def test_get_seller_by_id(mpt_ops, seller_id):

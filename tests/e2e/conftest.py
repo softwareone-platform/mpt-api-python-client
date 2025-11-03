@@ -88,3 +88,13 @@ def invalid_seller_id():
 @pytest.fixture
 def seller_id(e2e_config):
     return e2e_config["accounts.seller.id"]
+
+
+@pytest.fixture
+def account_id(e2e_config):
+    return e2e_config["accounts.account.id"]
+
+
+@pytest.fixture
+def invalid_account_id():
+    return "ACC-0000-0000"
