@@ -1,5 +1,5 @@
 [project]
-name = "mpt-api-client"
+name = "mpt-api-python-client"
 version = "1.0.0"
 description = "SoftwareOne Marketplace API Client for Python"
 authors = [{ name = "SoftwareOne AG" }]
