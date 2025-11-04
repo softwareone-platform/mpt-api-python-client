@@ -33,18 +33,19 @@ jobs:
         RP_API_KEY: ${{ secrets.RP_API_KEY }}
         MPT_API_BASE_URL: ${{ secrets.MPT_API_BASE_URL }}
         MPT_API_TOKEN: ${{ secrets.MPT_API_TOKEN }}
+        MPT_API_TOKEN_CLIENT: ${{ secrets.MPT_API_TOKEN_CLIENT }}
+        MPT_API_TOKEN_OPERATIONS: ${{ secrets.MPT_API_TOKEN_OPERATIONS }}
+        MPT_API_TOKEN_VENDOR: ${{ secrets.MPT_API_TOKEN_VENDOR }}
 
     - name: "Run validation & test"
       run: docker compose run --service-ports app_test
 
     - name: "Run E2E test"
-      run: docker compose run --service-ports app_test bash -c "pytest -p no:randomly --no-cov --reportportal --rp-launch=$RP_LAUNCH --rp-api-key=$RP_API_KEY --rp-endpoint=$RP_ENDPOINT --junitxml=e2e-report.xml tests/e2e"
+      run: docker compose run --service-ports app_test bash -c "pytest -v -p no:randomly --no-cov --reportportal --rp-launch=$RP_LAUNCH --rp-api-key=$RP_API_KEY --rp-endpoint=$RP_ENDPOINT --junitxml=e2e-report.xml tests/e2e"
       env:
         RP_LAUNCH: github-e2e-test
         RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
         RP_API_KEY: ${{ secrets.RP_API_KEY }}
-        MPT_API_BASE_URL: ${{ secrets.MPT_API_BASE_URL }}
-        MPT_API_TOKEN: ${{ secrets.MPT_API_TOKEN }}
 
 
     - name: "Run SonarCloud Scan"
