@@ -47,6 +47,6 @@ jobs:
   dtrack:
     uses: softwareone-platform/ops-template/.github/workflows/dependency-track-python-uv.yml@v1
     with:
-      projectName: 'swo-marketplace-cli'
+      projectName: 'mpt-api-python-client'
     secrets:
       DEPENDENCYTRACK_APIKEY: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
