@@ -113,7 +113,7 @@ class ProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
-    def product_parameters(self, product_id: str) -> ParametersService:
+    def parameters(self, product_id: str) -> ParametersService:  # noqa: WPS110
         """Return product_parameters service."""
         return ParametersService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
@@ -191,7 +191,7 @@ class AsyncProductsService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}
         )
 
-    def product_parameters(self, product_id: str) -> AsyncParametersService:
+    def parameters(self, product_id: str) -> AsyncParametersService:  # noqa: WPS110
         """Return product_parameters service."""
         return AsyncParametersService(
             http_client=self.http_client, endpoint_params={"product_id": product_id}

@@ -39,7 +39,7 @@ async def test_get_parameter(
     context["catalog.product.id"] = "product-123"
     service = AsyncMock(spec=AsyncParametersService)
     service.get.return_value = parameter
-    vendor_client.catalog.products.product_parameters.return_value = service
+    vendor_client.catalog.products.parameters.return_value = service
 
     fetched_parameter = await get_parameter(context=context, mpt_vendor=vendor_client)
 
@@ -67,7 +67,7 @@ async def test_get_or_create_parameter_create_new(
 ) -> None:
     context["catalog.product.id"] = "product-123"
     parameters_service.create.return_value = parameter
-    vendor_client.catalog.products.product_parameters.return_value = parameters_service
+    vendor_client.catalog.products.parameters.return_value = parameters_service
 
     with (
         patch("seed.catalog.product_parameters.get_parameter", return_value=None),
@@ -96,7 +96,7 @@ async def test_create_parameter_success(
     context["catalog.parameter_group.id"] = "group-123"
     service = AsyncMock(spec=AsyncParametersService)
     service.create.return_value = parameter
-    vendor_client.catalog.products.product_parameters.return_value = service
+    vendor_client.catalog.products.parameters.return_value = service
 
     created = await create_parameter(context=context, mpt_vendor=vendor_client)
 
