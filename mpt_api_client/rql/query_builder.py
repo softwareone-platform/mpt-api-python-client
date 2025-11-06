@@ -188,6 +188,11 @@ class RQLQuery:
         query.expr = expr
         return query
 
+    @classmethod
+    def from_string(cls, query_string: str) -> Self:
+        """Create a new RQLQuery object from a string."""
+        return cls.new(expr=query_string)
+
     def __len__(self) -> int:
         if self.op == self.OP_EXPRESSION:
             if self.expr:
