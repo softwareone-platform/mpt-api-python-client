@@ -27,9 +27,7 @@ async def get_parameter(
     except ValueError:
         logger.debug("Loading parameter: %s", parameter_id)
         product_id = context.get_string("catalog.product.id")
-        parameter = await mpt_vendor.catalog.products.product_parameters(product_id).get(
-            parameter_id
-        )
+        parameter = await mpt_vendor.catalog.products.parameters(product_id).get(parameter_id)
         context.set_resource(namespace, parameter)
         return parameter
 
@@ -72,9 +70,7 @@ async def create_parameter(
     if not product_id:
         raise ValueError("Product id is required.")
     parameter_data = build_parameter(context=context)
-    parameter = await mpt_vendor.catalog.products.product_parameters(product_id).create(
-        parameter_data
-    )
+    parameter = await mpt_vendor.catalog.products.parameters(product_id).create(parameter_data)
     logger.debug("Parameter created: %s", parameter.id)
     context[f"{namespace}.id"] = parameter.id
     context.set_resource(namespace, parameter)
