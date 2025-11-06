@@ -1,15 +1,12 @@
+import json
 import logging
 import os
+import pathlib
 
 import pytest
 from reportportal_client import RPLogger
 
-from mpt_api_client import MPTClient
-
-
-@pytest.fixture
-def api_token():
-    return os.getenv("MPT_API_TOKEN")
+from mpt_api_client import AsyncMPTClient, MPTClient
 
 
 @pytest.fixture
@@ -18,13 +15,66 @@ def base_url():
 
 
 @pytest.fixture
-def mpt_client(api_token, base_url):
-    return MPTClient.from_config(api_token=api_token, base_url=base_url)
+def mpt_vendor(base_url):
+    return MPTClient.from_config(api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url)  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
+def async_mpt_vendor(base_url):
+    return AsyncMPTClient.from_config(
+        api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url
+    )  # type: ignore
+
+
+@pytest.fixture
+def mpt_ops(base_url):
+    return MPTClient.from_config(api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url)  # type: ignore
+
+
+@pytest.fixture
+def async_mpt_ops(base_url):
+    return AsyncMPTClient.from_config(
+        api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url
+    )  # type: ignore
+
+
+@pytest.fixture
+def mpt_client(base_url):
+    return MPTClient.from_config(api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url)  # type: ignore
+
+
+@pytest.fixture
+def async_mpt_client(base_url):
+    return AsyncMPTClient.from_config(
+        api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url
+    )  # type: ignore
+
+
+@pytest.fixture
 def rp_logger():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     logging.setLoggerClass(RPLogger)
     return logger
+
+
+@pytest.fixture
+def logger():
+    return logging.getLogger("E2E")
+
+
+@pytest.fixture
+def project_root_path():
+    return pathlib.Path(__file__).parent.parent.parent
+
+
+@pytest.fixture
+def e2e_config(project_root_path):
+    filename = os.getenv("TEST_CONFIG_FILE", "e2e_config.test.json")
+    file_path = project_root_path.joinpath(filename)
+    return json.loads(file_path.read_text())
+
+
+@pytest.fixture
+def product_id(e2e_config):
+    return e2e_config["catalog.product.id"]
