@@ -8,15 +8,15 @@ from mpt_api_client.models.meta import Meta
 ResourceData = dict[str, Any]
 
 
-class Model:
+class Model:  # noqa: WPS214
     """Provides a resource to interact with api data using fluent interfaces."""
 
     _data_key: ClassVar[str | None] = None
-    _safe_attributes: ClassVar[list[str]] = ["meta", "_resource_data"]
+    _safe_attributes: ClassVar[list[str]] = ["meta", "_box"]
 
     def __init__(self, resource_data: ResourceData | None = None, meta: Meta | None = None) -> None:
         self.meta = meta
-        self._resource_data = Box(resource_data or {}, camel_killer_box=True, default_box=False)
+        self._box = Box(resource_data or {}, camel_killer_box=False, default_box=False)
 
     @classmethod
     def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:
@@ -25,7 +25,7 @@ class Model:
 
     def __getattr__(self, attribute: str) -> Box | Any:
         """Returns the resource data."""
-        return self._resource_data.__getattr__(attribute)  # type: ignore[no-untyped-call]
+        return self._box.__getattr__(attribute)  # type: ignore[no-untyped-call]
 
     @override
     def __setattr__(self, attribute: str, attribute_value: Any) -> None:
@@ -33,7 +33,7 @@ class Model:
             object.__setattr__(self, attribute, attribute_value)
             return
 
-        self._resource_data.__setattr__(attribute, attribute_value)  # type: ignore[no-untyped-call]
+        self._box.__setattr__(attribute, attribute_value)  # type: ignore[no-untyped-call]
 
     @classmethod
     def from_response(cls, response: Response) -> Self:
@@ -55,8 +55,12 @@ class Model:
     @property
     def id(self) -> str:
         """Returns the resource ID."""
-        return str(self._resource_data.get("id", ""))  # type: ignore[no-untyped-call]
+        return str(self._box.get("id", ""))  # type: ignore[no-untyped-call]
 
     def to_dict(self) -> dict[str, Any]:
         """Returns the resource as a dictionary."""
-        return self._resource_data.to_dict()
+        return self._box.to_dict()
+
+    @override
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self.id}>"  # noqa: WPS237

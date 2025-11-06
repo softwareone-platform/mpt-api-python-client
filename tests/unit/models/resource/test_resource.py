@@ -70,3 +70,23 @@ def test_id_property_with_numeric_id():
 
     assert resource.id == "1024"
     assert isinstance(resource.id, str)
+
+
+def test_case_conversion():
+    resource_data = {"id": "abc-123", "FullName": "Alice Smith"}
+
+    resource = Model(resource_data)
+
+    assert resource.FullName == "Alice Smith"
+    assert resource.to_dict() == resource_data
+    with pytest.raises(AttributeError):
+        resource.full_name  # noqa: B018
+
+
+def test_repr():
+    resource_data = {"id": "abc-123", "FullName": "Alice Smith"}
+
+    resource = Model(resource_data)
+
+    assert repr(resource) == "<Model abc-123>"
+    assert str(resource) == "<Model abc-123>"
