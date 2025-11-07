@@ -1,6 +1,7 @@
 from typing import Any, ClassVar, Self, override
 
 from box import Box
+from box.box import _camel_killer  # type: ignore[attr-defined] # noqa: PLC2701
 
 from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
@@ -8,15 +9,60 @@ from mpt_api_client.models.meta import Meta
 ResourceData = dict[str, Any]
 
 
+class MptBox(Box):
+    """python-box that preserves camelCase keys when converted to json."""
+
+    def __init__(self, *args, key_mapping: dict[str, str] | None, **kwargs):  # type: ignore[no-untyped-def]
+        super().__init__(*args, **kwargs)
+        key_mapping = key_mapping or {}
+        if self._box_config.get("key_mapping") is None:
+            self._box_config["key_mapping"] = key_mapping
+        else:
+            self._box_config.get("key_mapping").update(key_mapping)
+
+    @override
+    def __setitem__(self, key, value):  # type: ignore[no-untyped-def]  # noqa: WPS110
+        try:
+            mapped_key = self._box_config["key_mapping"][key]
+        except KeyError as error:
+            if key == "key_mapping" and "key_mapping" in self._box_config:
+                return
+            if error.args[0] == "key_mapping" and "key_mapping" not in self._box_config:
+                self._box_config["key_mapping"] = self._box_config.get("default_key_mappings", {})
+
+            mapped_key = _camel_killer(key)
+            self._box_config["key_mapping"][key] = mapped_key
+        super().__setitem__(mapped_key, value)  # type: ignore[no-untyped-call]
+
+    @override
+    def to_dict(self) -> dict[str, Any]:  # noqa: WPS210
+        reverse_mapping = {
+            mapped_key: original_key
+            for original_key, mapped_key in self._box_config.get("key_mapping", {}).items()
+        }
+        out_dict = {}
+        for parsed_key, item_value in super().to_dict().items():
+            original_key = reverse_mapping[parsed_key]
+            out_dict[original_key] = item_value
+        return out_dict
+
+
 class Model:  # noqa: WPS214
     """Provides a resource to interact with api data using fluent interfaces."""
 
     _data_key: ClassVar[str | None] = None
     _safe_attributes: ClassVar[list[str]] = ["meta", "_box"]
+    _case_mappings: ClassVar[dict[str, str]] = {}
 
     def __init__(self, resource_data: ResourceData | None = None, meta: Meta | None = None) -> None:
         self.meta = meta
-        self._box = Box(resource_data or {}, camel_killer_box=False, default_box=False)
+        self._box = MptBox(
+            resource_data or {},
+            camel_killer_box=False,
+            default_box=False,
+            default_box_create_on_get=False,
+            key_mapping=self._case_mappings,
+        )
 
     @classmethod
     def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:

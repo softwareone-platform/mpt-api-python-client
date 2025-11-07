@@ -77,10 +77,31 @@ def test_case_conversion():
 
     resource = Model(resource_data)
 
-    assert resource.FullName == "Alice Smith"
+    assert resource.full_name == "Alice Smith"
     assert resource.to_dict() == resource_data
     with pytest.raises(AttributeError):
-        resource.full_name  # noqa: B018
+        _ = resource.FullName  # noqa: WPS122
+
+
+def test_deep_case_conversion():
+    resource_data = {"id": "ABC-123", "contact": {"id": "ABC-345", "FullName": "Alice Smith"}}
+    expected_resource_data = {
+        "id": "ABC-123",
+        "contact": {"id": "ABC-345", "FullName": "Alice Smith", "StreetAddress": "123 Main St"},
+    }
+
+    resource = Model(resource_data)
+    resource.contact.StreetAddress = "123 Main St"
+
+    assert resource.contact.full_name == "Alice Smith"
+    assert resource.contact.street_address == "123 Main St"
+    assert resource.to_dict() == expected_resource_data
+
+    with pytest.raises(AttributeError):
+        _ = resource.contact.FullName  # noqa: WPS122
+
+    with pytest.raises(AttributeError):
+        _ = resource.contact.StreetAddress  # noqa: WPS122
 
 
 def test_repr():
