@@ -78,3 +78,13 @@ def e2e_config(project_root_path):
 @pytest.fixture
 def product_id(e2e_config):
     return e2e_config["catalog.product.id"]
+
+
+@pytest.fixture
+def invalid_seller_id():
+    return "SEL-0000-0000"
+
+
+@pytest.fixture
+def seller_id(e2e_config):
+    return e2e_config["accounts.seller.id"]
