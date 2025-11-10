@@ -8,37 +8,45 @@ from mpt_api_client.models.meta import Meta
 
 ResourceData = dict[str, Any]
 
+_box_safe_attributes: list[str] = ["_box_config", "_attribute_mapping"]
+
 
 class MptBox(Box):
     """python-box that preserves camelCase keys when converted to json."""
 
-    def __init__(self, *args, key_mapping: dict[str, str] | None, **kwargs):  # type: ignore[no-untyped-def]
-        super().__init__(*args, **kwargs)
-        key_mapping = key_mapping or {}
-        if self._box_config.get("key_mapping") is None:
-            self._box_config["key_mapping"] = key_mapping
-        else:
-            self._box_config.get("key_mapping").update(key_mapping)
+    def __init__(self, *args, attribute_mapping: dict[str, str] | None = None, **_):  # type: ignore[no-untyped-def]
+        attribute_mapping = attribute_mapping or {}
+        self._attribute_mapping = attribute_mapping
+        super().__init__(
+            *args,
+            camel_killer_box=False,
+            default_box=False,
+            default_box_create_on_get=False,
+        )
 
     @override
-    def __setitem__(self, key, value):  # type: ignore[no-untyped-def]  # noqa: WPS110
-        try:
-            mapped_key = self._box_config["key_mapping"][key]
-        except KeyError as error:
-            if key == "key_mapping" and "key_mapping" in self._box_config:
-                return
-            if error.args[0] == "key_mapping" and "key_mapping" not in self._box_config:
-                self._box_config["key_mapping"] = self._box_config.get("default_key_mappings", {})
-
-            mapped_key = _camel_killer(key)
-            self._box_config["key_mapping"][key] = mapped_key
+    def __setitem__(self, key, value):  # type: ignore[no-untyped-def]
+        mapped_key = self._prep_key(key)
         super().__setitem__(mapped_key, value)  # type: ignore[no-untyped-call]
+
+    @override
+    def __setattr__(self, item: str, value: Any) -> None:
+        if item in _box_safe_attributes:
+            return object.__setattr__(self, item, value)
+
+        super().__setattr__(item, value)  # type: ignore[no-untyped-call]
+        return None
+
+    @override
+    def __getattr__(self, item: str) -> Any:
+        if item in _box_safe_attributes:
+            return object.__getattribute__(self, item)
+        return super().__getattr__(item)  # type: ignore[no-untyped-call]
 
     @override
     def to_dict(self) -> dict[str, Any]:  # noqa: WPS210
         reverse_mapping = {
-            mapped_key: original_key
-            for original_key, mapped_key in self._box_config.get("key_mapping", {}).items()
+            mapped_key: original_key for original_key, mapped_key in self._attribute_mapping.items()
         }
         out_dict = {}
         for parsed_key, item_value in super().to_dict().items():
@@ -46,23 +54,32 @@ class MptBox(Box):
             out_dict[original_key] = item_value
         return out_dict
 
+    def _prep_key(self, key: str) -> str:
+        try:
+            return self._attribute_mapping[key]
+        except KeyError:
+            self._attribute_mapping[key] = _camel_killer(key)
+            return self._attribute_mapping[key]
+
 
 class Model:  # noqa: WPS214
     """Provides a resource to interact with api data using fluent interfaces."""
 
     _data_key: ClassVar[str | None] = None
     _safe_attributes: ClassVar[list[str]] = ["meta", "_box"]
-    _case_mappings: ClassVar[dict[str, str]] = {}
+    _attribute_mapping: ClassVar[dict[str, str]] = {}
 
     def __init__(self, resource_data: ResourceData | None = None, meta: Meta | None = None) -> None:
         self.meta = meta
         self._box = MptBox(
             resource_data or {},
-            camel_killer_box=False,
-            default_box=False,
-            default_box_create_on_get=False,
-            key_mapping=self._case_mappings,
+            attribute_mapping=self._attribute_mapping,
         )
+
+    @override
+    def __repr__(self) -> str:
+        class_name = self.__class__.__name__
+        return f"<{class_name} {self.id}>"
 
     @classmethod
     def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:
@@ -71,7 +88,7 @@ class Model:  # noqa: WPS214
 
     def __getattr__(self, attribute: str) -> Box | Any:
         """Returns the resource data."""
-        return self._box.__getattr__(attribute)  # type: ignore[no-untyped-call]
+        return self._box.__getattr__(attribute)
 
     @override
     def __setattr__(self, attribute: str, attribute_value: Any) -> None:
@@ -79,7 +96,7 @@ class Model:  # noqa: WPS214
             object.__setattr__(self, attribute, attribute_value)
             return
 
-        self._box.__setattr__(attribute, attribute_value)  # type: ignore[no-untyped-call]
+        self._box.__setattr__(attribute, attribute_value)
 
     @classmethod
     def from_response(cls, response: Response) -> Self:
@@ -106,7 +123,3 @@ class Model:  # noqa: WPS214
     def to_dict(self) -> dict[str, Any]:
         """Returns the resource as a dictionary."""
         return self._box.to_dict()
-
-    @override
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self.id}>"  # noqa: WPS237

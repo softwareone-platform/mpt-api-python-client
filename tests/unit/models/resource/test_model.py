@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pytest
 from httpx import Response
 
@@ -111,3 +113,19 @@ def test_repr():
 
     assert repr(resource) == "<Model abc-123>"
     assert str(resource) == "<Model abc-123>"
+
+
+def test_mapping():
+    class MappingModel(Model):  # noqa: WPS431
+        _attribute_mapping: ClassVar[dict[str, str]] = {
+            "second_id": "resource_id",
+            "Full_Name": "name",
+        }
+
+    resource_data = {"id": "abc-123", "second_id": "resource-abc-123", "Full_Name": "Alice Smith"}
+
+    resource = MappingModel(resource_data)
+
+    assert resource.name == "Alice Smith"
+    assert resource.resource_id == "resource-abc-123"
+    assert resource.to_dict() == resource_data
