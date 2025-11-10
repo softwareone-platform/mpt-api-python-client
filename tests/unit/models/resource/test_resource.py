@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import pytest
 from httpx import Response
 
@@ -70,3 +72,60 @@ def test_id_property_with_numeric_id():
 
     assert resource.id == "1024"
     assert isinstance(resource.id, str)
+
+
+def test_case_conversion():
+    resource_data = {"id": "abc-123", "FullName": "Alice Smith"}
+
+    resource = Model(resource_data)
+
+    assert resource.full_name == "Alice Smith"
+    assert resource.to_dict() == resource_data
+    with pytest.raises(AttributeError):
+        _ = resource.FullName  # noqa: WPS122
+
+
+def test_deep_case_conversion():
+    resource_data = {"id": "ABC-123", "contact": {"id": "ABC-345", "FullName": "Alice Smith"}}
+    expected_resource_data = {
+        "id": "ABC-123",
+        "contact": {"id": "ABC-345", "FullName": "Alice Smith", "StreetAddress": "123 Main St"},
+    }
+
+    resource = Model(resource_data)
+    resource.contact.StreetAddress = "123 Main St"
+
+    assert resource.contact.full_name == "Alice Smith"
+    assert resource.contact.street_address == "123 Main St"
+    assert resource.to_dict() == expected_resource_data
+
+    with pytest.raises(AttributeError):
+        _ = resource.contact.FullName  # noqa: WPS122
+
+    with pytest.raises(AttributeError):
+        _ = resource.contact.StreetAddress  # noqa: WPS122
+
+
+def test_repr():
+    resource_data = {"id": "abc-123", "FullName": "Alice Smith"}
+
+    resource = Model(resource_data)
+
+    assert repr(resource) == "<Model abc-123>"
+    assert str(resource) == "<Model abc-123>"
+
+
+def test_mapping():
+    class MappingModel(Model):  # noqa: WPS431
+        _attribute_mapping: ClassVar[dict[str, str]] = {
+            "second_id": "resource_id",
+            "Full_Name": "name",
+        }
+
+    resource_data = {"id": "abc-123", "second_id": "resource-abc-123", "Full_Name": "Alice Smith"}
+
+    resource = MappingModel(resource_data)
+
+    assert resource.name == "Alice Smith"
+    assert resource.resource_id == "resource-abc-123"
+    assert resource.to_dict() == resource_data
