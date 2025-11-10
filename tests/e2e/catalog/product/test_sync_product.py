@@ -22,10 +22,10 @@ def test_create_product(created_product, product_data):
 
 
 @pytest.mark.flaky
-def test_update_product(mpt_vendor, created_product):
+def test_update_product(mpt_vendor, created_product, product_icon):
     update_data = {"name": "Updated Product"}
 
-    product = mpt_vendor.catalog.products.update(created_product.id, update_data)
+    product = mpt_vendor.catalog.products.update(created_product.id, update_data, icon=product_icon)
 
     assert product.name == update_data["name"]
 
