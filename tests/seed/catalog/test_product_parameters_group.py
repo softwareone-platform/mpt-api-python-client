@@ -29,7 +29,7 @@ def parameter_groups_service():
 async def test_get_parameter_group(
     context: Context, vendor_client, parameter_groups_service, parameter_group
 ) -> None:
-    context["catalog.parameter_group.id"] = parameter_group.id
+    context["catalog.product.parameter_group.id"] = parameter_group.id
     context["catalog.product.id"] = "product-123"
     parameter_groups_service.get.return_value = parameter_group
     vendor_client.catalog.products.parameter_groups.return_value = parameter_groups_service
@@ -37,8 +37,8 @@ async def test_get_parameter_group(
     fetched_parameter_group = await get_parameter_group(context=context, mpt_vendor=vendor_client)
 
     assert fetched_parameter_group == parameter_group
-    assert context.get("catalog.parameter_group.id") == parameter_group.id
-    assert context.get(f"catalog.parameter_group[{parameter_group.id}]") == parameter_group
+    assert context.get("catalog.product.parameter_group.id") == parameter_group.id
+    assert context.get(f"catalog.product.parameter_group[{parameter_group.id}]") == parameter_group
 
 
 async def test_get_parameter_group_without_id(context: Context) -> None:
@@ -86,8 +86,8 @@ async def test_create_parameter_group_success(
     created = await create_parameter_group(context=context, mpt_vendor=vendor_client)
 
     assert created == parameter_group
-    assert context.get("catalog.parameter_group.id") == parameter_group.id
-    assert context.get(f"catalog.parameter_group[{parameter_group.id}]") == parameter_group
+    assert context.get("catalog.product.parameter_group.id") == parameter_group.id
+    assert context.get(f"catalog.product.parameter_group[{parameter_group.id}]") == parameter_group
 
 
 async def test_seed_parameter_group() -> None:

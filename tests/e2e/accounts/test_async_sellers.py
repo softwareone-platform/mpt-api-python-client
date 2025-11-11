@@ -26,7 +26,7 @@ async def async_created_seller(async_mpt_ops, seller, logger):
         try:
             await async_mpt_ops.accounts.sellers.delete(ret_seller.id)
         except MPTAPIError:
-            logger.exception("TEARDOWN - Unable to delete seller %s", ret_seller.id)
+            print(f"TEARDOWN - Unable to delete seller {ret_seller.id}")  # noqa: WPS421
 
 
 async def test_get_seller_by_id(async_mpt_ops, seller_id):

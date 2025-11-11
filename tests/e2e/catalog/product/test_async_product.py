@@ -13,7 +13,7 @@ async def async_created_product(logger, async_mpt_vendor, product_data, product_
     try:
         await async_mpt_vendor.catalog.products.delete(product.id)
     except MPTAPIError as error:
-        logger.exception("TEARDOWN - Unable to delete product %s: %s", product.id, error.title)
+        print(f"TEARDOWN - Unable to delete product {product.id}: {error.title}")  # noqa: WPS421
 
 
 @pytest.mark.flaky
