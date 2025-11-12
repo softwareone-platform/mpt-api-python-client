@@ -62,3 +62,31 @@ def account():
         }
 
     return _account
+
+
+@pytest.fixture
+def buyer(buyer_account_id):
+    def _buyer(
+        name="E2E Created Buyer",
+        account_id: str = buyer_account_id,
+    ):
+        return {
+            "name": name,
+            "account": {
+                "id": account_id,
+            },
+            "contact": {
+                "firstName": "first",
+                "lastName": "last",
+                "email": "created.buyer@example.com",
+            },
+            "address": {
+                "addressLine1": "123 Main St",
+                "city": "Anytown",
+                "state": "CA",
+                "postCode": "12345",
+                "country": "US",
+            },
+        }
+
+    return _buyer

@@ -98,3 +98,18 @@ def account_id(e2e_config):
 @pytest.fixture
 def invalid_account_id():
     return "ACC-0000-0000"
+
+
+@pytest.fixture
+def invalid_buyer_id():
+    return "BUY-0000-0000"
+
+
+@pytest.fixture
+def buyer_id(e2e_config):
+    return e2e_config["accounts.buyer.id"]
+
+
+@pytest.fixture
+def buyer_account_id(e2e_config):
+    return e2e_config["accounts.buyer.account.id"]
