@@ -98,3 +98,13 @@ def account_id(e2e_config):
 @pytest.fixture
 def invalid_account_id():
     return "ACC-0000-0000"
+
+
+@pytest.fixture
+def cloud_tenant_id(e2e_config):
+    return e2e_config["accounts.cloud_tenant.id"]
+
+
+@pytest.fixture
+def invalid_cloud_tenant_id():
+    return "CLT-0000-0000"
