@@ -1,24 +1,17 @@
-name: Release
-
+name: daily-e2e.yml
 on:
-  release:
-    types: [published]
-
-permissions:
-  id-token: write  # for OIDC
-  contents: read
+  schedule:
+    - cron: '0 8 * * *'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
     - name: "Checkout"
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        ref: main
 
     - name: "Build test containers"
       run: docker compose build e2e
@@ -41,33 +34,6 @@ jobs:
         RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
         RP_API_KEY: ${{ secrets.RP_API_KEY }}
 
-    - name: "Set up Python"
-      uses: actions/setup-python@v5
-      with:
-        python-version-file: ".python-version"
-
-    - name: "Install uv"
-      uses: astral-sh/setup-uv@v6
-      with:
-        version: "0.7.*"
-        enable-cache: true
-        cache-dependency-glob: uv.lock
-
-    - name: "Get the version"
-      id: get_version
-      run: echo  "VERSION=${GITHUB_REF/refs\/tags\//}" >> "$GITHUB_OUTPUT"
-
-    - name: "Build"
-      run: |
-        uv version ${{ steps.get_version.outputs.VERSION }}
-        uv build
-
-    - name: "Publish to PyPI"
-      run: uv publish
-
-  dtrack:
-    uses: softwareone-platform/ops-template/.github/workflows/dependency-track-python-uv.yml@v1
-    with:
-      projectName: 'mpt-api-python-client'
-    secrets:
-      DEPENDENCYTRACK_APIKEY: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+    - name: "Stop containers"
+      if: always()
+      run: docker compose down
