@@ -155,3 +155,13 @@ def invalid_module_id():
 @pytest.fixture
 def module_name(e2e_config):
     return e2e_config["accounts.module.name"]
+
+
+@pytest.fixture
+def cloud_tenant_id(e2e_config):
+    return e2e_config["accounts.cloud_tenant.id"]
+
+
+@pytest.fixture
+def invalid_cloud_tenant_id():
+    return "CLT-0000-0000"

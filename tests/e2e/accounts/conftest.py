@@ -107,3 +107,22 @@ def user_group(account_id):
         }
 
     return _user_group
+
+
+@pytest.fixture
+def cloud_tenant():
+    def _cloud_tenant(
+        name: str = "Test Cloud Tenant"
+    ):
+        return {
+            "name": name,
+            "revision": 1,
+            "externalIds": {
+                "cloudConsumptionId": "a73fe08b-f1ac-41d5-9ee2-f8d0dc52e643",
+                "providerId": "315707915459",
+                "pyraTenantId": "bf0a9c5a-4f34-4d10-bfc2-4cc7420cb2fd"
+            },
+            "type": "AwsService",
+        }
+
+    return _cloud_tenant
