@@ -1,17 +1,20 @@
 {
-  "accounts.seller.id": "SEL-7310-3075",
   "accounts.account.id": "ACC-9042-0088",
+  "accounts.api_token.id": "TKN-8857-1729",
   "accounts.buyer.account.id": "ACC-1086-6867",
   "accounts.buyer.id": "BUY-1591-2112",
-  "accounts.user_group.id": "UGR-6822-0561",
+  "accounts.licensee.account.id": "ACC-1086-6867",
+  "accounts.licensee.group.id": "UGR-2757-7226",
+  "accounts.licensee.id": "LCE-5758-4071-6507",
   "accounts.module.id": "MOD-1756",
   "accounts.module.name": "Access Management",
+  "accounts.seller.id": "SEL-7310-3075",
+  "accounts.user_group.id": "UGR-6822-0561",
+  "catalog.item.id": "ITM-7255-3950-0001",
+  "catalog.product.document.id": "PDC-7255-3950-0001",
   "catalog.product.id": "PRD-7255-3950",
-  "catalog.product.parameter_group.id": "PGR-7255-3950-0001",
   "catalog.product.item_group.id": "IGR-7255-3950-0001",
   "catalog.product.parameter.id": "PAR-7255-3950-0016",
-  "catalog.product.document.id": "PDC-7255-3950-0001",
-  "catalog.item.id": "ITM-7255-3950-0001",
-  "catalog.unit.id": "UNT-1229",
-  "accounts.api_token.id": "TKN-8857-1729"
+  "catalog.product.parameter_group.id": "PGR-7255-3950-0001",
+  "catalog.unit.id": "UNT-1229"
 }

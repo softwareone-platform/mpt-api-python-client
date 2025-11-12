@@ -171,3 +171,23 @@ def invalid_api_token_id():
 def logo_fd():
     file_path = pathlib.Path(__file__).parent / "logo.png"
     return pathlib.Path.open(file_path, "rb")
+
+
+@pytest.fixture
+def licensee_id(e2e_config):
+    return e2e_config["accounts.licensee.id"]
+
+
+@pytest.fixture
+def invalid_licensee_id():
+    return "LCE-0000-0000-0000"
+
+
+@pytest.fixture
+def licensee_account_id(e2e_config):
+    return e2e_config["accounts.licensee.account.id"]
+
+
+@pytest.fixture
+def licensee_group_id(e2e_config):
+    return e2e_config["accounts.licensee.group.id"]
