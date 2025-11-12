@@ -10,7 +10,7 @@ from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_VENDOR
 
 logger = logging.getLogger(__name__)
 
-namespace = "catalog.parameter_group"
+namespace = "catalog.product.parameter_group"
 
 
 @inject
@@ -39,7 +39,7 @@ async def get_parameter_group(
 def build_parameter_group(context: Context = DEFAULT_CONTEXT) -> dict[str, Any]:
     """Build parameter group data dictionary."""
     return {
-        "name": "Parameter group",
+        "name": "e2e - seed",
         "label": "Parameter group label",
         "displayOrder": 100,
     }

@@ -66,7 +66,7 @@ def test_async_mixins_present(async_products_service, method):
         ("parameter_groups", ParameterGroupsService),
         ("media", MediaService),
         ("documents", DocumentService),
-        ("product_parameters", ParametersService),
+        ("parameters", ParametersService),
         ("templates", TemplatesService),
         ("terms", TermService),
     ],
@@ -85,7 +85,7 @@ def test_property_services(products_service, service_method, expected_service_cl
         ("parameter_groups", AsyncParameterGroupsService),
         ("media", AsyncMediaService),
         ("documents", AsyncDocumentService),
-        ("product_parameters", AsyncParametersService),
+        ("parameters", AsyncParametersService),
         ("templates", AsyncTemplatesService),
         ("terms", AsyncTermService),
     ],
@@ -142,7 +142,6 @@ def test_product_create(products_service, tmp_path):
     product_data = {"name": "New Product", "category": "Books"}
     expected_response = {"id": "PRD-123", "name": "New Product", "category": "Books"}
 
-    # Create a temporary icon file
     icon_path = tmp_path / "icon.png"
     icon_path.write_bytes(b"fake image data")
     with icon_path.open("rb") as icon_file, respx.mock:
@@ -178,4 +177,56 @@ async def test_async_product_create(async_products_service, tmp_path):
     request = mock_route.calls[0].request
     assert request.method == "POST"
     assert request.url.path == "/public/v1/catalog/products"
+    assert product.to_dict() == expected_response
+
+
+def test_sync_product_update(products_service, tmp_path):
+    """Test updating a product (sync)."""
+    product_id = "PRD-123"
+    update_data = {"name": "Updated Product", "category": "Electronics"}
+    expected_response = {"id": product_id, "name": "Updated Product", "category": "Electronics"}
+
+    icon_path = tmp_path / "icon.png"
+    icon_path.write_bytes(b"fake updated image data")
+    with icon_path.open("rb") as icon_file, respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/catalog/products/{product_id}"
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
+
+        product = products_service.update(
+            product_id,
+            update_data,
+            icon=icon_file,
+        )
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/catalog/products/{product_id}"
+    assert product.to_dict() == expected_response
+
+
+async def test_async_product_update(async_products_service, tmp_path):
+    """Test updating a product (async)."""
+    product_id = "PRD-456"
+    update_data = {"name": "Async Updated Product", "category": "Gadgets"}
+    expected_response = {"id": product_id, "name": "Async Updated Product", "category": "Gadgets"}
+
+    icon_path = tmp_path / "icon.png"
+    icon_path.write_bytes(b"fake async updated image data")
+    with icon_path.open("rb") as icon_file, respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/catalog/products/{product_id}"
+        ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
+
+        product = await async_products_service.update(
+            product_id,
+            update_data,
+            icon=icon_file,
+        )
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/catalog/products/{product_id}"
     assert product.to_dict() == expected_response

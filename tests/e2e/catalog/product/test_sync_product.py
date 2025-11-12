@@ -13,7 +13,7 @@ def created_product(logger, mpt_vendor, product_data, product_icon):
     try:
         mpt_vendor.catalog.products.delete(product.id)
     except MPTAPIError as error:
-        logger.exception("TEARDOWN - Unable to delete product %s: %s", product.id, error.title)
+        print(f"TEARDOWN - Unable to delete product {product.id}: {error.title}")  # noqa: WPS421
 
 
 @pytest.mark.flaky
@@ -22,10 +22,10 @@ def test_create_product(created_product, product_data):
 
 
 @pytest.mark.flaky
-def test_update_product(mpt_vendor, created_product):
+def test_update_product(mpt_vendor, created_product, product_icon):
     update_data = {"name": "Updated Product"}
 
-    product = mpt_vendor.catalog.products.update(created_product.id, update_data)
+    product = mpt_vendor.catalog.products.update(created_product.id, update_data, icon=product_icon)
 
     assert product.name == update_data["name"]
 
