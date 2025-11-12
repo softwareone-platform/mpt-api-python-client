@@ -90,3 +90,38 @@ def buyer(buyer_account_id):
         }
 
     return _buyer
+
+
+@pytest.fixture
+def licensee(seller_id, seller, buyer_id, buyer, account_id, account):
+    def _licensee(
+        name: str = "Test E2E Licensee",
+    ):
+        seller_data = seller(external_id="E2E Seeded Seller")
+        buyer_data = buyer(external_id="E2E Seeded Buyer")
+        account_data = account(name="E2E Seeded Account")
+
+        licensee_seller_data = {"id": seller_id, **seller_data}
+        licensee_buyer_data = {"id": buyer_id, **buyer_data}
+        licensee_account_data = {"id": account_id, **account_data}
+
+        return {
+            "name": name,
+            "address": {
+                "addressLine1": "456 Licensee St",
+                "city": "Los Angeles",
+                "state": "CA",
+                "postCode": "67890",
+                "country": "US",
+            },
+            "useBuyerAddress": True,
+            "seller": licensee_seller_data,
+            "buyer": licensee_buyer_data,
+            "account": licensee_account_data,
+            "eligibility": {
+                "client": True,
+                "partner": False
+            },
+        }
+
+    return _licensee
