@@ -22,10 +22,14 @@ def test_create_product(async_created_product, product_data):
 
 
 @pytest.mark.flaky
-async def test_update_product(async_mpt_vendor, async_created_product):
+async def test_update_product(async_mpt_vendor, async_created_product, product_icon):
     update_data = {"name": "Updated Product"}
 
-    product = await async_mpt_vendor.catalog.products.update(async_created_product.id, update_data)
+    product = await async_mpt_vendor.catalog.products.update(
+        async_created_product.id,
+        update_data,
+        icon=product_icon,
+    )
 
     assert product.name == update_data["name"]
 

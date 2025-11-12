@@ -7,12 +7,18 @@ import respx
 
 from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
+    AsyncCreateWithIconMixin,
     AsyncManagedResourceMixin,
     AsyncModifiableResourceMixin,
+    AsyncUpdateWithIconMixin,
+    CreateWithIconMixin,
     ManagedResourceMixin,
     ModifiableResourceMixin,
+    UpdateWithIconMixin,
 )
+from mpt_api_client.http.types import FileTypes
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
@@ -30,6 +36,96 @@ def async_media_service(async_http_client):
     return AsyncMediaService(
         http_client=async_http_client, endpoint_params={"product_id": "PRD-001"}
     )
+
+
+@pytest.fixture
+def icon_service(http_client):
+    return DummyIconService(http_client=http_client)
+
+
+@pytest.fixture
+def async_icon_service(async_http_client):
+    return AsyncDummyIconService(http_client=async_http_client)
+
+
+class DummyIconService(
+    CreateWithIconMixin[DummyModel],
+    UpdateWithIconMixin[DummyModel],
+    Service[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/icon/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+    def create(
+        self,
+        resource_data: dict,
+        icon: FileTypes,
+        icon_key: str = "icon",
+        data_key: str = "data",
+    ) -> DummyModel:
+        return super().create(
+            resource_data=resource_data,
+            icon=icon,
+            icon_key=icon_key,
+            data_key=data_key,
+        )
+
+    def update(
+        self,
+        resource_id: str,
+        resource_data: dict,
+        icon: FileTypes,
+        icon_key: str = "icon",
+        data_key: str = "data",
+    ) -> DummyModel:
+        return super().update(
+            resource_id=resource_id,
+            resource_data=resource_data,
+            icon=icon,
+            icon_key=icon_key,
+            data_key=data_key,
+        )
+
+
+class AsyncDummyIconService(
+    AsyncCreateWithIconMixin[DummyModel],
+    AsyncUpdateWithIconMixin[DummyModel],
+    AsyncService[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/icon/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+    async def create(
+        self,
+        resource_data: dict,
+        icon: FileTypes,
+        icon_key: str = "icon",
+        data_key: str = "data",
+    ) -> DummyModel:
+        return await super().create(
+            resource_data=resource_data,
+            icon=icon,
+            icon_key=icon_key,
+            data_key=data_key,
+        )
+
+    async def update(
+        self,
+        resource_id: str,
+        resource_data: dict,
+        icon: FileTypes,
+        icon_key: str = "icon",
+        data_key: str = "data",
+    ) -> DummyModel:
+        return await super().update(
+            resource_id=resource_id,
+            resource_data=resource_data,
+            icon=icon,
+            icon_key=icon_key,
+            data_key=data_key,
+        )
 
 
 async def test_async_create_mixin(async_dummy_service):  # noqa: WPS210
@@ -942,3 +1038,187 @@ def test_async_managed_resource_mixin(async_dummy_service, method_name):
         f"AsyncManagedResourceMixin should have {method_name} method"
     )
     assert callable(getattr(async_service, method_name)), f"{method_name} should be callable"
+
+
+def test_sync_create_with_icon_with_data(icon_service):
+    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+    resource_key = "icon_data"
+    icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
+    icon_key = "icon"
+
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=resource_data,
+            )
+        )
+        new_resource = icon_service.create(
+            resource_data=resource_data,
+            icon=icon,
+            data_key=resource_key,
+            icon_key=icon_key,
+        )
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon_data"\r\n'
+        b"Content-Type: application/json\r\n\r\n"
+        b'{"id": "OBJ-0000-0001", "name": "Icon Object"}\r\n' in request.content
+    )
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Icon content\r\n" in request.content
+    )
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert new_resource.to_dict() == resource_data
+
+
+def test_sync_update_with_icon_with_data(icon_service):
+    resource_id = "OBJ-0000-0001"
+    resource_data = {"name": "Updated Icon Object"}
+    resource_key = "icon_data"
+    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
+    icon_key = "icon"
+
+    with respx.mock:
+        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json={"id": resource_id, "name": "Updated Icon Object"},
+            )
+        )
+        updated_resource = icon_service.update(
+            resource_id,
+            resource_data=resource_data,
+            icon=icon,
+            data_key=resource_key,
+            icon_key=icon_key,
+        )
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon_data"\r\n'
+        b"Content-Type: application/json\r\n\r\n"
+        b'{"name": "Updated Icon Object"}\r\n' in request.content
+    )
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Updated icon content\r\n" in request.content
+    )
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == {
+        "id": resource_id,
+        "name": "Updated Icon Object",
+    }
+
+
+async def test_async_create_with_icon_no_data(async_icon_service):
+    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=resource_data,
+            )
+        )
+        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
+        new_resource = await async_icon_service.create(resource_data=None, icon=icon)
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Icon content\r\n" in request.content
+    )
+    assert new_resource.to_dict() == resource_data
+
+
+def test_sync_create_with_icon_no_data(icon_service):
+    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=resource_data,
+            )
+        )
+        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
+        new_resource = icon_service.create(resource_data=None, icon=icon)
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Icon content\r\n" in request.content
+    )
+    assert new_resource.to_dict() == resource_data
+
+
+async def test_async_create_with_icon_with_data(async_icon_service):
+    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=resource_data,
+            )
+        )
+        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
+        new_resource = await async_icon_service.create(resource_data=None, icon=icon)
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Icon content\r\n" in request.content
+    )
+    assert new_resource.to_dict() == resource_data
+
+
+async def test_async_update_with_icon_with_data(async_icon_service):
+    resource_id = "OBJ-0000-0001"
+    resource_data = {"name": "Updated Icon Object"}
+    resource_key = "icon_data"
+    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
+    icon_key = "icon"
+
+    with respx.mock:
+        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json={"id": resource_id, "name": "Updated Icon Object"},
+            )
+        )
+        updated_resource = await async_icon_service.update(
+            resource_id,
+            resource_data=resource_data,
+            icon=icon,
+            data_key=resource_key,
+            icon_key=icon_key,
+        )
+
+    request: httpx.Request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="icon_data"\r\n'
+        b"Content-Type: application/json\r\n\r\n"
+        b'{"name": "Updated Icon Object"}\r\n' in request.content
+    )
+    assert (
+        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"Updated icon content\r\n" in request.content
+    )
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == {
+        "id": resource_id,
+        "name": "Updated Icon Object",
+    }
