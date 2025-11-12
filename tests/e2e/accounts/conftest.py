@@ -10,24 +10,9 @@ def timestamp():
 
 
 @pytest.fixture
-def account_data():
-    return {
-        "name": "Test Api Client Vendor",
-        "address": {
-            "addressLine1": "123 Test St",
-            "city": "San Francisco",
-            "state": "CA",
-            "postCode": "12345",
-            "country": "US",
-        },
-        "type": "Vendor",
-        "status": "Active",
-    }
-
-
-@pytest.fixture
 def account_icon():
-    return pathlib.Path(__file__).parent / "logo.png"
+    icon_path = pathlib.Path(__file__).parents[1] / "logo.png"
+    return pathlib.Path.open(icon_path, "rb")
 
 
 @pytest.fixture
@@ -56,3 +41,24 @@ def seller(currencies):
         }
 
     return _seller
+
+
+@pytest.fixture
+def account():
+    def _account(
+        name: str = "Test Api Client Vendor",
+    ):
+        return {
+            "name": name,
+            "address": {
+                "addressLine1": "123 Test St",
+                "city": "San Francisco",
+                "state": "CA",
+                "postCode": "12345",
+                "country": "US",
+            },
+            "type": "Vendor",
+            "status": "Active",
+        }
+
+    return _account

@@ -1,4 +1,6 @@
+import httpx
 import pytest
+import respx
 
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
 from mpt_api_client.resources.accounts.accounts_users import (
@@ -69,3 +71,99 @@ def test_async_property_services(async_account_service, service_method, expected
 
     assert isinstance(service, expected_service_class)
     assert service.endpoint_params == {"account_id": "ACC-0000-0001"}
+
+
+def test_account_create(account_service, tmp_path):  # noqa: WPS210
+    account_data = {
+        "id": "ACC-0000-0001",
+        "name": "Test Account",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.post(account_service.path).mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=account_data)
+        )
+
+        account = account_service.create(account_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/accounts/accounts"
+    assert account.to_dict() == account_data
+
+
+def test_account_update(account_service, tmp_path):  # noqa: WPS210
+    account_id = "ACC-0000-0001"
+    account_data = {
+        "name": "Updated Test Account",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.put(f"{account_service.path}/{account_id}").mock(
+            return_value=httpx.Response(httpx.codes.OK, json={"id": account_id, **account_data})
+        )
+
+        account = account_service.update(account_id, account_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/accounts/accounts/{account_id}"
+    assert account.to_dict() == {"id": account_id, **account_data}
+
+
+async def test_async_account_create(async_account_service, tmp_path):  # noqa: WPS210
+    account_data = {
+        "id": "ACC-0000-0001",
+        "name": "Test Account",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.post(async_account_service.path).mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=account_data)
+        )
+
+        account = await async_account_service.create(account_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/accounts/accounts"
+    assert account.to_dict() == account_data
+
+
+async def test_async_account_update(async_account_service, tmp_path):  # noqa: WPS210
+    account_id = "ACC-0000-0001"
+    account_data = {
+        "name": "Updated Test Account",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.put(f"{async_account_service.path}/{account_id}").mock(
+            return_value=httpx.Response(httpx.codes.OK, json={"id": account_id, **account_data})
+        )
+
+        account = await async_account_service.update(account_id, account_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/accounts/accounts/{account_id}"
+    assert account.to_dict() == {"id": account_id, **account_data}
