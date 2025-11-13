@@ -159,3 +159,99 @@ async def test_async_buyers_resource_action_no_data(async_buyers_service, action
         assert request.content == request_expected_content
         assert buyers_obj.to_dict() == response_expected_data
         assert isinstance(buyers_obj, Buyer)
+
+
+def test_buyers_create(buyers_service, tmp_path):  # noqa: WPS210
+    buyer_data = {
+        "id": "BUY-0000-0001",
+        "name": "Test Buyer",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.post(buyers_service.path).mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
+        )
+
+        buyer = buyers_service.create(buyer_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/accounts/buyers"
+    assert buyer.to_dict() == buyer_data
+
+
+def test_buyers_update(buyers_service, tmp_path):  # noqa: WPS210
+    buyer_id = "BUY-0000-0001"
+    buyer_data = {
+        "name": "Updated Test Buyer",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.put(f"{buyers_service.path}/{buyer_id}").mock(
+            return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
+        )
+
+        buyer = buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/accounts/buyers/{buyer_id}"
+    assert buyer.to_dict() == {"id": buyer_id, **buyer_data}
+
+
+async def test_async_buyers_create(async_buyers_service, tmp_path):  # noqa: WPS210
+    buyer_data = {
+        "id": "BUY-0000-0001",
+        "name": "Test Buyer",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.post(async_buyers_service.path).mock(
+            return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
+        )
+
+        buyer = await async_buyers_service.create(buyer_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "POST"
+    assert request.url.path == "/public/v1/accounts/buyers"
+    assert buyer.to_dict() == buyer_data
+
+
+async def test_async_buyers_update(async_buyers_service, tmp_path):  # noqa: WPS210
+    buyer_id = "BUY-0000-0001"
+    buyer_data = {
+        "name": "Updated Test Buyer",
+    }
+
+    logo_path = tmp_path / "logo.png"
+    logo_path.write_bytes(b"fake-logo-data")
+
+    with logo_path.open("rb") as logo_file, respx.mock:
+        mock_route = respx.put(f"{async_buyers_service.path}/{buyer_id}").mock(
+            return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
+        )
+
+        buyer = await async_buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+
+    request = mock_route.calls[0].request
+
+    assert mock_route.call_count == 1
+    assert request.method == "PUT"
+    assert request.url.path == f"/public/v1/accounts/buyers/{buyer_id}"
+    assert buyer.to_dict() == {"id": buyer_id, **buyer_data}
