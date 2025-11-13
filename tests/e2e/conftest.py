@@ -113,3 +113,13 @@ def buyer_id(e2e_config):
 @pytest.fixture
 def buyer_account_id(e2e_config):
     return e2e_config["accounts.buyer.account.id"]
+
+
+@pytest.fixture
+def user_group_id(e2e_config):
+    return e2e_config["accounts.user_group.id"]
+
+
+@pytest.fixture
+def invalid_user_group_id():
+    return "UGR-0000-0000"

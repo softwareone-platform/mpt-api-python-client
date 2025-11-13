@@ -46,7 +46,7 @@ def seller(currencies):
 @pytest.fixture
 def account():
     def _account(
-        name: str = "Test Api Client Vendor",
+        name: str = "E2E Test Api Client Vendor",
     ):
         return {
             "name": name,
@@ -90,3 +90,20 @@ def buyer(buyer_account_id):
         }
 
     return _buyer
+
+
+@pytest.fixture
+def user_group(account_id):
+    def _user_group(
+        name: str = "E2E Test Api Client User Group",
+    ):
+        return {
+            "name": name,
+            "account": {"id": account_id},
+            "buyers": None,
+            "logo": "",
+            "description": "User group for E2E tests",
+            "modules": [{"id": "MOD-1756"}],
+        }
+
+    return _user_group
