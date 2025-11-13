@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_seller(mpt_ops, seller, logger):
+def created_seller(mpt_ops, seller_factory, logger):
     ret_seller = None
 
     def _created_seller(
@@ -15,7 +15,7 @@ def created_seller(mpt_ops, seller, logger):
         name: str = "E2E Test Seller",
     ):
         nonlocal ret_seller  # noqa: WPS420
-        seller_data = seller(external_id=external_id, name=name)
+        seller_data = seller_factory(external_id=external_id, name=name)
         ret_seller = mpt_ops.accounts.sellers.create(seller_data)
         return ret_seller
 
@@ -75,9 +75,9 @@ def test_delete_seller_not_found(mpt_ops, invalid_seller_id):
         mpt_ops.accounts.sellers.delete(invalid_seller_id)
 
 
-def test_update_seller(mpt_ops, seller, created_seller, timestamp):
+def test_update_seller(mpt_ops, seller_factory, created_seller, timestamp):
     seller_data = created_seller(external_id=f"Update E2E Seller - {timestamp}")
-    update_data = seller(
+    update_data = seller_factory(
         external_id=f"Update E2E Seller - {timestamp}",
         name=f"Updated Update E2E Seller - {timestamp}",
     )
@@ -85,8 +85,8 @@ def test_update_seller(mpt_ops, seller, created_seller, timestamp):
     assert updated_seller is not None
 
 
-def test_update_seller_mpt_error(mpt_ops, seller, timestamp, invalid_seller_id):
-    update_data = seller(
+def test_update_seller_mpt_error(mpt_ops, seller_factory, timestamp, invalid_seller_id):
+    update_data = seller_factory(
         external_id=f"Async Update E2E Seller Not Found - {timestamp}",
         name=f"Updated Update E2E Seller Not Found - {timestamp}",
     )

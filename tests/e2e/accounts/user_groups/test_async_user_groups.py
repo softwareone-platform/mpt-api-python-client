@@ -7,8 +7,8 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-async def created_user_group(async_mpt_ops, user_group):
-    new_user_group_request_data = user_group()
+async def created_user_group(async_mpt_ops, user_group_factory):
+    new_user_group_request_data = user_group_factory()
     created_user_group = await async_mpt_ops.accounts.user_groups.create(
         new_user_group_request_data
     )
@@ -67,8 +67,8 @@ async def test_delete_user_group_not_found(async_mpt_ops, invalid_user_group_id)
         await async_mpt_ops.accounts.user_groups.delete(invalid_user_group_id)
 
 
-async def test_update_user_group(async_mpt_ops, user_group, created_user_group):
-    updated_user_group_data = user_group(name="E2E Updated User Group")
+async def test_update_user_group(async_mpt_ops, user_group_factory, created_user_group):
+    updated_user_group_data = user_group_factory(name="E2E Updated User Group")
 
     updated_user_group = await async_mpt_ops.accounts.user_groups.update(
         created_user_group.id, updated_user_group_data
@@ -77,8 +77,10 @@ async def test_update_user_group(async_mpt_ops, user_group, created_user_group):
     assert updated_user_group is not None
 
 
-async def test_update_user_group_not_found(async_mpt_ops, user_group, invalid_user_group_id):
-    updated_user_group_data = user_group(name="Nonexistent User Group")
+async def test_update_user_group_not_found(
+    async_mpt_ops, user_group_factory, invalid_user_group_id
+):
+    updated_user_group_data = user_group_factory(name="Nonexistent User Group")
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_mpt_ops.accounts.user_groups.update(
