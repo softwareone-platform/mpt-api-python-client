@@ -1,9 +1,12 @@
 {
-  "catalog.product.id": "PRD-7255-3950",
   "accounts.seller.id": "SEL-7310-3075",
-  "catalog.product.parameter_group.id": "PGR-7255-3950-0001",
-  "catalog.product.parameter.id": "PAR-7255-3950-0016",
   "accounts.account.id": "ACC-9042-0088",
   "accounts.buyer.account.id": "ACC-1086-6867",
-  "accounts.buyer.id": "BUY-1591-2112"
+  "accounts.buyer.id": "BUY-1591-2112",
+  "catalog.product.id": "PRD-7255-3950",
+  "catalog.product.parameter_group.id": "PGR-7255-3950-0001",
+  "catalog.product.item_group.id": "IGR-7255-3950-0001",
+  "catalog.product.parameter.id": "PAR-7255-3950-0016",
+  "catalog.item.id": "ITM-7255-3950-0001",
+  "catalog.unit.id": "UNT-1229"
 }
