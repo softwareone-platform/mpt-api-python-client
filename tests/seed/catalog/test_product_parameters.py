@@ -14,7 +14,7 @@ from seed.catalog.product_parameters import (
 )
 from seed.context import Context
 
-namespace = "catalog.parameter"
+namespace = "catalog.product.parameter"
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ async def test_get_parameter_without_id(context: Context) -> None:
 
 
 def test_build_parameter(context: Context) -> None:
-    context["catalog.parameter_group.id"] = "group-123"
+    context["catalog.product.parameter_group.id"] = "group-123"
 
     parameter_payload: dict[str, Any] = build_parameter(context=context)
 
@@ -93,7 +93,7 @@ async def test_create_parameter_success(
     context: Context, vendor_client: AsyncMock, parameter: Parameter
 ) -> None:
     context["catalog.product.id"] = "product-123"
-    context["catalog.parameter_group.id"] = "group-123"
+    context["catalog.product.parameter_group.id"] = "group-123"
     service = AsyncMock(spec=AsyncParametersService)
     service.create.return_value = parameter
     vendor_client.catalog.products.parameters.return_value = service
@@ -101,8 +101,8 @@ async def test_create_parameter_success(
     created = await create_parameter(context=context, mpt_vendor=vendor_client)
 
     assert created == parameter
-    assert context.get("catalog.parameter.id") == parameter.id
-    assert context.get(f"catalog.parameter[{parameter.id}]") == parameter
+    assert context.get("catalog.product.parameter.id") == parameter.id
+    assert context.get(f"catalog.product.parameter[{parameter.id}]") == parameter
 
 
 async def test_create_parameter_missing_product(context: Context, vendor_client: AsyncMock) -> None:

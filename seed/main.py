@@ -4,7 +4,7 @@ import logging
 from seed.container import wire_container
 from seed.seed_api import seed_api
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

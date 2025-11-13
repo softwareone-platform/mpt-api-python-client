@@ -10,7 +10,7 @@ from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_VENDOR
 
 logger = logging.getLogger(__name__)
 
-namespace = "catalog.parameter"
+namespace = "catalog.product.parameter"
 
 
 @inject
@@ -35,15 +35,15 @@ async def get_parameter(
 @inject
 def build_parameter(context: Context = DEFAULT_CONTEXT) -> dict[str, Any]:
     """Build parameter data dictionary."""
-    parameter_group_id = context.get_string("catalog.parameter_group.id")
+    parameter_group_id = context.get_string("catalog.product.parameter_group.id")
     if not parameter_group_id:
         raise ValueError("Parameter group id is required.")
     return {
-        "name": "Parameter Name",
+        "name": "e2e - seed",
         "scope": "Order",
         "phase": "Order",
-        "description": "Agreement identifier of the reseller",
-        "externalId": "RES-233-33-xx3",
+        "description": "e2e - seeded parameter",
+        "externalId": "e2e-seed-parameter",
         "displayOrder": 100,
         "context": "Purchase",
         "constraints": {"hidden": True, "readonly": True, "required": False},
@@ -71,7 +71,7 @@ async def create_parameter(
         raise ValueError("Product id is required.")
     parameter_data = build_parameter(context=context)
     parameter = await mpt_vendor.catalog.products.parameters(product_id).create(parameter_data)
-    logger.debug("Parameter created: %s", parameter.id)
+    logger.info("Parameter created: %s", parameter.id)
     context[f"{namespace}.id"] = parameter.id
     context.set_resource(namespace, parameter)
     return parameter
@@ -87,7 +87,7 @@ async def init_parameter(
 
     if not parameter:
         logger.debug("Creating parameter ...")
-        return await create_parameter(context, mpt_vendor)
+        return await create_parameter(context=context, mpt_vendor=mpt_vendor)
     logger.debug("Parameter found: %s", parameter.id)
     return parameter
 

@@ -22,6 +22,7 @@ async def get_product(
 ) -> Product | None:
     """Get product from context or fetch from API."""
     product_id = context.get_string(f"{namespace}.id")
+    logger.debug("Getting product: %s", product_id)
     if not product_id:
         return None
     try:
@@ -44,7 +45,7 @@ async def init_product(
 ) -> Product:
     """Get or create product."""
     product = await get_product()
-    if not product:
+    if product is None:
         logger.debug("Creating product ...")
         with pathlib.Path.open(icon, "rb") as icon_file:
             product = await mpt_vendor.catalog.products.create(
@@ -52,7 +53,9 @@ async def init_product(
             )
             context.set_resource(namespace, product)
             context[f"{namespace}.id"] = product.id
-        logger.debug("Product created: %s", product.id)
+        logger.info("Product created: %s", product.id)
+    else:
+        logger.info("Product found: %s", product.id)
     return product
 
 
