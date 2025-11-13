@@ -98,3 +98,18 @@ def account_id(e2e_config):
 @pytest.fixture
 def invalid_account_id():
     return "ACC-0000-0000"
+
+
+@pytest.fixture
+def module_id(e2e_config):
+    return e2e_config["accounts.module.id"]
+
+
+@pytest.fixture
+def invalid_module_id():
+    return "MOD-0000"
+
+
+@pytest.fixture
+def module_name(e2e_config):
+    return e2e_config["accounts.module.name"]
