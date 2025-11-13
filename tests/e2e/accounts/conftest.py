@@ -62,3 +62,20 @@ def account():
         }
 
     return _account
+
+
+@pytest.fixture
+def api_token(account_id):
+    def _api_token(
+        name: str = "E2E Test API Token",
+        description: str = "E2E API Token created during E2E tests",
+    ):
+        return {
+            "account": {"id": account_id},
+            "name": name,
+            "description": description,
+            "icon": "",
+            "modules": [{"id": "MOD-1756"}],
+        }
+
+    return _api_token
