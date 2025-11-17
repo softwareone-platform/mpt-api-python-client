@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.base_service import ServiceBase
 from mpt_api_client.http.types import QueryParam, Response
@@ -69,6 +70,11 @@ class AsyncService[Model: BaseModel](ServiceBase[AsyncHTTPClient, Model]):  # no
             query_params: Additional query parameters.
         """
         response = await self._resource_do_request(
-            resource_id, method, action, json=json, query_params=query_params
+            resource_id,
+            method,
+            action,
+            json=json,
+            query_params=query_params,
+            headers={"Accept": APPLICATION_JSON},
         )
         return self._model_class.from_response(response)

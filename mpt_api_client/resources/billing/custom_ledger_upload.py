@@ -1,5 +1,5 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncFileOperationsMixin, FileOperationsMixin
+from mpt_api_client.http.mixins import AsyncFilesOperationsMixin, FilesOperationsMixin
 from mpt_api_client.models import Model
 
 
@@ -16,7 +16,7 @@ class CustomLedgerUploadServiceConfig:
 
 
 class CustomLedgerUploadService(
-    FileOperationsMixin[CustomLedgerUpload],
+    FilesOperationsMixin[CustomLedgerUpload],
     Service[CustomLedgerUpload],
     CustomLedgerUploadServiceConfig,
 ):
@@ -24,7 +24,7 @@ class CustomLedgerUploadService(
 
 
 class AsyncCustomLedgerUploadService(
-    AsyncFileOperationsMixin[CustomLedgerUpload],
+    AsyncFilesOperationsMixin[CustomLedgerUpload],
     AsyncService[CustomLedgerUpload],
     CustomLedgerUploadServiceConfig,
 ):

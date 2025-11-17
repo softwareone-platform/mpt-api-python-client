@@ -1,3 +1,10 @@
+from mpt_api_client.constants import APPLICATION_JSON
+from mpt_api_client.http.mixins import (
+    AsyncDownloadFileMixin,
+    DownloadFileMixin,
+    _json_to_file_payload,
+)
+from mpt_api_client.http.types import FileTypes
 from mpt_api_client.models import ResourceData
 
 
@@ -74,6 +81,71 @@ class AsyncPublishableMixin[Model]:
         return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "unpublish", json=resource_data
         )
+
+
+class AsyncDocumentMixin[Model](
+    AsyncDownloadFileMixin[Model],
+    AsyncPublishableMixin[Model],
+):
+    """Async document mixin."""
+
+    async def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:
+        """Creates document resource.
+
+        Creates a document resource by specifying a `file` or an `url`.
+
+        Args:
+            resource_data: Resource data.
+            file: File to upload.
+
+        Returns:
+            Created resource.
+
+        """
+        files = {}
+
+        if resource_data:
+            files["document"] = (
+                None,
+                _json_to_file_payload(resource_data),
+                APPLICATION_JSON,
+            )
+        if file:
+            files["file"] = file  # type: ignore[assignment]
+        response = await self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class DocumentMixin[Model](
+    DownloadFileMixin[Model],
+    PublishableMixin[Model],
+):
+    """Document mixin."""
+
+    def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:
+        """Create document.
+
+        Creates a document resource by specifying a `file` or an `url`.
+
+        Args:
+            resource_data: Resource data.
+            file: File to upload.
+
+        Returns:
+            Created resource.
+        """
+        files = {}
+
+        if resource_data:
+            files["document"] = (
+                None,
+                _json_to_file_payload(resource_data),
+                APPLICATION_JSON,
+            )
+        if file:
+            files["file"] = file  # type: ignore[assignment]
+        response = self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
 
 class ActivatableMixin[Model]:

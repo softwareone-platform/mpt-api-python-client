@@ -69,6 +69,17 @@ def project_root_path():
 
 
 @pytest.fixture
+def pdf_fd():
+    icon_path = pathlib.Path(__file__).parent / "empty.pdf"
+    return pathlib.Path.open(icon_path, "rb")
+
+
+@pytest.fixture
+def pdf_url():
+    return "https://sample-files.com/downloads/documents/pdf/basic-text.pdf"
+
+
+@pytest.fixture
 def e2e_config(project_root_path):
     filename = os.getenv("TEST_CONFIG_FILE", "e2e_config.test.json")
     file_path = project_root_path.joinpath(filename)

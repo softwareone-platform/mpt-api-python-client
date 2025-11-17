@@ -1,14 +1,15 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFileOperationsMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
-    FileOperationsMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
-from mpt_api_client.resources.catalog.mixins import AsyncPublishableMixin, PublishableMixin
+from mpt_api_client.resources.catalog.mixins import (
+    AsyncDocumentMixin,
+    DocumentMixin,
+)
 
 
 class Document(Model):
@@ -24,8 +25,7 @@ class DocumentServiceConfig:
 
 
 class DocumentService(
-    FileOperationsMixin[Document],
-    PublishableMixin[Document],
+    DocumentMixin[Document],
     ModifiableResourceMixin[Document],
     CollectionMixin[Document],
     Service[Document],
@@ -35,8 +35,7 @@ class DocumentService(
 
 
 class AsyncDocumentService(
-    AsyncFileOperationsMixin[Document],
-    AsyncPublishableMixin[Document],
+    AsyncDocumentMixin[Document],
     AsyncModifiableResourceMixin[Document],
     AsyncCollectionMixin[Document],
     AsyncService[Document],

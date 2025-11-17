@@ -55,6 +55,7 @@ class HTTPClient:
             headers=base_headers,
             timeout=timeout,
             transport=HTTPTransport(retries=retries),
+            follow_redirects=True,
         )
 
     def request(  # noqa: WPS211

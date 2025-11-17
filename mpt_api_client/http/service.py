@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.http.base_service import ServiceBase
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.types import QueryParam, Response
@@ -74,6 +75,6 @@ class Service[Model: BaseModel](ServiceBase[HTTPClient, Model]):  # noqa: WPS214
             action,
             json=json,
             query_params=query_params,
-            headers={"Accept": "application/json"},
+            headers={"Accept": APPLICATION_JSON},
         )
         return self._model_class.from_response(response)

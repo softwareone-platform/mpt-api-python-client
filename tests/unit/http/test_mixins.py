@@ -278,17 +278,30 @@ async def test_async_file_create_no_data(async_media_service):
     assert new_media.to_dict() == media_data
 
 
-async def test_async_file_download(async_media_service):
+async def test_async_file_download(async_media_service):  # noqa: WPS218
     media_content = b"Image file content or binary data"
 
     with respx.mock:
-        mock_route = respx.get(
-            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456"
+        mock_resource = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "application/json"},
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
                 headers={
-                    "content-type": "application/octet-stream",
+                    "content-type": "application/json",
+                },
+                json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
+            )
+        )
+        mock_download = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/jpg"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={
+                    "content-type": "image/jpg",
                     "content-disposition": 'form-data; name="file"; filename="product_image.jpg"',
                 },
                 content=media_content,
@@ -296,26 +309,42 @@ async def test_async_file_download(async_media_service):
         )
 
         downloaded_file = await async_media_service.download("MED-456")
-        request = mock_route.calls[0].request
-        accept_header = (b"Accept", b"*")
+
+        assert mock_resource.call_count == 1
+
+        request = mock_download.calls[0].request
+        accept_header = (b"Accept", b"image/jpg")
         assert accept_header in request.headers.raw
-        assert mock_route.call_count == 1
+        assert mock_download.call_count == 1
         assert downloaded_file.file_contents == media_content
-        assert downloaded_file.content_type == "application/octet-stream"
+        assert downloaded_file.content_type == "image/jpg"
         assert downloaded_file.filename == "product_image.jpg"
 
 
-def test_sync_file_download(media_service):
+def test_sync_file_download(media_service):  # noqa: WPS218
     media_content = b"Image file content or binary data"
 
     with respx.mock:
-        mock_route = respx.get(
-            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456"
+        mock_resource = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "application/json"},
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
                 headers={
-                    "content-type": "application/octet-stream",
+                    "content-type": "application/json",
+                },
+                json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
+            )
+        )
+        mock_download = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/jpg"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={
+                    "content-type": "image/jpg",
                     "content-disposition": 'form-data; name="file"; filename="product_image.jpg"',
                 },
                 content=media_content,
@@ -323,12 +352,14 @@ def test_sync_file_download(media_service):
         )
 
         downloaded_file = media_service.download("MED-456")
-        request = mock_route.calls[0].request
-        accept_header = (b"Accept", b"*")
+        assert mock_resource.call_count == 1
+
+        request = mock_download.calls[0].request
+        accept_header = (b"Accept", b"image/jpg")
         assert accept_header in request.headers.raw
-        assert mock_route.call_count == 1
+        assert mock_download.call_count == 1
         assert downloaded_file.file_contents == media_content
-        assert downloaded_file.content_type == "application/octet-stream"
+        assert downloaded_file.content_type == "image/jpg"
         assert downloaded_file.filename == "product_image.jpg"
 
 
