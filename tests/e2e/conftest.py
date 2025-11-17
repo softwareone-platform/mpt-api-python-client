@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pathlib
+import uuid
 
 import pytest
 from reportportal_client import RPLogger
@@ -109,6 +110,11 @@ def account_id(e2e_config):
 @pytest.fixture
 def invalid_account_id():
     return "ACC-0000-0000"
+
+
+@pytest.fixture
+def short_uuid():
+    return uuid.uuid4().hex[:8]
 
 
 @pytest.fixture
