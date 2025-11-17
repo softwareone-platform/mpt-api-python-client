@@ -1,10 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFileOperationsMixin,
+    AsyncFilesOperationsMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
-    FileOperationsMixin,
+    FilesOperationsMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
@@ -27,7 +27,7 @@ class TermVariantServiceConfig:
 
 
 class TermVariantService(
-    FileOperationsMixin[TermVariant],
+    FilesOperationsMixin[TermVariant],
     ModifiableResourceMixin[TermVariant],
     PublishableMixin[TermVariant],
     CollectionMixin[TermVariant],
@@ -38,7 +38,7 @@ class TermVariantService(
 
 
 class AsyncTermVariantService(
-    AsyncFileOperationsMixin[TermVariant],
+    AsyncFilesOperationsMixin[TermVariant],
     AsyncModifiableResourceMixin[TermVariant],
     AsyncPublishableMixin[TermVariant],
     AsyncCollectionMixin[TermVariant],

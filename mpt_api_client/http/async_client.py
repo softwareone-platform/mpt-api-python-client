@@ -53,6 +53,7 @@ class AsyncHTTPClient:
             headers=base_headers,
             timeout=timeout,
             transport=AsyncHTTPTransport(retries=retries),
+            follow_redirects=True,
         )
 
     async def request(  # noqa: WPS211

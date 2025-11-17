@@ -26,6 +26,7 @@ def test_async_http_initialization(mocker):
 
     mock_async_client.assert_called_once_with(
         base_url=API_URL,
+        follow_redirects=True,
         headers={
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": "Bearer test-token",
@@ -45,6 +46,7 @@ def test_async_env_initialization(monkeypatch, mocker):
 
     mock_async_client.assert_called_once_with(
         base_url=API_URL,
+        follow_redirects=True,
         headers={
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {API_TOKEN}",

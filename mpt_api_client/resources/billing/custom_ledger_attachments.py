@@ -1,10 +1,10 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFileOperationsMixin,
+    AsyncFilesOperationsMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
-    FileOperationsMixin,
+    FilesOperationsMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
@@ -23,7 +23,7 @@ class CustomLedgerAttachmentsServiceConfig:
 
 
 class CustomLedgerAttachmentsService(
-    FileOperationsMixin[CustomLedgerAttachment],
+    FilesOperationsMixin[CustomLedgerAttachment],
     ModifiableResourceMixin[CustomLedgerAttachment],
     CollectionMixin[CustomLedgerAttachment],
     Service[CustomLedgerAttachment],
@@ -33,7 +33,7 @@ class CustomLedgerAttachmentsService(
 
 
 class AsyncCustomLedgerAttachmentsService(
-    AsyncFileOperationsMixin[CustomLedgerAttachment],
+    AsyncFilesOperationsMixin[CustomLedgerAttachment],
     AsyncModifiableResourceMixin[CustomLedgerAttachment],
     AsyncCollectionMixin[CustomLedgerAttachment],
     AsyncService[CustomLedgerAttachment],
