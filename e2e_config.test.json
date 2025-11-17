@@ -6,5 +6,7 @@
   "accounts.account.id": "ACC-9042-0088",
   "accounts.buyer.account.id": "ACC-1086-6867",
   "accounts.buyer.id": "BUY-1591-2112",
-  "accounts.user_group.id": "UGR-6822-0561"
+  "accounts.user_group.id": "UGR-6822-0561",
+  "accounts.module.id": "MOD-1756",
+  "accounts.module.name": "Access Management"
 }
