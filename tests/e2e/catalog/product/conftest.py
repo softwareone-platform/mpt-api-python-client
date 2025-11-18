@@ -14,3 +14,8 @@ def parameter_group_id(e2e_config):
 @pytest.fixture
 def parameter_id(e2e_config):
     return e2e_config["catalog.product.parameter.id"]
+
+
+@pytest.fixture
+def item_group_id(e2e_config):
+    return e2e_config["catalog.product.item_group.id"]
