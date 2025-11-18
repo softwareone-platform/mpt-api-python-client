@@ -165,3 +165,9 @@ def api_token_id(e2e_config):
 @pytest.fixture
 def invalid_api_token_id():
     return "TKN-0000-0000"
+
+
+@pytest.fixture
+def logo_fd():
+    file_path = pathlib.Path(__file__).parent / "logo.png"
+    return pathlib.Path.open(file_path, "rb")

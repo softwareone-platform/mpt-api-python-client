@@ -1,5 +1,3 @@
-import pathlib
-
 import pytest
 
 
@@ -15,12 +13,6 @@ def document_data():
         "description": "E2E test document for automated testing",
         "language": "en-gb",
     }
-
-
-@pytest.fixture
-def test_file():
-    file_path = pathlib.Path(__file__).parents[3] / "logo.png"
-    return pathlib.Path.open(file_path, "rb")
 
 
 @pytest.fixture

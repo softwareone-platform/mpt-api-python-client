@@ -1,5 +1,4 @@
 import datetime as dt
-import pathlib
 
 import pytest
 
@@ -10,9 +9,8 @@ def timestamp():
 
 
 @pytest.fixture
-def account_icon():
-    icon_path = pathlib.Path(__file__).parents[1] / "logo.png"
-    return pathlib.Path.open(icon_path, "rb")
+def account_icon(logo_fd):
+    return logo_fd
 
 
 @pytest.fixture

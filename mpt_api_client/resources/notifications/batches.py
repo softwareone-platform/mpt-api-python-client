@@ -1,12 +1,12 @@
 from httpx._types import FileTypes
 
 from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncGetMixin,
     CollectionMixin,
     GetMixin,
-    _json_to_file_payload,
 )
 from mpt_api_client.models import FileModel, Model, ResourceData
 
@@ -52,7 +52,7 @@ class BatchesService(
         if resource_data:
             files[data_key] = (
                 None,
-                _json_to_file_payload(resource_data),
+                json_to_file_payload(resource_data),
                 "application/json",
             )
 
@@ -105,7 +105,7 @@ class AsyncBatchesService(
         if resource_data:
             files[data_key] = (
                 None,
-                _json_to_file_payload(resource_data),
+                json_to_file_payload(resource_data),
                 "application/json",
             )
 

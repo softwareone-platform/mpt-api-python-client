@@ -8,7 +8,9 @@ from httpx import (
     HTTPStatusError,
 )
 
+from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError, transform_http_status_exception
+from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.types import (
     HeaderTypes,
     QueryParam,
@@ -65,6 +67,8 @@ class AsyncHTTPClient:
         json: Any | None = None,
         query_params: QueryParam | None = None,
         headers: HeaderTypes | None = None,
+        json_file_key: str = "_attachment_data",
+        force_multipart: bool = False,
     ) -> Response:
         """Perform an HTTP request.
 
@@ -75,6 +79,8 @@ class AsyncHTTPClient:
             json: Request JSON data.
             query_params: Query parameters.
             headers: Request headers.
+            json_file_key: json file name for data when sending a multipart request.
+            force_multipart: force multipart request even if file is not provided.
 
         Returns:
             Response object.
@@ -84,6 +90,10 @@ class AsyncHTTPClient:
             MPTApiError: If the response contains an error.
             MPTHttpError: If the response contains an HTTP error.
         """
+        files = dict(files or {})
+        if force_multipart or (files and json):
+            files[json_file_key] = (None, json_to_file_payload(json), APPLICATION_JSON)
+            json = None
         try:
             response = await self.httpx_client.request(
                 method,
