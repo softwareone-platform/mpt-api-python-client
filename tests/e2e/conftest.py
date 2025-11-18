@@ -155,3 +155,13 @@ def invalid_module_id():
 @pytest.fixture
 def module_name(e2e_config):
     return e2e_config["accounts.module.name"]
+
+
+@pytest.fixture
+def api_token_id(e2e_config):
+    return e2e_config["accounts.api_token.id"]
+
+
+@pytest.fixture
+def invalid_api_token_id():
+    return "TKN-0000-0000"

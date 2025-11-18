@@ -21,7 +21,7 @@ def currencies():
 
 
 @pytest.fixture
-def seller(currencies):
+def seller_factory(currencies):
     def _seller(
         external_id: str,  # Must be unique in Marketplace
         name="E2E Test Seller",
@@ -44,7 +44,7 @@ def seller(currencies):
 
 
 @pytest.fixture
-def account():
+def account_factory():
     def _account(
         name: str = "E2E Test Api Client Vendor",
     ):
@@ -65,7 +65,7 @@ def account():
 
 
 @pytest.fixture
-def buyer(buyer_account_id):
+def buyer_factory(buyer_account_id):
     def _buyer(
         name="E2E Created Buyer",
         account_id: str = buyer_account_id,
@@ -93,7 +93,7 @@ def buyer(buyer_account_id):
 
 
 @pytest.fixture
-def user_group(account_id):
+def user_group_factory(account_id, module_id):
     def _user_group(
         name: str = "E2E Test Api Client User Group",
     ):
@@ -103,7 +103,24 @@ def user_group(account_id):
             "buyers": None,
             "logo": "",
             "description": "User group for E2E tests",
-            "modules": [{"id": "MOD-1756"}],
+            "modules": [{"id": module_id}],
         }
 
     return _user_group
+
+
+@pytest.fixture
+def api_token_factory(account_id, module_id):
+    def _api_token(
+        name: str = "E2E Test API Token",
+        description: str = "E2E API Token created during E2E tests",
+    ):
+        return {
+            "account": {"id": account_id},
+            "name": name,
+            "description": description,
+            "icon": "",
+            "modules": [{"id": module_id}],
+        }
+
+    return _api_token

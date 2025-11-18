@@ -7,8 +7,8 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-async def async_created_buyer(async_mpt_ops, buyer, buyer_account_id, account_icon):
-    new_buyer_request_data = buyer(
+async def async_created_buyer(async_mpt_ops, buyer_factory, buyer_account_id, account_icon):
+    new_buyer_request_data = buyer_factory(
         name="E2E Created Buyer",
         account_id=buyer_account_id,
     )
@@ -69,9 +69,9 @@ async def test_delete_buyer_not_found(async_mpt_ops, invalid_buyer_id):
 
 
 async def test_update_buyer(
-    async_mpt_ops, buyer, buyer_account_id, account_icon, async_created_buyer
+    async_mpt_ops, buyer_factory, buyer_account_id, account_icon, async_created_buyer
 ):
-    updated_buyer_data = buyer(name="E2E Updated Buyer", account_id=buyer_account_id)
+    updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
     updated_buyer = await async_mpt_ops.accounts.buyers.update(
         async_created_buyer.id, updated_buyer_data, logo=account_icon
@@ -81,9 +81,9 @@ async def test_update_buyer(
 
 
 async def test_update_buyer_not_found(
-    async_mpt_ops, buyer, buyer_account_id, account_icon, invalid_buyer_id
+    async_mpt_ops, buyer_factory, buyer_account_id, account_icon, invalid_buyer_id
 ):
-    updated_buyer_data = buyer(name="Nonexistent Buyer", account_id=buyer_account_id)
+    updated_buyer_data = buyer_factory(name="Nonexistent Buyer", account_id=buyer_account_id)
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_mpt_ops.accounts.buyers.update(

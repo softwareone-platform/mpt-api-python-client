@@ -12,5 +12,6 @@
   "catalog.product.parameter.id": "PAR-7255-3950-0016",
   "catalog.product.document.id": "PDC-7255-3950-0001",
   "catalog.item.id": "ITM-7255-3950-0001",
-  "catalog.unit.id": "UNT-1229"
+  "catalog.unit.id": "UNT-1229",
+  "accounts.api_token.id": "TKN-8857-1729"
 }
