@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from mpt_api_client.http.mixins import (
     AsyncDownloadFileMixin,
     DownloadFileMixin,
@@ -113,12 +115,62 @@ class AsyncCreateFileMixin[Model]:
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
 
+class AsyncUpdateFileMixin[Model]:
+    """Update file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "document"
+
+    async def update(
+        self, resource_id: str, resource_data: ResourceData, file: FileTypes | None = None
+    ) -> Model:
+        """Update document.
+
+        Updates a document resource by specifying a `file` or an `url`.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+            file: File to upload.
+
+        Returns:
+            Updated resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file
+
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+
+        response = await self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
 class AsyncDocumentMixin[Model](
     AsyncCreateFileMixin[Model],
     AsyncDownloadFileMixin[Model],
     AsyncPublishableMixin[Model],
 ):
     """Async document mixin."""
+
+
+class AsyncProductMixin[Model](
+    AsyncCreateFileMixin[Model],
+    AsyncUpdateFileMixin[Model],
+    AsyncPublishableMixin[Model],
+):
+    """Async product mixin."""
+
+    _upload_file_key = "icon"
+    _upload_data_key = "product"
 
 
 class CreateFileMixin[Model]:
@@ -151,6 +203,56 @@ class CreateFileMixin[Model]:
             force_multipart=True,
         )
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class UpdateFileMixin[Model]:
+    """Update file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "document"
+
+    def update(
+        self, resource_id: str, resource_data: ResourceData, file: FileTypes | None = None
+    ) -> Model:
+        """Update document.
+
+        Updates a document resource by specifying a `file` or an `url`.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+            file: File to upload.
+
+        Returns:
+            Updated resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file
+
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+
+        response = self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class ProductMixin[Model](
+    CreateFileMixin[Model],
+    UpdateFileMixin[Model],
+    PublishableMixin[Model],
+):
+    """Product mixin."""
+
+    _upload_file_key = "icon"
+    _upload_data_key = "product"
 
 
 class DocumentMixin[Model](

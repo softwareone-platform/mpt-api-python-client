@@ -11,7 +11,7 @@ async def async_created_licensee(async_mpt_client, licensee_factory, account_ico
     new_licensee_request_data = licensee_factory(name="E2E Created licensee")
 
     new_licensee = await async_mpt_client.accounts.licensees.create(
-        new_licensee_request_data, logo=account_icon
+        new_licensee_request_data, file=account_icon
     )
 
     yield new_licensee
@@ -73,7 +73,7 @@ async def test_update_licensee(
     updated_licensee_data = licensee_factory(name="E2E Updated Licensee")
 
     updated_licensee = await async_mpt_client.accounts.licensees.update(
-        async_created_licensee.id, updated_licensee_data, logo=account_icon
+        async_created_licensee.id, updated_licensee_data, file=account_icon
     )
 
     assert updated_licensee is not None
@@ -86,7 +86,7 @@ async def test_update_licensee_not_found(
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_mpt_client.accounts.licensees.update(
-            invalid_licensee_id, updated_licensee_data, logo=account_icon
+            invalid_licensee_id, updated_licensee_data, file=account_icon
         )
 
 

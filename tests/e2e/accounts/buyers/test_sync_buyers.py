@@ -13,7 +13,7 @@ def created_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon):
         account_id=buyer_account_id,
     )
 
-    new_buyer = mpt_ops.accounts.buyers.create(new_buyer_request_data, logo=account_icon)
+    new_buyer = mpt_ops.accounts.buyers.create(new_buyer_request_data, file=account_icon)
 
     yield new_buyer
 
@@ -71,7 +71,7 @@ def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, cr
     updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
     updated_buyer = mpt_ops.accounts.buyers.update(
-        created_buyer.id, updated_buyer_data, logo=account_icon
+        created_buyer.id, updated_buyer_data, file=account_icon
     )
 
     assert updated_buyer is not None
@@ -83,7 +83,7 @@ def test_update_buyer_not_found(
     updated_buyer_data = buyer_factory(name="Nonexistent Buyer", account_id=buyer_account_id)
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
-        mpt_ops.accounts.buyers.update(invalid_buyer_id, updated_buyer_data, logo=account_icon)
+        mpt_ops.accounts.buyers.update(invalid_buyer_id, updated_buyer_data, file=account_icon)
 
 
 def test_buyer_disable(mpt_ops, created_buyer):

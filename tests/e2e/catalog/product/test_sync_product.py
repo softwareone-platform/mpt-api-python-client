@@ -6,7 +6,7 @@ from mpt_api_client.exceptions import MPTAPIError
 
 @pytest.fixture
 def created_product(logger, mpt_vendor, product_data, logo_fd):
-    product = mpt_vendor.catalog.products.create(product_data, icon=logo_fd)
+    product = mpt_vendor.catalog.products.create(product_data, file=logo_fd)
 
     yield product
 
@@ -25,7 +25,7 @@ def test_create_product(created_product, product_data):
 def test_update_product(mpt_vendor, created_product, logo_fd):
     update_data = {"name": "Updated Product"}
 
-    product = mpt_vendor.catalog.products.update(created_product.id, update_data, icon=logo_fd)
+    product = mpt_vendor.catalog.products.update(created_product.id, update_data, file=logo_fd)
 
     assert product.name == update_data["name"]
 

@@ -7,10 +7,10 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_account(logger, mpt_ops, account_factory, account_icon):
+def created_account(mpt_ops, account_factory, account_icon):
     account_data = account_factory()
 
-    res_account = mpt_ops.accounts.accounts.create(account_data, logo=account_icon)
+    res_account = mpt_ops.accounts.accounts.create(account_data, file=account_icon)
 
     yield res_account
 
@@ -45,7 +45,7 @@ def test_update_account(mpt_ops, created_account, account_factory, account_icon)
     updated_data = account_factory(name="Updated Account Name")
 
     updated_account = mpt_ops.accounts.accounts.update(
-        created_account.id, updated_data, logo=account_icon
+        created_account.id, updated_data, file=account_icon
     )
 
     assert updated_account is not None
@@ -55,7 +55,7 @@ def test_update_account_invalid_data(mpt_ops, account_factory, created_account, 
     updated_data = account_factory(name="")
 
     with pytest.raises(MPTAPIError, match=r"400 Bad Request"):
-        mpt_ops.accounts.accounts.update(created_account.id, updated_data, logo=account_icon)
+        mpt_ops.accounts.accounts.update(created_account.id, updated_data, file=account_icon)
 
 
 def test_update_account_not_found(mpt_ops, account_factory, invalid_account_id, account_icon):
@@ -63,7 +63,7 @@ def test_update_account_not_found(mpt_ops, account_factory, invalid_account_id, 
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.accounts.update(
-            invalid_account_id, non_existent_account, logo=account_icon
+            invalid_account_id, non_existent_account, file=account_icon
         )
 
 

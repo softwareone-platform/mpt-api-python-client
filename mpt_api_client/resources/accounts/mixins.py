@@ -1,7 +1,7 @@
-from mpt_api_client.models import ResourceData
+from urllib.parse import urljoin
 
-# TODO: Consider reorganizing functions in mixins to reduce duplication and differences amongst
-#       different domains
+from mpt_api_client.http.types import FileTypes
+from mpt_api_client.models import ResourceData
 
 
 class ActivatableMixin[Model]:
@@ -132,6 +132,121 @@ class InvitableMixin[Model]:
         return self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "send-new-invite", json=resource_data
         )
+
+
+class CreateFileMixin[Model]:
+    """Create file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "data"
+
+    def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:  # noqa: WPS110
+        """Create logo.
+
+        Create a file resource by specifying a file image.
+
+        Args:
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Created resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file
+
+        response = self.http_client.request(  # type: ignore[attr-defined]
+            "post",
+            self.path,  # type: ignore[attr-defined]
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class UpdateFileMixin[Model]:
+    """Update file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "data"
+
+    def update(
+        self,
+        resource_id: str,
+        resource_data: ResourceData,
+        file: FileTypes | None = None,  # noqa: WPS110
+    ) -> Model:
+        """Update file.
+
+        Update a file resource by specifying a file.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Updated resource.
+        """
+        files = {}
+
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+
+        if file:
+            files[self._upload_file_key] = file
+
+        response = self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class AccountMixin[Model](
+    CreateFileMixin[Model],
+    UpdateFileMixin[Model],
+    ActivatableMixin[Model],
+    EnablableMixin[Model],
+    ValidateMixin[Model],
+):
+    """Account mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "account"
+
+
+class BuyerMixin[Model](
+    CreateFileMixin[Model],
+    UpdateFileMixin[Model],
+    ActivatableMixin[Model],
+    EnablableMixin[Model],
+    ValidateMixin[Model],
+):
+    """Buyer mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "buyer"
+
+
+class LicenseeMixin[Model](
+    CreateFileMixin[Model],
+    UpdateFileMixin[Model],
+    EnablableMixin[Model],
+):
+    """Licensee mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "licensee"
 
 
 class AsyncActivatableMixin[Model]:
@@ -270,3 +385,118 @@ class AsyncInvitableMixin[Model]:
         return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "send-new-invite", json=resource_data
         )
+
+
+class AsyncCreateFileMixin[Model]:
+    """Asynchronous Create file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "data"
+
+    async def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:  # noqa: WPS110
+        """Create file.
+
+        Create a file resource by specifying a file.
+
+        Args:
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Created resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file
+
+        response = await self.http_client.request(  # type: ignore[attr-defined]
+            "post",
+            self.path,  # type: ignore[attr-defined]
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class AsyncUpdateFileMixin[Model]:
+    """Asynchronous Update file mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "data"
+
+    async def update(
+        self,
+        resource_id: str,
+        resource_data: ResourceData,
+        file: FileTypes | None = None,  # noqa: WPS110
+    ) -> Model:
+        """Update file.
+
+        Update a file resource by specifying a file.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Updated resource.
+        """
+        files = {}
+
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+
+        if file:
+            files[self._upload_file_key] = file
+
+        response = await self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class AsyncAccountMixin[Model](
+    AsyncCreateFileMixin[Model],
+    AsyncUpdateFileMixin[Model],
+    AsyncActivatableMixin[Model],
+    AsyncEnablableMixin[Model],
+    AsyncValidateMixin[Model],
+):
+    """Asynchronous Account mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "account"
+
+
+class AsyncBuyerMixin[Model](
+    AsyncCreateFileMixin[Model],
+    AsyncUpdateFileMixin[Model],
+    AsyncActivatableMixin[Model],
+    AsyncEnablableMixin[Model],
+    AsyncValidateMixin[Model],
+):
+    """Asynchronous Buyer mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "buyer"
+
+
+class AsyncLicenseeMixin[Model](
+    AsyncCreateFileMixin[Model],
+    AsyncUpdateFileMixin[Model],
+    AsyncEnablableMixin[Model],
+):
+    """Asynchronous Licensee mixin."""
+
+    _upload_file_key = "logo"
+    _upload_data_key = "licensee"

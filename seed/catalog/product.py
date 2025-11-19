@@ -49,7 +49,7 @@ async def init_product(
         logger.debug("Creating product ...")
         with pathlib.Path.open(icon, "rb") as icon_file:
             product = await mpt_vendor.catalog.products.create(
-                {"name": "E2E Seeded", "website": "https://www.example.com"}, icon=icon_file
+                {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_file
             )
             context.set_resource(namespace, product)
             context[f"{namespace}.id"] = product.id
