@@ -5,17 +5,12 @@ from urllib.parse import urljoin
 
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError
+from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.query_state import QueryState
 from mpt_api_client.http.types import FileTypes, Response
 from mpt_api_client.models import Collection, FileModel, ResourceData
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.rql import RQLQuery
-
-
-def _json_to_file_payload(resource_data: ResourceData) -> bytes:
-    return json.dumps(
-        resource_data, ensure_ascii=False, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
 
 
 class CreateMixin[Model]:
@@ -110,7 +105,7 @@ class FilesOperationsMixin[Model](DownloadFileMixin[Model]):
         if resource_data:
             files[data_key] = (
                 None,
-                _json_to_file_payload(resource_data),
+                json_to_file_payload(resource_data),
                 APPLICATION_JSON,
             )
         response = self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
@@ -282,7 +277,7 @@ class AsyncFilesOperationsMixin[Model](AsyncDownloadFileMixin[Model]):
         if resource_data:
             files[data_key] = (
                 None,
-                _json_to_file_payload(resource_data),
+                json_to_file_payload(resource_data),
                 APPLICATION_JSON,
             )
 

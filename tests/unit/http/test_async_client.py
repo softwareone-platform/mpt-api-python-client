@@ -1,3 +1,4 @@
+import io
 import json
 
 import pytest
@@ -86,3 +87,43 @@ async def test_async_http_call_failure(async_http_client):
         await async_http_client.request("GET", "/timeout")
 
     assert timeout_route.called
+
+
+async def test_http_call_with_json_and_files(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210
+    json_data = {"foo": "bar"}
+    files = {"file": ("test.txt", io.StringIO("file content"), "text/plain")}
+
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+    await async_http_client.request("POST", "/upload", files=files, json=json_data)
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["json"] is None
+    sent_files = called_kwargs["files"]
+    assert "file" in sent_files
+    assert "_attachment_data" in sent_files
+
+    payload_tuple = sent_files["_attachment_data"]
+    assert payload_tuple[2] == "application/json"
+    assert payload_tuple[1].decode() == '{"foo":"bar"}'
+
+
+async def test_http_call_force_multipart(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210
+    json_data = {"foo": "bar"}
+
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    await async_http_client.request("POST", "/upload", json=json_data, force_multipart=True)
+
+    called_kwargs = parent_request.call_args[1]
+    sent_files = called_kwargs["files"]
+
+    assert called_kwargs["json"] is None
+    assert "_attachment_data" in sent_files
+
+    payload_tuple = sent_files["_attachment_data"]
+    assert payload_tuple[2] == "application/json"
+    assert payload_tuple[1].decode() == '{"foo":"bar"}'

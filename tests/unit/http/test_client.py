@@ -1,3 +1,4 @@
+import io
 import json
 
 import pytest
@@ -76,3 +77,39 @@ def test_http_call_failure(http_client):
         http_client.request("GET", "/timeout")
 
     assert timeout_route.called
+
+
+def test_http_call_with_json_and_files(mocker, http_client, mock_httpx_response):
+    files = {"file": ("test.txt", io.StringIO("file content"), "text/plain")}
+    parent_request = mocker.patch.object(
+        http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    http_client.request("POST", "/upload", files=files, json={"foo": "bar"})
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["json"] is None
+    sent_files = called_kwargs["files"]
+    assert "file" in sent_files
+    assert "_attachment_data" in sent_files
+
+    payload_tuple = sent_files["_attachment_data"]
+    assert payload_tuple[2] == "application/json"
+    assert payload_tuple[1].decode() == '{"foo":"bar"}'
+
+
+def test_http_call_force_multipart(mocker, http_client):
+    json_data = {"foo": "bar"}
+    parent_request = mocker.patch.object(http_client.httpx_client, "request", autospec=True)
+
+    http_client.request("POST", "/upload", json=json_data, force_multipart=True)
+
+    called_kwargs = parent_request.call_args[1]
+    sent_files = called_kwargs["files"]
+
+    assert called_kwargs["json"] is None
+    assert "_attachment_data" in sent_files
+
+    payload_tuple = sent_files["_attachment_data"]
+    assert payload_tuple[2] == "application/json"
+    assert payload_tuple[1].decode() == '{"foo":"bar"}'

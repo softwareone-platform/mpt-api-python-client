@@ -171,3 +171,12 @@ def multiple_results_response():
 @pytest.fixture
 def filter_status_active():
     return RQLQuery(status="active")
+
+
+@pytest.fixture
+def mock_httpx_response(mocker):
+    response = mocker.Mock(httpx.Response, autospec=True)
+    response.headers = {}
+    response.status_code = 200
+    response.content = ""
+    return response

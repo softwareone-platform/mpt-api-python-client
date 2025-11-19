@@ -1,3 +1,4 @@
+import json as json_package
 import os
 from typing import Any
 
@@ -8,6 +9,7 @@ from httpx import (
     HTTPTransport,
 )
 
+from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import (
     MPTError,
     transform_http_status_exception,
@@ -18,6 +20,16 @@ from mpt_api_client.http.types import (
     RequestFiles,
     Response,
 )
+from mpt_api_client.models import ResourceData
+
+
+def json_to_file_payload(resource_data: ResourceData | None) -> bytes:
+    """Convert resource data to file payload."""
+    if resource_data is None:
+        resource_data = {}
+    return json_package.dumps(
+        resource_data, ensure_ascii=False, separators=(",", ":"), allow_nan=False
+    ).encode("utf-8")
 
 
 class HTTPClient:
@@ -67,6 +79,8 @@ class HTTPClient:
         json: Any | None = None,
         query_params: QueryParam | None = None,
         headers: HeaderTypes | None = None,
+        json_file_key: str = "_attachment_data",
+        force_multipart: bool = False,
     ) -> Response:
         """Perform an HTTP request.
 
@@ -77,6 +91,8 @@ class HTTPClient:
             json: Request JSON data.
             query_params: Query parameters.
             headers: Request headers.
+            json_file_key: json file name for data when sending a multipart request.
+            force_multipart: force multipart request even if file is not provided.
 
         Returns:
             Response object.
@@ -86,6 +102,10 @@ class HTTPClient:
             MPTApiError: If the response contains an error.
             MPTHttpError: If the response contains an HTTP error.
         """
+        files = dict(files or {})
+        if force_multipart or (files and json):
+            files[json_file_key] = (None, json_to_file_payload(json), APPLICATION_JSON)
+            json = None
         try:
             response = self.httpx_client.request(
                 method,

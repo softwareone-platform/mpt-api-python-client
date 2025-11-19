@@ -5,8 +5,8 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-async def async_created_product(logger, async_mpt_vendor, product_data, product_icon):
-    product = await async_mpt_vendor.catalog.products.create(product_data, icon=product_icon)
+async def async_created_product(logger, async_mpt_vendor, product_data, logo_fd):
+    product = await async_mpt_vendor.catalog.products.create(product_data, icon=logo_fd)
 
     yield product
 
@@ -22,13 +22,13 @@ def test_create_product(async_created_product, product_data):
 
 
 @pytest.mark.flaky
-async def test_update_product(async_mpt_vendor, async_created_product, product_icon):
+async def test_update_product(async_mpt_vendor, async_created_product, logo_fd):
     update_data = {"name": "Updated Product"}
 
     product = await async_mpt_vendor.catalog.products.update(
         async_created_product.id,
         update_data,
-        icon=product_icon,
+        icon=logo_fd,
     )
 
     assert product.name == update_data["name"]
