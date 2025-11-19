@@ -11,7 +11,7 @@ def created_licensee(mpt_client, licensee_factory, account_icon):
     new_licensee_request_data = licensee_factory(name="E2E Created licensee")
 
     new_licensee = mpt_client.accounts.licensees.create(
-        new_licensee_request_data, logo=account_icon
+        new_licensee_request_data, file=account_icon
     )
 
     yield new_licensee
@@ -73,7 +73,7 @@ def test_update_licensee(mpt_client, licensee_factory, account_icon, created_lic
     updated_licensee_data = licensee_factory(name="E2E Updated Licensee")
 
     result = mpt_client.accounts.licensees.update(
-        created_licensee.id, updated_licensee_data, logo=account_icon
+        created_licensee.id, updated_licensee_data, file=account_icon
     )
 
     assert result is not None
@@ -84,7 +84,7 @@ def test_update_licensee_not_found(mpt_client, licensee_factory, account_icon, i
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_client.accounts.licensees.update(
-            invalid_licensee_id, updated_licensee_data, logo=account_icon
+            invalid_licensee_id, updated_licensee_data, file=account_icon
         )
 
 

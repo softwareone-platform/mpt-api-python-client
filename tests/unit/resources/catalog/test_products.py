@@ -148,7 +148,7 @@ def test_product_create(products_service, tmp_path):
             return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
         )
 
-        result = products_service.create(product_data, icon=icon_file)
+        result = products_service.create(product_data, file=icon_file)
 
     assert mock_route.call_count == 1
     request = mock_route.calls[0].request
@@ -168,7 +168,7 @@ async def test_async_product_create(async_products_service, tmp_path):
             return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
         )
 
-        result = await async_products_service.create(product_data, icon=icon_file)
+        result = await async_products_service.create(product_data, file=icon_file)
 
     assert mock_route.call_count == 1
     request = mock_route.calls[0].request
@@ -188,7 +188,11 @@ def test_sync_product_update(products_service, tmp_path):
             f"https://api.example.com/public/v1/catalog/products/{product_id}"
         ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
 
-        result = products_service.update(product_id, update_data, icon=icon_file)
+        result = products_service.update(
+            product_id,
+            update_data,
+            file=icon_file,
+        )
 
     assert mock_route.call_count == 1
     request = mock_route.calls[0].request
@@ -208,7 +212,11 @@ async def test_async_product_update(async_products_service, tmp_path):
             f"https://api.example.com/public/v1/catalog/products/{product_id}"
         ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
 
-        result = await async_products_service.update(product_id, update_data, icon=icon_file)
+        result = await async_products_service.update(
+            product_id,
+            update_data,
+            file=icon_file,
+        )
 
     assert mock_route.call_count == 1
     request = mock_route.calls[0].request

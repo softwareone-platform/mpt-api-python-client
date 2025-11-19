@@ -23,19 +23,22 @@ async def get_product(
     """Get product from context or fetch from API."""
     product_id = context.get_string(f"{namespace}.id")
     logger.debug("Getting product: %s", product_id)
-    if not product_id:
-        return None
-    try:
-        product = context.get_resource(namespace, product_id)
-    except ValueError:
-        product = None
-    if not isinstance(product, Product):
-        logger.debug("Refreshing product: %s", product_id)
-        product = await mpt_vendor.catalog.products.get(product_id)
-        context.set_resource(namespace, product)
-        context[f"{namespace}.id"] = product.id
-        return product
-    return product
+    result: Product | None = None
+    if product_id:
+        try:
+            maybe = context.get_resource(namespace, product_id)
+        except ValueError:
+            maybe = None
+        if isinstance(maybe, Product):
+            result = maybe
+        else:
+            logger.debug("Refreshing product: %s", product_id)
+            refreshed = await mpt_vendor.catalog.products.get(product_id)
+            if isinstance(refreshed, Product):
+                context.set_resource(namespace, refreshed)
+                context[f"{namespace}.id"] = refreshed.id
+                result = refreshed
+    return result
 
 
 @inject
@@ -45,18 +48,21 @@ async def init_product(
 ) -> Product:
     """Get or create product."""
     product = await get_product()
-    if product is None:
-        logger.debug("Creating product ...")
-        with pathlib.Path.open(icon, "rb") as icon_file:
-            product = await mpt_vendor.catalog.products.create(
-                {"name": "E2E Seeded", "website": "https://www.example.com"}, icon=icon_file
-            )
-            context.set_resource(namespace, product)
-            context[f"{namespace}.id"] = product.id
-        logger.info("Product created: %s", product.id)
-    else:
+    if product is not None:
         logger.info("Product found: %s", product.id)
-    return product
+        return product
+    logger.debug("Creating product ...")
+    with pathlib.Path.open(icon, "rb") as icon_file:
+        created = await mpt_vendor.catalog.products.create(
+            {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_file
+        )
+    if isinstance(created, Product):
+        context.set_resource(namespace, created)
+        context[f"{namespace}.id"] = created.id
+        logger.info("Product created: %s", created.id)
+        return created
+    logger.warning("Product creation failed")
+    raise ValueError("Product creation failed")
 
 
 @inject
@@ -66,12 +72,15 @@ async def review_product(
 ) -> Product | None:
     """Review product if in draft status."""
     product = await get_product()
-    if not product or product.status != "Draft":
+    if not isinstance(product, Product) or product.status != "Draft":
         return product
     logger.debug("Reviewing product: %s", product.id)
-    product = await mpt_vendor.catalog.products.review(product.id)
-    context.set_resource(namespace, product)
-    return product
+    reviewed = await mpt_vendor.catalog.products.review(product.id)
+    if isinstance(reviewed, Product):
+        context.set_resource(namespace, reviewed)
+        return reviewed
+    logger.warning("Product review failed")
+    return None
 
 
 @inject
@@ -81,12 +90,15 @@ async def publish_product(
 ) -> Product | None:
     """Publish product if in reviewing status."""
     product = await get_product()
-    if not product or product.status != "Reviewing":
+    if not isinstance(product, Product) or product.status != "Reviewing":
         return product
     logger.debug("Publishing product: %s", product.id)
-    product = await mpt_operations.catalog.products.publish(product.id)
-    context.set_resource(namespace, product)
-    return product
+    published = await mpt_operations.catalog.products.publish(product.id)
+    if isinstance(published, Product):
+        context.set_resource(namespace, published)
+        return published
+    logger.warning("Product publish failed")
+    return None
 
 
 async def seed_product() -> None:

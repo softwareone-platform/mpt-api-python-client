@@ -1,19 +1,16 @@
-from typing import override
-
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncCreateWithIconMixin,
+    AsyncCreateFileMixin,
     AsyncDeleteMixin,
     AsyncGetMixin,
-    AsyncUpdateWithIconMixin,
+    AsyncUpdateFileMixin,
     CollectionMixin,
-    CreateWithIconMixin,
+    CreateFileMixin,
     DeleteMixin,
     GetMixin,
-    UpdateWithIconMixin,
+    UpdateFileMixin,
 )
-from mpt_api_client.http.types import FileTypes
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
@@ -59,12 +56,14 @@ class ProductsServiceConfig:
     _endpoint = "/public/v1/catalog/products"
     _model_class = Product
     _collection_key = "data"
+    _upload_file_key = "icon"
+    _upload_data_key = "product"
 
 
 class ProductsService(
-    CreateWithIconMixin[Product],
-    UpdateWithIconMixin[Product],
-    PublishableMixin[Product],
+    CreateFileMixin[Model],
+    UpdateFileMixin[Model],
+    PublishableMixin[Model],
     GetMixin[Product],
     DeleteMixin,
     CollectionMixin[Product],
@@ -72,61 +71,6 @@ class ProductsService(
     ProductsServiceConfig,
 ):
     """Products service."""
-
-    @override
-    def create(
-        self,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str = "product",
-        icon_key: str = "icon",
-    ) -> Product:
-        """Create product with icon.
-
-        Args:
-            resource_data: Product data.
-            icon: Icon image in jpg, png, GIF, etc.
-            data_key: Key for the product data.
-            icon_key: Key for the icon.
-
-        Returns:
-            Created resource.
-        """
-        return super().create(
-            resource_data=resource_data,
-            icon=icon,
-            data_key=data_key,
-            icon_key=icon_key,
-        )
-
-    @override
-    def update(
-        self,
-        resource_id: str,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str = "product",
-        icon_key: str = "icon",
-    ) -> Product:
-        """Update product with icon.
-
-        Args:
-            resource_id: Product ID.
-            resource_data: Product data.
-            icon: Icon image in jpg, png, GIF, etc.
-            data_key: Key for the product data.
-            icon_key: Key for the icon.
-
-        Returns:
-            Updated resource.
-        """
-        return super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            data_key=data_key,
-            icon_key=icon_key,
-        )
 
     def item_groups(self, product_id: str) -> ItemGroupsService:
         """Return item_groups service."""
@@ -174,9 +118,9 @@ class ProductsService(
 
 
 class AsyncProductsService(
-    AsyncCreateWithIconMixin[Product],
-    AsyncUpdateWithIconMixin[Product],
-    AsyncPublishableMixin[Product],
+    AsyncCreateFileMixin[Model],
+    AsyncUpdateFileMixin[Model],
+    AsyncPublishableMixin[Model],
     AsyncGetMixin[Product],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Product],
@@ -184,61 +128,6 @@ class AsyncProductsService(
     ProductsServiceConfig,
 ):
     """Products service."""
-
-    @override
-    async def create(
-        self,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str = "product",
-        icon_key: str = "icon",
-    ) -> Product:
-        """Create product with icon.
-
-        Args:
-            resource_data: Product data.
-            icon: Icon image in jpg, png, GIF, etc.
-            data_key: Key for the product data.
-            icon_key: Key for the icon.
-
-        Returns:
-            Created resource.
-        """
-        return await super().create(
-            resource_data=resource_data,
-            data_key=data_key,
-            icon=icon,
-            icon_key=icon_key,
-        )
-
-    @override
-    async def update(
-        self,
-        resource_id: str,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str = "product",
-        icon_key: str = "icon",
-    ) -> Product:
-        """Update product with icon.
-
-        Args:
-            resource_id: Product ID.
-            resource_data: Product data.
-            icon: Icon image in jpg, png, GIF, etc.
-            data_key: Key for the product data.
-            icon_key: Key for the icon.
-
-        Returns:
-            Updated resource.
-        """
-        return await super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            data_key=data_key,
-            icon=icon,
-            icon_key=icon_key,
-        )
 
     def item_groups(self, product_id: str) -> AsyncItemGroupsService:
         """Return item_groups service."""
