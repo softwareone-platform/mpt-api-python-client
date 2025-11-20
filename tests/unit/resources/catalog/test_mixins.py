@@ -11,8 +11,10 @@ from mpt_api_client.resources.catalog.mixins import (
     AsyncActivatableMixin,
     AsyncDocumentMixin,
     AsyncPublishableMixin,
+    AsyncUpdateFileMixin,
     DocumentMixin,
     PublishableMixin,
+    UpdateFileMixin,
 )
 from tests.unit.conftest import DummyModel
 
@@ -53,6 +55,24 @@ class DummyAsyncActivatableService(  # noqa: WPS215
     _collection_key = "data"
 
 
+class DummyUpdateFileService(  # noqa: WPS215
+    UpdateFileMixin[DummyModel],
+    Service[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/update-file"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
+class DummyAsyncUpdateFileService(  # noqa: WPS215
+    AsyncUpdateFileMixin[DummyModel],
+    AsyncService[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/update-file"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
 class DummyDocumentService(  # noqa: WPS215
     DocumentMixin[DummyModel],
     Service[DummyModel],
@@ -89,6 +109,16 @@ def activatable_service(http_client):
 @pytest.fixture
 def async_activatable_service(async_http_client):
     return DummyAsyncActivatableService(http_client=async_http_client)
+
+
+@pytest.fixture
+def update_file_service(http_client):
+    return DummyUpdateFileService(http_client=http_client)
+
+
+@pytest.fixture
+def async_update_file_service(async_http_client):
+    return DummyAsyncUpdateFileService(http_client=async_http_client)
 
 
 @pytest.mark.parametrize(
@@ -467,3 +497,115 @@ async def test_async_document_create_with_file(async_document_service):  # noqa:
     assert "multipart/form-data" in request.headers["Content-Type"]
     assert new_doc.to_dict() == response_data
     assert isinstance(new_doc, DummyModel)
+
+
+def test_sync_update_file(update_file_service):
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    file_tuple = ("icon.png", io.BytesIO(b"PNG DATA"), "image/png")
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        updated_resource = update_file_service.update(resource_id, resource_data, file=file_tuple)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="file"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"PNG DATA\r\n" in request.content
+    )
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == response_expected_data
+    assert isinstance(updated_resource, DummyModel)
+
+
+def test_update_file_no_file(update_file_service):
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        updated_resource = update_file_service.update(resource_id, resource_data)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
+    assert b'Content-Disposition: form-data; name="file"' not in request.content
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == response_expected_data
+    assert isinstance(updated_resource, DummyModel)
+
+
+async def test_async_update_file(async_update_file_service):
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    file_tuple = ("icon.png", io.BytesIO(b"PNG DATA"), "image/png")
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        updated_resource = await async_update_file_service.update(
+            resource_id, resource_data, file=file_tuple
+        )
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
+    assert (
+        b'Content-Disposition: form-data; name="file"; filename="icon.png"\r\n'
+        b"Content-Type: image/png\r\n\r\n"
+        b"PNG DATA\r\n" in request.content
+    )
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == response_expected_data
+    assert isinstance(updated_resource, DummyModel)
+
+
+async def test_async_update_file_no_file(async_update_file_service):
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        updated_resource = await async_update_file_service.update(resource_id, resource_data)
+
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
+    assert b'Content-Disposition: form-data; name="file"' not in request.content
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert updated_resource.to_dict() == response_expected_data
+    assert isinstance(updated_resource, DummyModel)

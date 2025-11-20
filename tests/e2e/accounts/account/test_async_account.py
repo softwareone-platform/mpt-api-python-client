@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.flaky]
 async def async_created_account(logger, async_mpt_ops, account_factory, account_icon):
     account_data = account_factory()
 
-    res_account = await async_mpt_ops.accounts.accounts.create(account_data, logo=account_icon)
+    res_account = await async_mpt_ops.accounts.accounts.create(account_data, file=account_icon)
 
     yield res_account
 
@@ -45,7 +45,7 @@ async def test_update_account(async_mpt_ops, async_created_account, account_fact
     updated_data = account_factory(name="Updated Account Name")
 
     updated_account = await async_mpt_ops.accounts.accounts.update(
-        async_created_account.id, updated_data, logo=account_icon
+        async_created_account.id, updated_data, file=account_icon
     )
 
     assert updated_account is not None
@@ -58,7 +58,7 @@ async def test_update_account_invalid_data(
 
     with pytest.raises(MPTAPIError, match=r"400 Bad Request"):
         await async_mpt_ops.accounts.accounts.update(
-            async_created_account.id, updated_data, logo=account_icon
+            async_created_account.id, updated_data, file=account_icon
         )
 
 
@@ -69,7 +69,7 @@ async def test_update_account_not_found(
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_mpt_ops.accounts.accounts.update(
-            invalid_account_id, non_existent_account, logo=account_icon
+            invalid_account_id, non_existent_account, file=account_icon
         )
 
 

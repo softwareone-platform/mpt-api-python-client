@@ -6,24 +6,50 @@ import pytest
 import respx
 
 from mpt_api_client import RQLQuery
-from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.constants import APPLICATION_JSON
+from mpt_api_client.exceptions import MPTAPIError, MPTError
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateWithIconMixin,
+    AsyncFilesOperationsMixin,
     AsyncManagedResourceMixin,
     AsyncModifiableResourceMixin,
-    AsyncUpdateWithIconMixin,
-    CreateWithIconMixin,
+    FilesOperationsMixin,
     ManagedResourceMixin,
     ModifiableResourceMixin,
-    UpdateWithIconMixin,
 )
-from mpt_api_client.http.types import FileTypes
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
 )
 from tests.unit.conftest import DummyModel
+
+
+class DummyFileOperationsService(
+    FilesOperationsMixin[DummyModel],
+    Service[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/file-ops/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
+class DummyAsyncFileOperationsService(
+    AsyncFilesOperationsMixin[DummyModel],
+    AsyncService[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/file-ops/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
+@pytest.fixture
+def dummy_file_operations_service(http_client):
+    return DummyFileOperationsService(http_client=http_client)
+
+
+@pytest.fixture
+def async_dummy_file_operations_service(async_http_client):
+    return DummyAsyncFileOperationsService(http_client=async_http_client)
 
 
 @pytest.fixture
@@ -36,96 +62,6 @@ def async_media_service(async_http_client):
     return AsyncMediaService(
         http_client=async_http_client, endpoint_params={"product_id": "PRD-001"}
     )
-
-
-@pytest.fixture
-def icon_service(http_client):
-    return DummyIconService(http_client=http_client)
-
-
-@pytest.fixture
-def async_icon_service(async_http_client):
-    return AsyncDummyIconService(http_client=async_http_client)
-
-
-class DummyIconService(
-    CreateWithIconMixin[DummyModel],
-    UpdateWithIconMixin[DummyModel],
-    Service[DummyModel],
-):
-    _endpoint = "/public/v1/dummy/icon/"
-    _model_class = DummyModel
-    _collection_key = "data"
-
-    def create(
-        self,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return super().create(
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-    def update(
-        self,
-        resource_id: str,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-
-class AsyncDummyIconService(
-    AsyncCreateWithIconMixin[DummyModel],
-    AsyncUpdateWithIconMixin[DummyModel],
-    AsyncService[DummyModel],
-):
-    _endpoint = "/public/v1/dummy/icon/"
-    _model_class = DummyModel
-    _collection_key = "data"
-
-    async def create(
-        self,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return await super().create(
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-    async def update(
-        self,
-        resource_id: str,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return await super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
 
 
 async def test_async_create_mixin(async_dummy_service):  # noqa: WPS210
@@ -1072,185 +1008,173 @@ def test_async_managed_resource_mixin(async_dummy_service, method_name):
     assert callable(getattr(async_service, method_name)), f"{method_name} should be callable"
 
 
-def test_sync_create_with_icon_with_data(icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-    icon_key = "icon"
-
+def test_sync_file_create_no_resource_data(dummy_file_operations_service):
+    file_data = {"id": "FILE-123"}
     with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json=resource_data,
+                json=file_data,
             )
         )
-        new_resource = icon_service.create(
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
-        )
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        new_file = dummy_file_operations_service.create(files=files)
 
     request: httpx.Request = mock_route.calls[0].request
 
     assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"id": "OBJ-0000-0001", "name": "Icon Object"}\r\n' in request.content
+        b'Content-Disposition: form-data; name="file"; filename="document.pdf"\r\n'
+        b"Content-Type: application/pdf\r\n\r\n"
+        b"PDF content\r\n" in request.content
     )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert "multipart/form-data" in request.headers["Content-Type"]
-    assert new_resource.to_dict() == resource_data
+    assert new_file.to_dict() == file_data
 
 
-def test_sync_update_with_icon_with_data(icon_service):
-    resource_id = "OBJ-0000-0001"
-    resource_data = {"name": "Updated Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
-    icon_key = "icon"
-
+async def test_async_file_create_no_resource_data(async_dummy_file_operations_service):
+    file_data = {"id": "FILE-123"}
     with respx.mock:
-        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json={"id": resource_id, "name": "Updated Icon Object"},
+                json=file_data,
             )
         )
-        updated_resource = icon_service.update(
-            resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
-        )
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        new_file = await async_dummy_file_operations_service.create(files=files)
 
     request: httpx.Request = mock_route.calls[0].request
 
     assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"name": "Updated Icon Object"}\r\n' in request.content
+        b'Content-Disposition: form-data; name="file"; filename="document.pdf"\r\n'
+        b"Content-Type: application/pdf\r\n\r\n"
+        b"PDF content\r\n" in request.content
     )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Updated icon content\r\n" in request.content
-    )
-    assert "multipart/form-data" in request.headers["Content-Type"]
-    assert updated_resource.to_dict() == {
-        "id": resource_id,
-        "name": "Updated Icon Object",
-    }
+    assert new_file.to_dict() == file_data
 
 
-async def test_async_create_with_icon_no_data(async_icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+def test_sync_file_download_no_content_type(media_service):
+    expected_error_msg = "Unable to download file. Content type not found in resource"
+    request_data = {"id": "MED-456", "name": "Product image", "content_type": None}
     with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+        respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": APPLICATION_JSON},
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json=resource_data,
+                headers={"content-type": APPLICATION_JSON},
+                json=request_data,
             )
         )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-        new_resource = await async_icon_service.create(resource_data=None, icon=icon)
 
-    request: httpx.Request = mock_route.calls[0].request
-
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert new_resource.to_dict() == resource_data
+        with pytest.raises(
+            MPTError,
+            match=expected_error_msg,
+        ):
+            media_service.download("MED-456")
 
 
-def test_sync_create_with_icon_no_data(icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+async def test_async_file_download_no_content_type(async_media_service):
+    expected_error_msg = "Unable to download file. Content type not found in resource"
+    request_data = {"id": "MED-456", "name": "Product image", "content_type": None}
     with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+        respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": APPLICATION_JSON},
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json=resource_data,
+                headers={"content-type": APPLICATION_JSON},
+                json=request_data,
             )
         )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-        new_resource = icon_service.create(resource_data=None, icon=icon)
 
-    request: httpx.Request = mock_route.calls[0].request
-
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert new_resource.to_dict() == resource_data
+        with pytest.raises(
+            MPTError,
+            match=expected_error_msg,
+        ):
+            await async_media_service.download("MED-456")
 
 
-async def test_async_create_with_icon_with_data(async_icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
+def test_sync_file_download_with_accept(media_service):
+    media_content = b"Image file content"
     with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+        mock_download = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/png"},
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json=resource_data,
+                headers={
+                    "content-type": "image/png",
+                    "content-disposition": 'form-data; name="file"; filename="test.png"',
+                },
+                content=media_content,
             )
         )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-        new_resource = await async_icon_service.create(resource_data=None, icon=icon)
 
-    request: httpx.Request = mock_route.calls[0].request
-
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert new_resource.to_dict() == resource_data
+        downloaded_file = media_service.download("MED-456", accept="image/png")
+        assert mock_download.call_count == 1
+        assert downloaded_file.file_contents == media_content
 
 
-async def test_async_update_with_icon_with_data(async_icon_service):
-    resource_id = "OBJ-0000-0001"
-    resource_data = {"name": "Updated Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
-    icon_key = "icon"
-
+async def test_async_file_download_with_accept(async_media_service):
+    media_content = b"Image file content"
     with respx.mock:
-        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+        mock_download = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/png"},
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json={"id": resource_id, "name": "Updated Icon Object"},
+                headers={
+                    "content-type": "image/png",
+                    "content-disposition": 'form-data; name="file"; filename="test.png"',
+                },
+                content=media_content,
             )
         )
-        updated_resource = await async_icon_service.update(
-            resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
+
+        downloaded_file = await async_media_service.download("MED-456", accept="image/png")
+        assert mock_download.call_count == 1
+        assert downloaded_file.file_contents == media_content
+
+
+def test_sync_file_create_with_resource_data(dummy_file_operations_service):
+    file_data = {"id": "FILE-123"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=file_data,
+            )
+        )
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        resource_data = {"name": "Test Document"}
+        new_file = dummy_file_operations_service.create(resource_data=resource_data, files=files)
+
+    request: httpx.Request = mock_route.calls[0].request
+    assert b'name="_attachment_data"' in request.content
+    assert b'"name":"Test Document"' in request.content
+    assert new_file.to_dict() == file_data
+
+
+async def test_async_file_create_with_resource_data(async_dummy_file_operations_service):
+    file_data = {"id": "FILE-123"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=file_data,
+            )
+        )
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        resource_data = {"name": "Test Document"}
+        new_file = await async_dummy_file_operations_service.create(
+            resource_data=resource_data, files=files
         )
 
     request: httpx.Request = mock_route.calls[0].request
-
-    assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"name": "Updated Icon Object"}\r\n' in request.content
-    )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Updated icon content\r\n" in request.content
-    )
-    assert "multipart/form-data" in request.headers["Content-Type"]
-    assert updated_resource.to_dict() == {
-        "id": resource_id,
-        "name": "Updated Icon Object",
-    }
+    assert b'name="_attachment_data"' in request.content
+    assert b'"name":"Test Document"' in request.content
+    assert new_file.to_dict() == file_data

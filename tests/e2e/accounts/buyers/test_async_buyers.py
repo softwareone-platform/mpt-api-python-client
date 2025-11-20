@@ -14,7 +14,7 @@ async def async_created_buyer(async_mpt_ops, buyer_factory, buyer_account_id, ac
     )
 
     new_buyer = await async_mpt_ops.accounts.buyers.create(
-        new_buyer_request_data, logo=account_icon
+        new_buyer_request_data, file=account_icon
     )
 
     yield new_buyer
@@ -74,7 +74,7 @@ async def test_update_buyer(
     updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
     updated_buyer = await async_mpt_ops.accounts.buyers.update(
-        async_created_buyer.id, updated_buyer_data, logo=account_icon
+        async_created_buyer.id, updated_buyer_data, file=account_icon
     )
 
     assert updated_buyer is not None
@@ -87,7 +87,7 @@ async def test_update_buyer_not_found(
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_mpt_ops.accounts.buyers.update(
-            invalid_buyer_id, updated_buyer_data, logo=account_icon
+            invalid_buyer_id, updated_buyer_data, file=account_icon
         )
 
 
