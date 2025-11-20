@@ -235,18 +235,18 @@ async def test_async_file_create_with_data(async_media_service):
                 json=media_data,
             )
         )
-        files = {"media": ("test.jpg", io.BytesIO(b"Image content"), "image/jpeg")}
-        new_media = await async_media_service.create({"name": "Product image"}, files=files)
+        media_image = ("test.jpg", io.BytesIO(b"Image content"), "image/jpeg")
+        new_media = await async_media_service.create({"name": "Product image"}, file=media_image)
 
     request: httpx.Request = mock_route.calls[0].request
 
     assert (
-        b'Content-Disposition: form-data; name="_media_data"\r\n'
+        b'Content-Disposition: form-data; name="media"\r\n'
         b"Content-Type: application/json\r\n\r\n"
         b'{"name":"Product image"}\r\n' in request.content
     )
     assert (
-        b'Content-Disposition: form-data; name="media"; filename="test.jpg"\r\n'
+        b'Content-Disposition: form-data; name="file"; filename="test.jpg"\r\n'
         b"Content-Type: image/jpeg\r\n\r\n"
         b"Image content\r\n" in request.content
     )
@@ -265,13 +265,14 @@ async def test_async_file_create_no_data(async_media_service):
                 json=media_data,
             )
         )
-        files = {"media": ("test.jpg", io.BytesIO(b"Image content"), "image/jpeg")}
-        new_media = await async_media_service.create(files=files)
+        new_media = await async_media_service.create(
+            {}, file=("test.jpg", io.BytesIO(b"Image content"), "image/jpeg")
+        )
 
     request: httpx.Request = mock_route.calls[0].request
 
     assert (
-        b'Content-Disposition: form-data; name="media"; filename="test.jpg"\r\n'
+        b'Content-Disposition: form-data; name="file"; filename="test.jpg"\r\n'
         b"Content-Type: image/jpeg\r\n\r\n"
         b"Image content\r\n" in request.content
     )

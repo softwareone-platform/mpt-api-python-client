@@ -81,6 +81,11 @@ def pdf_url():
 
 
 @pytest.fixture
+def jpg_url():
+    return "https://sample-files.com/downloads/images/jpg/color_test_800x600_118kb.jpg"
+
+
+@pytest.fixture
 def e2e_config(project_root_path):
     filename = os.getenv("TEST_CONFIG_FILE", "e2e_config.test.json")
     file_path = project_root_path.joinpath(filename)

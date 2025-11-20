@@ -1,18 +1,13 @@
-from typing import override
-
-from httpx._types import FileTypes
-
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFilesOperationsMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
     ModifiableResourceMixin,
 )
-from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.models import Model
 from mpt_api_client.resources.catalog.mixins import (
-    AsyncPublishableMixin,
+    AsyncMediaMixin,
     MediaMixin,
 )
 
@@ -40,30 +35,10 @@ class MediaService(
 
 
 class AsyncMediaService(
-    AsyncFilesOperationsMixin[Media],
-    AsyncPublishableMixin[Media],
+    AsyncMediaMixin[Media],
     AsyncModifiableResourceMixin[Media],
     AsyncCollectionMixin[Media],
     AsyncService[Media],
     MediaServiceConfig,
 ):
     """Media service."""
-
-    @override
-    async def create(
-        self,
-        resource_data: ResourceData | None = None,
-        files: dict[str, FileTypes] | None = None,
-        data_key: str = "_media_data",
-    ) -> Media:
-        """Create Media resource.
-
-        Args:
-            resource_data: Resource data.
-            files: Files data.
-            data_key: Key to use for the JSON data in the multipart form.
-
-        Returns:
-            Media resource.
-        """
-        return await super().create(resource_data=resource_data, files=files, data_key=data_key)
