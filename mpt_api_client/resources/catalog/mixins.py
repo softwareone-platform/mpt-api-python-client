@@ -169,7 +169,7 @@ class MediaMixin[Model](
     DownloadFileMixin[Model],
     PublishableMixin[Model],
 ):
-    """Document mixin."""
+    """Media mixin."""
 
     _upload_file_key = "file"
     _upload_data_key = "media"
@@ -227,3 +227,14 @@ class AsyncActivatableMixin[Model]:
         return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "deactivate", json=resource_data
         )
+
+
+class AsyncMediaMixin[Model](
+    AsyncCreateFileMixin[Model],
+    AsyncDownloadFileMixin[Model],
+    AsyncPublishableMixin[Model],
+):
+    """Media mixin."""
+
+    _upload_file_key = "file"
+    _upload_data_key = "media"
