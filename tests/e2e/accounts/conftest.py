@@ -94,10 +94,11 @@ def buyer_factory(buyer_account_id):
 def user_group_factory(account_id, module_id):
     def _user_group(
         name: str = "E2E Test Api Client User Group",
+        user_group_account_id: str = account_id,
     ):
         return {
             "name": name,
-            "account": {"id": account_id},
+            "account": {"id": user_group_account_id},
             "buyers": None,
             "logo": "",
             "description": "User group for E2E tests",
@@ -122,3 +123,34 @@ def api_token_factory(account_id, module_id):
         }
 
     return _api_token
+
+
+@pytest.fixture
+def licensee_factory(seller_id, buyer_id, user_group_factory, licensee_account_id):
+    def _licensee(
+        name: str = "Test E2E Licensee",
+        licensee_type: str = "Client",
+    ):
+        group = user_group_factory(user_group_account_id=licensee_account_id)
+
+        return {
+            "name": name,
+            "address": {
+                "addressLine1": "456 Licensee St",
+                "city": "Los Angeles",
+                "state": "CA",
+                "postCode": "67890",
+                "country": "US",
+            },
+            "useBuyerAddress": False,
+            "seller": {"id": seller_id},
+            "buyer": {"id": buyer_id},
+            "account": {"id": licensee_account_id},
+            "eligibility": {"client": True, "partner": False},
+            "groups": [group],
+            "type": licensee_type,
+            "status": "Enabled",
+            "defaultLanguage": "en-US",
+        }
+
+    return _licensee
