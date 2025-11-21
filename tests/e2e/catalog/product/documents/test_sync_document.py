@@ -18,7 +18,7 @@ def created_document_from_file(logger, vendor_document_service, document_data, p
 
 
 @pytest.fixture
-def created_document_from_link(logger, vendor_document_service, document_data, pdf_url):
+def created_document_from_url(logger, vendor_document_service, document_data, pdf_url):
     document_data["url"] = pdf_url
     document = vendor_document_service.create(document_data)
     yield document
@@ -33,9 +33,9 @@ def test_create_document(created_document_from_file, document_data):
     assert created_document_from_file.description == document_data["description"]
 
 
-def test_create_from_link(created_document_from_link, pdf_url, document_data):
-    assert created_document_from_link.name == document_data["name"]
-    assert created_document_from_link.description == document_data["description"]
+def test_create_document_from_url(created_document_from_url, document_data):
+    assert created_document_from_url.name == document_data["name"]
+    assert created_document_from_url.description == document_data["description"]
 
 
 def test_update_document(vendor_document_service, created_document_from_file):

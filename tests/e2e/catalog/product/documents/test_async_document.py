@@ -3,7 +3,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.rql.query_builder import RQLQuery
 
-pytestmark = [pytest.mark.flaky, pytest.mark.asyncio]
+pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
