@@ -196,3 +196,8 @@ def licensee_account_id(e2e_config):
 @pytest.fixture
 def licensee_group_id(e2e_config):
     return e2e_config["accounts.licensee.group.id"]
+
+
+@pytest.fixture
+def user_id(e2e_config):
+    return e2e_config["accounts.user.id"]
