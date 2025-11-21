@@ -98,101 +98,11 @@ def product_id(e2e_config):
 
 
 @pytest.fixture
-def invalid_seller_id():
-    return "SEL-0000-0000"
-
-
-@pytest.fixture
-def seller_id(e2e_config):
-    return e2e_config["accounts.seller.id"]
-
-
-@pytest.fixture
-def account_id(e2e_config):
-    return e2e_config["accounts.account.id"]
-
-
-@pytest.fixture
-def invalid_account_id():
-    return "ACC-0000-0000"
-
-
-@pytest.fixture
 def short_uuid():
     return uuid.uuid4().hex[:8]
-
-
-@pytest.fixture
-def invalid_buyer_id():
-    return "BUY-0000-0000"
-
-
-@pytest.fixture
-def buyer_id(e2e_config):
-    return e2e_config["accounts.buyer.id"]
-
-
-@pytest.fixture
-def buyer_account_id(e2e_config):
-    return e2e_config["accounts.buyer.account.id"]
-
-
-@pytest.fixture
-def user_group_id(e2e_config):
-    return e2e_config["accounts.user_group.id"]
-
-
-@pytest.fixture
-def invalid_user_group_id():
-    return "UGR-0000-0000"
-
-
-@pytest.fixture
-def module_id(e2e_config):
-    return e2e_config["accounts.module.id"]
-
-
-@pytest.fixture
-def invalid_module_id():
-    return "MOD-0000"
-
-
-@pytest.fixture
-def module_name(e2e_config):
-    return e2e_config["accounts.module.name"]
-
-
-@pytest.fixture
-def api_token_id(e2e_config):
-    return e2e_config["accounts.api_token.id"]
-
-
-@pytest.fixture
-def invalid_api_token_id():
-    return "TKN-0000-0000"
 
 
 @pytest.fixture
 def logo_fd():
     file_path = pathlib.Path(__file__).parent / "logo.png"
     return pathlib.Path.open(file_path, "rb")
-
-
-@pytest.fixture
-def licensee_id(e2e_config):
-    return e2e_config["accounts.licensee.id"]
-
-
-@pytest.fixture
-def invalid_licensee_id():
-    return "LCE-0000-0000-0000"
-
-
-@pytest.fixture
-def licensee_account_id(e2e_config):
-    return e2e_config["accounts.licensee.account.id"]
-
-
-@pytest.fixture
-def licensee_group_id(e2e_config):
-    return e2e_config["accounts.licensee.group.id"]
