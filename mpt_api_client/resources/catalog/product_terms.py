@@ -38,7 +38,7 @@ class TermService(
         """Access term variants service."""
         return TermVariantService(
             http_client=self.http_client,
-            endpoint_params={"term_id": term_id},
+            endpoint_params={"product_id": self.endpoint_params["product_id"], "term_id": term_id},
         )
 
 
@@ -55,5 +55,5 @@ class AsyncTermService(
         """Access async term variants service."""
         return AsyncTermVariantService(
             http_client=self.http_client,
-            endpoint_params={"term_id": term_id},
+            endpoint_params={"product_id": self.endpoint_params["product_id"], "term_id": term_id},
         )

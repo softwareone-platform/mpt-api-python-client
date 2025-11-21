@@ -60,6 +60,8 @@ class DummyDocumentService(  # noqa: WPS215
     _endpoint = "/public/v1/dummy/documents"
     _model_class = DummyModel
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "document"
 
 
 class DummyAsyncDocumentService(  # noqa: WPS215
@@ -69,6 +71,8 @@ class DummyAsyncDocumentService(  # noqa: WPS215
     _endpoint = "/public/v1/dummy/documents"
     _model_class = DummyModel
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "document"
 
 
 @pytest.fixture

@@ -51,7 +51,7 @@ def test_variants_property(term_service: TermService) -> None:
     variants = term_service.variants("TCS-001")
     assert isinstance(variants, TermVariantService)
     assert variants.http_client == term_service.http_client
-    assert variants.endpoint_params == {"term_id": "TCS-001"}
+    assert variants.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
 
 
 def test_async_variants_property(async_term_service: AsyncTermService) -> None:
@@ -59,4 +59,4 @@ def test_async_variants_property(async_term_service: AsyncTermService) -> None:
     variants = async_term_service.variants("TCS-001")
     assert isinstance(variants, AsyncTermVariantService)
     assert variants.http_client == async_term_service.http_client
-    assert variants.endpoint_params == {"term_id": "TCS-001"}
+    assert variants.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
