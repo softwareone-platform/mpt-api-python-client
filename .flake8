@@ -1,0 +1,5 @@
+
+[flake8]
+per-file-ignores =
+    tests/e2e/accounts/accounts_users/test_sync_accounts_users.py: WPS402,WPS421,AAA01
+    test_sync_accounts_users.py: WPS402,WPS421,AAA01
