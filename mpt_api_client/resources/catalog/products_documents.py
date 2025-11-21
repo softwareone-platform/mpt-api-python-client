@@ -22,6 +22,8 @@ class DocumentServiceConfig:
     _endpoint = "/public/v1/catalog/products/{product_id}/documents"
     _model_class = Document
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "document"
 
 
 class DocumentService(
