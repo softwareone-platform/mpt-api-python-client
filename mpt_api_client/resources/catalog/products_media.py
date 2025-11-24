@@ -22,6 +22,8 @@ class MediaServiceConfig:
     _endpoint = "/public/v1/catalog/products/{product_id}/media"
     _model_class = Media
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "media"
 
 
 class MediaService(

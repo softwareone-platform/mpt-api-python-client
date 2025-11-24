@@ -10,22 +10,28 @@ from mpt_api_client.resources.catalog.product_term_variants import (
 
 @pytest.fixture
 def term_variant_service(http_client: Any) -> TermVariantService:
-    return TermVariantService(http_client=http_client, endpoint_params={"term_id": "TRM-001"})
+    return TermVariantService(
+        http_client=http_client, endpoint_params={"product_id": "PRD-001", "term_id": "TRM-001"}
+    )
 
 
 @pytest.fixture
 def async_term_variant_service(async_http_client: Any) -> AsyncTermVariantService:
     return AsyncTermVariantService(
-        http_client=async_http_client, endpoint_params={"term_id": "TRM-001"}
+        http_client=async_http_client,
+        endpoint_params={"product_id": "PRD-001", "term_id": "TRM-001"},
     )
 
 
 def test_endpoint(term_variant_service: TermVariantService) -> None:
-    assert term_variant_service.path == "/public/v1/catalog/products/terms/TRM-001/variants"
+    assert term_variant_service.path == "/public/v1/catalog/products/PRD-001/terms/TRM-001/variants"
 
 
 def test_async_endpoint(async_term_variant_service: AsyncTermVariantService) -> None:
-    assert async_term_variant_service.path == "/public/v1/catalog/products/terms/TRM-001/variants"
+    assert (
+        async_term_variant_service.path
+        == "/public/v1/catalog/products/PRD-001/terms/TRM-001/variants"
+    )
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@ import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
 
-pytestmark = [pytest.mark.flaky, pytest.mark.asyncio]
+pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture

@@ -12,6 +12,7 @@ def document_data():
         "name": "e2e test document - please delete",
         "description": "E2E test document for automated testing",
         "language": "en-gb",
+        "url": "",
     }
 
 
