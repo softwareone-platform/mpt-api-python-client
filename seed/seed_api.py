@@ -4,6 +4,7 @@ import pathlib
 
 from dependency_injector.wiring import inject
 
+from seed.accounts.accounts import seed_accounts
 from seed.catalog.catalog import seed_catalog
 from seed.context import Context, load_context, save_context
 from seed.defaults import DEFAULT_CONTEXT
@@ -20,7 +21,11 @@ async def seed_api(context: Context = DEFAULT_CONTEXT) -> None:
 
     load_context(context_file, context)
 
-    tasks.append(asyncio.create_task(seed_catalog()))
+    tasks.extend((
+        asyncio.create_task(seed_catalog()),
+        asyncio.create_task(seed_accounts())
+    ))
+
     try:
         await asyncio.gather(*tasks)
     except Exception:

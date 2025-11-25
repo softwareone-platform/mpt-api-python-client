@@ -19,3 +19,8 @@ def vendor_client() -> AsyncMock:
 @pytest.fixture
 def operations_client() -> AsyncMock:
     return MagicMock(spec=AsyncMPTClient)
+
+
+@pytest.fixture
+def client_client() -> AsyncMock:
+    return MagicMock(spec=AsyncMPTClient)
