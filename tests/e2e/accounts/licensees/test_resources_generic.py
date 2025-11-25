@@ -1,4 +1,3 @@
-
 import pytest
 
 from mpt_api_client import MPTClient
@@ -27,9 +26,7 @@ def created_licensee(mpt_client, licensee_factory, account_icon):
 
 @pytest.mark.parametrize(
     "resource_path",
-    [
-        "accounts.licensees"
-    ],
+    ["accounts.licensees"],
 )
 class TestGenericResource:
     def get_resource(self, mpt_client: MPTClient, resource_path) -> Service:
@@ -38,26 +35,26 @@ class TestGenericResource:
             resource = getattr(resource, path_element)
         return resource
 
-    def test_get_licensee_by_id(self, mpt_client, licensee_id, resource_path):
+    def test_get_by_id(self, mpt_client, licensee_id, resource_path):
         resource = self.get_resource(mpt_client, resource_path)
 
         licensee = resource.get(licensee_id)
         assert licensee is not None
 
-    def test_list_licensees(self, mpt_client, resource_path):
+    def test_get_by_id_not_found(self, resource_path, mpt_client, invalid_licensee_id):
+        resource = self.get_resource(mpt_client, resource_path)
+
+        with pytest.raises(MPTAPIError, match=r"404 Not Found"):
+            resource.get(invalid_licensee_id)
+
+    def test_list(self, mpt_client, resource_path):
         resource = self.get_resource(mpt_client, resource_path)
 
         limit = 10
         licensees = resource.fetch_page(limit=limit)
         assert len(licensees) > 0
 
-    def test_get_licensee_by_id_not_found(self, resource_path, mpt_client, invalid_licensee_id):
-        resource = self.get_resource(mpt_client, resource_path)
-
-        with pytest.raises(MPTAPIError, match=r"404 Not Found"):
-            resource.get(invalid_licensee_id)
-
-    def test_filter_licensees(self, resource_path, mpt_client, licensee_id):
+    def test_filter(self, resource_path, mpt_client, licensee_id):
         resource = self.get_resource(mpt_client, resource_path)
 
         select_fields = ["-address"]
@@ -72,22 +69,23 @@ class TestGenericResource:
 
         assert len(licensees) == 1
 
-    def test_create_licensee(self, resource_path, created_licensee):
-        new_licensee = created_licensee
-        assert new_licensee is not None
+    def test_create(self, resource_path, created_licensee):
+        assert created_licensee is not None
 
-    def test_delete_licensee(self, resource_path, mpt_client, created_licensee):
+    def test_delete(self, resource_path, mpt_client, created_licensee):
         resource = self.get_resource(mpt_client, resource_path)
 
         resource.delete(created_licensee.id)
 
-    def test_delete_licensee_not_found(self, resource_path, mpt_client, invalid_licensee_id):
+    def test_delete_not_found(self, resource_path, mpt_client, invalid_licensee_id):
         resource = self.get_resource(mpt_client, resource_path)
 
         with pytest.raises(MPTAPIError, match=r"404 Not Found"):
             resource.delete(invalid_licensee_id)
 
-    def test_update_licensee(self, resource_path, mpt_client, licensee_factory, account_icon, created_licensee):
+    def test_update(
+        self, resource_path, mpt_client, licensee_factory, account_icon, created_licensee
+    ):
         resource = self.get_resource(mpt_client, resource_path)
 
         updated_licensee_data = licensee_factory(name="E2E Updated Licensee")
@@ -98,30 +96,30 @@ class TestGenericResource:
 
         assert updated_licensee is not None
 
-    def test_update_licensee_not_found(self, resource_path, mpt_client, licensee_factory, account_icon, invalid_licensee_id):
+    def test_update_not_found(
+        self, resource_path, mpt_client, licensee_factory, account_icon, invalid_licensee_id
+    ):
         resource = self.get_resource(mpt_client, resource_path)
 
         updated_licensee_data = licensee_factory(name="Nonexistent Licensee")
 
         with pytest.raises(MPTAPIError, match=r"404 Not Found"):
-            resource.update(
-                invalid_licensee_id, updated_licensee_data, logo=account_icon
-            )
+            resource.update(invalid_licensee_id, updated_licensee_data, logo=account_icon)
 
-    def test_licensee_disable(self, resource_path, mpt_client, created_licensee):
+    def test_disable(self, resource_path, mpt_client, created_licensee):
         resource = self.get_resource(mpt_client, resource_path)
 
         disabled_licensee = resource.disable(created_licensee.id)
 
         assert disabled_licensee is not None
 
-    def test_licensee_disable_not_found(self, resource_path, mpt_client, invalid_licensee_id):
+    def test_disable_not_found(self, resource_path, mpt_client, invalid_licensee_id):
         resource = self.get_resource(mpt_client, resource_path)
 
         with pytest.raises(MPTAPIError, match=r"404 Not Found"):
             resource.disable(invalid_licensee_id)
 
-    def test_licensee_enable(self, resource_path, mpt_client, created_licensee):
+    def test_enable(self, resource_path, mpt_client, created_licensee):
         resource = self.get_resource(mpt_client, resource_path)
 
         resource.disable(created_licensee.id)
@@ -130,7 +128,7 @@ class TestGenericResource:
 
         assert enabled_licensee is not None
 
-    def test_licensee_enable_not_found(self, resource_path, mpt_client, invalid_licensee_id):
+    def test_enable_not_found(self, resource_path, mpt_client, invalid_licensee_id):
         resource = self.get_resource(mpt_client, resource_path)
 
         with pytest.raises(MPTAPIError, match=r"404 Not Found"):
