@@ -3,17 +3,17 @@ import pytest
 import respx
 
 from mpt_api_client.constants import APPLICATION_JSON
-from mpt_api_client.resources.commerce.assets import AssetsService, AsyncAssetsService
+from mpt_api_client.resources.commerce.assets import AssetService, AsyncAssetService
 
 
 @pytest.fixture
 def assets_service(http_client):
-    return AssetsService(http_client=http_client)
+    return AssetService(http_client=http_client)
 
 
 @pytest.fixture
 def async_assets_service(async_http_client):
-    return AsyncAssetsService(http_client=async_http_client)
+    return AsyncAssetService(http_client=async_http_client)
 
 
 async def test_async_render(async_assets_service):

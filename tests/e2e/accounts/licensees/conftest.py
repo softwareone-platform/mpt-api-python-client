@@ -27,7 +27,7 @@ def licensee_factory(seller_id, buyer_id, user_group_factory, licensee_account_i
         return {
             "name": name,
             "address": {
-                "addressLine1": "456 Licensee St",
+                "addressLine1": "123 Main St",
                 "city": "Los Angeles",
                 "state": "CA",
                 "postCode": "67890",

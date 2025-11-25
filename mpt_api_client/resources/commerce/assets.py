@@ -21,7 +21,7 @@ class AssetTemplate(Model):
     """Asset template resource."""
 
 
-class AssetsServiceConfig:
+class AssetServiceConfig:
     """Assets service config."""
 
     _endpoint = "/public/v1/commerce/assets"
@@ -29,13 +29,13 @@ class AssetsServiceConfig:
     _collection_key = "data"
 
 
-class AssetsService(
+class AssetService(
     CreateMixin[Asset],
     UpdateMixin[Asset],
     GetMixin[Asset],
     CollectionMixin[Asset],
     Service[Asset],
-    AssetsServiceConfig,
+    AssetServiceConfig,
 ):
     """Assets service."""
 
@@ -63,13 +63,13 @@ class AssetsService(
         return AssetTemplate.from_response(response)
 
 
-class AsyncAssetsService(
+class AsyncAssetService(
     AsyncCreateMixin[Asset],
     AsyncUpdateMixin[Asset],
     AsyncGetMixin[Asset],
     AsyncCollectionMixin[Asset],
     AsyncService[Asset],
-    AssetsServiceConfig,
+    AssetServiceConfig,
 ):
     """Asynchronous Assets service."""
 

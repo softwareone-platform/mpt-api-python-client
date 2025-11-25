@@ -47,22 +47,22 @@ async def init_product(
     mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
 ) -> Product:
     """Get or create product."""
-    product = await get_product()
-    if product is not None:
-        logger.info("Product found: %s", product.id)
-        return product
-    logger.debug("Creating product ...")
-    with pathlib.Path.open(icon, "rb") as icon_file:
-        created = await mpt_vendor.catalog.products.create(
-            {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_file
-        )
-    if isinstance(created, Product):
-        context.set_resource(namespace, created)
-        context[f"{namespace}.id"] = created.id
-        logger.info("Product created: %s", created.id)
-        return created
-    logger.warning("Product creation failed")
-    raise ValueError("Product creation failed")
+    product = await get_product(context=context, mpt_vendor=mpt_vendor)
+    if product is None:
+        logger.debug("Creating product ...")
+        with open(str(icon), "rb") as icon_file:  # noqa: PTH123
+            created = await mpt_vendor.catalog.products.create(
+                {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_file
+            )
+        if isinstance(created, Product):
+            context.set_resource(namespace, created)
+            context[f"{namespace}.id"] = created.id
+            logger.info("Product created: %s", created.id)
+            return created
+        logger.warning("Product creation failed")
+        raise ValueError("Product creation failed")
+    logger.info("Product found: %s", product.id)
+    return product
 
 
 @inject
@@ -71,7 +71,7 @@ async def review_product(
     mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
 ) -> Product | None:
     """Review product if in draft status."""
-    product = await get_product()
+    product = await get_product(context=context, mpt_vendor=mpt_vendor)
     if not isinstance(product, Product) or product.status != "Draft":
         return product
     logger.debug("Reviewing product: %s", product.id)
