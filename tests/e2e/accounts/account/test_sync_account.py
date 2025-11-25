@@ -15,7 +15,7 @@ def created_account(logger, mpt_ops, account_factory, account_icon):
     yield res_account
 
     try:
-        mpt_ops.accounts.accounts.deactivate(res_account.id)
+        mpt_ops.accounts.accounts.disable(res_account.id)
     except MPTAPIError as error:
         print("TEARDOWN - Unable to deactivate account: %s", error.title)  # noqa: WPS421
 

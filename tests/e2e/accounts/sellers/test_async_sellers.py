@@ -97,7 +97,7 @@ async def test_update_seller_mpt_error(async_mpt_ops, seller_factory, timestamp,
 
 async def test_activate_seller(async_mpt_ops, async_created_seller, timestamp):
     seller_data = await async_created_seller(external_id=f"Async Activate E2E Seller - {timestamp}")
-    await async_mpt_ops.accounts.sellers.deactivate(seller_data.id)
+    await async_mpt_ops.accounts.sellers.disable(seller_data.id)
     activated_seller = await async_mpt_ops.accounts.sellers.activate(seller_data.id)
 
     assert activated_seller is not None
@@ -112,14 +112,14 @@ async def test_deactivate_seller(async_mpt_ops, async_created_seller, timestamp)
     seller_data = await async_created_seller(
         external_id=f"Async Deactivate E2E Seller - {timestamp}"
     )
-    deactivated_seller = await async_mpt_ops.accounts.sellers.deactivate(seller_data.id)
+    deactivated_seller = await async_mpt_ops.accounts.sellers.disable(seller_data.id)
 
     assert deactivated_seller is not None
 
 
 async def test_deactivate_seller_mpt_error(async_mpt_ops, invalid_seller_id):
     with pytest.raises(MPTAPIError):
-        await async_mpt_ops.accounts.sellers.deactivate(invalid_seller_id)
+        await async_mpt_ops.accounts.sellers.disable(invalid_seller_id)
 
 
 async def test_disable_seller(async_mpt_ops, async_created_seller, timestamp):

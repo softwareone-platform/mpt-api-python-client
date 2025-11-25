@@ -15,7 +15,7 @@ async def async_created_account(logger, async_mpt_ops, account_factory, account_
     yield res_account
 
     try:
-        await async_mpt_ops.accounts.accounts.deactivate(res_account.id)
+        await async_mpt_ops.accounts.accounts.disable(res_account.id)
     except MPTAPIError as error:
         print("TEARDOWN - Unable to deactivate account: %s", error.title)  # noqa: WPS421
 

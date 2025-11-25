@@ -140,3 +140,19 @@ def test_async_property_services(
 
     assert isinstance(property_service, expected_service_class)
     assert property_service.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
+
+
+@pytest.mark.parametrize(
+    "method",
+    ["get", "create", "update", "delete", "activate", "disable"],
+)
+def test_mixins_present(pricing_policies_service, method):
+    assert hasattr(pricing_policies_service, method)
+
+
+@pytest.mark.parametrize(
+    "method",
+    ["get", "create", "update", "delete", "activate", "disable"],
+)
+def test_async_mixins_present(async_pricing_policies_service, method):
+    assert hasattr(async_pricing_policies_service, method)
