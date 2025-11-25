@@ -10,7 +10,7 @@
   "accounts.module.name": "Access Management",
   "accounts.seller.id": "SEL-7310-3075",
   "accounts.user_group.id": "UGR-6822-0561",
-  "catalog.item.id": "ITM-7255-3950-0001",
+  "catalog.product.item.id": "ITM-7255-3950-0751",
   "catalog.product.document.id": "PDC-7255-3950-0001",
   "catalog.product.id": "PRD-7255-3950",
   "catalog.product.item_group.id": "IGR-7255-3950-0001",

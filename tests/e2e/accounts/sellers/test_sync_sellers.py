@@ -96,7 +96,7 @@ def test_update_seller_mpt_error(mpt_ops, seller_factory, timestamp, invalid_sel
 
 def test_activate_seller(mpt_ops, created_seller, timestamp):
     seller_data = created_seller(external_id=f"Activate E2E Seller - {timestamp}")
-    mpt_ops.accounts.sellers.deactivate(seller_data.id)
+    mpt_ops.accounts.sellers.disable(seller_data.id)
     activated_seller = mpt_ops.accounts.sellers.activate(seller_data.id)
 
     assert activated_seller is not None
@@ -109,14 +109,14 @@ def test_activate_seller_mpt_error(mpt_ops, invalid_seller_id):
 
 def test_deactivate_seller(mpt_ops, created_seller, timestamp):
     seller_data = created_seller(external_id=f"Deactivate E2E Seller - {timestamp}")
-    deactivated_seller = mpt_ops.accounts.sellers.deactivate(seller_data.id)
+    deactivated_seller = mpt_ops.accounts.sellers.disable(seller_data.id)
 
     assert deactivated_seller is not None
 
 
 def test_deactivate_seller_mpt_error(mpt_ops, invalid_seller_id):
     with pytest.raises(MPTAPIError):
-        mpt_ops.accounts.sellers.deactivate(invalid_seller_id)
+        mpt_ops.accounts.sellers.disable(invalid_seller_id)
 
 
 def test_disable_seller(mpt_ops, created_seller, timestamp):

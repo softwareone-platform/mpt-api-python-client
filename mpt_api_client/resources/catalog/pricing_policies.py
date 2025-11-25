@@ -4,11 +4,9 @@ from mpt_api_client.http import (
 )
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncCreateMixin,
-    AsyncDeleteMixin,
+    AsyncManagedResourceMixin,
     CollectionMixin,
-    CreateMixin,
-    DeleteMixin,
+    ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.resources.catalog.pricing_policy_attachments import (
@@ -30,8 +28,7 @@ class PricingPoliciesServiceConfig:
 
 
 class PricingPoliciesService(  # noqa: WPS215
-    CreateMixin[PricingPolicy],
-    DeleteMixin,
+    ManagedResourceMixin[PricingPolicy],
     CollectionMixin[PricingPolicy],
     Service[PricingPolicy],
     PricingPoliciesServiceConfig,
@@ -45,7 +42,9 @@ class PricingPoliciesService(  # noqa: WPS215
             endpoint_params={"pricing_policy_id": pricing_policy_id},
         )
 
-    def activate(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
+    def activate(
+        self, resource_id: str, resource_data: ResourceData | None = None
+    ) -> PricingPolicy:
         """Activate pricing policy.
 
         Args:
@@ -57,7 +56,7 @@ class PricingPoliciesService(  # noqa: WPS215
         """
         return self._resource_action(resource_id, "POST", "activate", json=resource_data)
 
-    def disable(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
+    def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> PricingPolicy:
         """Disable pricing policy.
 
         Args:
@@ -71,8 +70,7 @@ class PricingPoliciesService(  # noqa: WPS215
 
 
 class AsyncPricingPoliciesService(
-    AsyncCreateMixin[PricingPolicy],
-    AsyncDeleteMixin,
+    AsyncManagedResourceMixin[PricingPolicy],
     AsyncCollectionMixin[PricingPolicy],
     AsyncService[PricingPolicy],
     PricingPoliciesServiceConfig,
@@ -86,7 +84,9 @@ class AsyncPricingPoliciesService(
             endpoint_params={"pricing_policy_id": pricing_policy_id},
         )
 
-    async def activate(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
+    async def activate(
+        self, resource_id: str, resource_data: ResourceData | None = None
+    ) -> PricingPolicy:
         """Activate pricing policy.
 
         Args:
@@ -98,7 +98,9 @@ class AsyncPricingPoliciesService(
         """
         return await self._resource_action(resource_id, "POST", "activate", json=resource_data)
 
-    async def disable(self, resource_id: str, resource_data: ResourceData) -> PricingPolicy:
+    async def disable(
+        self, resource_id: str, resource_data: ResourceData | None = None
+    ) -> PricingPolicy:
         """Disable pricing policy.
 
         Args:

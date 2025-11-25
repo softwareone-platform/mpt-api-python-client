@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture
 def item_id(e2e_config):
-    return e2e_config.get("catalog.item.id")
+    return e2e_config.get("catalog.product.item.id")
 
 
 @pytest.fixture
