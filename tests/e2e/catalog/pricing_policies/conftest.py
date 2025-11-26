@@ -1,5 +1,7 @@
 import pytest
 
+from mpt_api_client.exceptions import MPTAPIError
+
 
 @pytest.fixture
 def buyer_id(e2e_config):
@@ -19,5 +21,22 @@ def pricing_policy_data(buyer_id, product_id):
 
 
 @pytest.fixture
-def pricing_policy_id(e2e_config):
-    return e2e_config.get("catalog.pricing_policy.id")
+def pricing_policies_service(mpt_ops):
+    return mpt_ops.catalog.pricing_policies
+
+
+@pytest.fixture
+def created_pricing_policy(pricing_policies_service, pricing_policy_data):
+    policy = pricing_policies_service.create(pricing_policy_data)
+
+    yield policy
+
+    try:
+        pricing_policies_service.delete(policy.id)
+    except MPTAPIError as error:
+        print(f"TEARDOWN - Unable to delete pricing policy {policy.id}: {error.title}")
+
+
+@pytest.fixture
+def pricing_policy_id(created_pricing_policy):
+    return created_pricing_policy.id

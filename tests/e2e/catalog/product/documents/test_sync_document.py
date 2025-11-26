@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_document_from_file(logger, vendor_document_service, document_data, pdf_fd):
+def created_document_from_file(vendor_document_service, document_data, pdf_fd):
     document_data["documenttype"] = "File"
     document = vendor_document_service.create(document_data, pdf_fd)
     yield document
@@ -18,7 +18,7 @@ def created_document_from_file(logger, vendor_document_service, document_data, p
 
 
 @pytest.fixture
-def created_document_from_url(logger, vendor_document_service, document_data, pdf_url):
+def created_document_from_url(vendor_document_service, document_data, pdf_url):
     document_data["url"] = pdf_url
     document = vendor_document_service.create(document_data)
     yield document

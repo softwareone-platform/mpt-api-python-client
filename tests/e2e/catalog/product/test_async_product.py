@@ -5,7 +5,7 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-async def async_created_product(logger, async_mpt_vendor, product_data, logo_fd):
+async def async_created_product(async_mpt_vendor, product_data, logo_fd):
     product = await async_mpt_vendor.catalog.products.create(product_data, icon=logo_fd)
 
     yield product

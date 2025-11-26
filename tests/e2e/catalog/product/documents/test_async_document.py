@@ -12,7 +12,7 @@ def async_document_service(async_mpt_vendor, product_id):
 
 
 @pytest.fixture
-async def created_document_from_file_async(logger, async_document_service, document_data, pdf_fd):
+async def created_document_from_file_async(async_document_service, document_data, pdf_fd):
     document_data["documenttype"] = "File"
     document = await async_document_service.create(document_data, file=pdf_fd)
     yield document
@@ -23,7 +23,7 @@ async def created_document_from_file_async(logger, async_document_service, docum
 
 
 @pytest.fixture
-async def created_document_from_link_async(logger, async_document_service, document_data, pdf_url):
+async def created_document_from_link_async(async_document_service, document_data, pdf_url):
     document_data["url"] = pdf_url
     document = await async_document_service.create(document_data)
     yield document

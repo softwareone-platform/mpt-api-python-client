@@ -35,12 +35,10 @@ async def test_get_pricing_policy(async_pricing_policies_service, async_created_
     assert result.id == async_created_pricing_policy.id
 
 
-async def test_get_pricing_policy_by_id(
-    async_pricing_policies_service, async_created_pricing_policy
-):
-    result = await async_pricing_policies_service.get(async_created_pricing_policy.id)
+async def test_get_pricing_policy_by_id(async_pricing_policies_service, pricing_policy_id):
+    result = await async_pricing_policies_service.get(pricing_policy_id)
 
-    assert result.id == async_created_pricing_policy.id
+    assert result.id == pricing_policy_id
 
 
 async def test_iterate_pricing_policies(

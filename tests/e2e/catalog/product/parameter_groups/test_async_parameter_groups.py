@@ -4,7 +4,7 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-async def async_created_parameter_group(logger, async_mpt_vendor, product_id, parameter_group_data):
+async def async_created_parameter_group(async_mpt_vendor, product_id, parameter_group_data):
     service = async_mpt_vendor.catalog.products.parameter_groups(product_id)
     group = await service.create(parameter_group_data)
     yield group

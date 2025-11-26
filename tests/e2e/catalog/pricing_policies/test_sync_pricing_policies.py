@@ -6,23 +6,6 @@ from mpt_api_client.rql.query_builder import RQLQuery
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.fixture
-def pricing_policies_service(mpt_ops):
-    return mpt_ops.catalog.pricing_policies
-
-
-@pytest.fixture
-def created_pricing_policy(pricing_policies_service, pricing_policy_data):
-    policy = pricing_policies_service.create(pricing_policy_data)
-
-    yield policy
-
-    try:
-        pricing_policies_service.delete(policy.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete pricing policy {policy.id}: {error.title}")
-
-
 def test_create_pricing_policy(created_pricing_policy, pricing_policy_data):
     result = created_pricing_policy
 
@@ -36,9 +19,6 @@ def test_get_pricing_policy(pricing_policies_service, created_pricing_policy):
 
 
 def test_get_pricing_policy_by_id(pricing_policies_service, pricing_policy_id):
-    if not pricing_policy_id:
-        pytest.skip("No pricing_policy_id configured")
-
     result = pricing_policies_service.get(pricing_policy_id)
 
     assert result.id == pricing_policy_id

@@ -12,7 +12,7 @@ def vendor_terms_service(mpt_vendor, product_id):
 
 
 @pytest.fixture
-def created_term(logger, vendor_terms_service, term_data):
+def created_term(vendor_terms_service, term_data):
     service = vendor_terms_service
     term = service.create(term_data)
     yield term
@@ -23,7 +23,7 @@ def created_term(logger, vendor_terms_service, term_data):
 
 
 @pytest.fixture
-def created_term_from_url(logger, vendor_terms_service, term_data, pdf_url):
+def created_term_from_url(vendor_terms_service, term_data, pdf_url):
     term_data["url"] = pdf_url
     service = vendor_terms_service
     term = service.create(term_data)

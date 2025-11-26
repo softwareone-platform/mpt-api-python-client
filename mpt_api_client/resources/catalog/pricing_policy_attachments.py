@@ -1,14 +1,17 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFilesOperationsMixin,
+    AsyncDownloadFileMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
-    FilesOperationsMixin,
+    DownloadFileMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
-from mpt_api_client.resources.catalog.mixins import ActivatableMixin, AsyncActivatableMixin
+from mpt_api_client.resources.catalog.mixins import (
+    AsyncCreateFileMixin,
+    CreateFileMixin,
+)
 
 
 class PricingPolicyAttachment(Model):
@@ -21,11 +24,13 @@ class PricingPolicyAttachmentsServiceConfig:
     _endpoint = "/public/v1/catalog/pricing-policies/{pricing_policy_id}/attachments"
     _model_class = PricingPolicyAttachment
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "attachment"
 
 
 class PricingPolicyAttachmentsService(
-    FilesOperationsMixin[PricingPolicyAttachment],
-    ActivatableMixin[PricingPolicyAttachment],
+    CreateFileMixin[PricingPolicyAttachment],
+    DownloadFileMixin[PricingPolicyAttachment],
     ModifiableResourceMixin[PricingPolicyAttachment],
     CollectionMixin[PricingPolicyAttachment],
     Service[PricingPolicyAttachment],
@@ -35,8 +40,8 @@ class PricingPolicyAttachmentsService(
 
 
 class AsyncPricingPolicyAttachmentsService(
-    AsyncFilesOperationsMixin[PricingPolicyAttachment],
-    AsyncActivatableMixin[PricingPolicyAttachment],
+    AsyncCreateFileMixin[PricingPolicyAttachment],
+    AsyncDownloadFileMixin[PricingPolicyAttachment],
     AsyncModifiableResourceMixin[PricingPolicyAttachment],
     AsyncCollectionMixin[PricingPolicyAttachment],
     AsyncService[PricingPolicyAttachment],

@@ -12,7 +12,7 @@ def vendor_variant_service(mpt_vendor, product_id, term_id):
 
 
 @pytest.fixture
-def created_variant(logger, vendor_variant_service, variant_data, pdf_fd):
+def created_variant(vendor_variant_service, variant_data, pdf_fd):
     variant = vendor_variant_service.create(variant_data, pdf_fd)
     yield variant
     try:
@@ -22,7 +22,7 @@ def created_variant(logger, vendor_variant_service, variant_data, pdf_fd):
 
 
 @pytest.fixture
-def created_variant_from_url(logger, vendor_variant_service, variant_data, pdf_url):
+def created_variant_from_url(vendor_variant_service, variant_data, pdf_url):
     variant_data["type"] = "Online"
     variant_data["assetUrl"] = pdf_url
     variant = vendor_variant_service.create(variant_data)
