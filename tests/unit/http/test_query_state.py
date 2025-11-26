@@ -9,13 +9,13 @@ def query_state():
 
 
 def test_filter_init(filter_status_active):
-    query_state = QueryState(
+    result = QueryState(
         rql=filter_status_active, select=["agreement", "-product"], order_by=["-created", "name"]
     )
 
-    assert query_state.filter == filter_status_active
-    assert query_state.select == ["agreement", "-product"]
-    assert query_state.order_by == ["-created", "name"]
+    assert result.filter == filter_status_active
+    assert result.select == ["agreement", "-product"]
+    assert result.order_by == ["-created", "name"]
 
 
 def test_build_url(filter_status_active):
@@ -25,9 +25,9 @@ def test_build_url(filter_status_active):
         order_by=["-created", "name"],
     )
 
-    query_string = query_state.build()
+    result = query_state.build()
 
-    assert query_string == (
+    assert result == (
         "order=-created,name"
         "&select=-audit,product.agreements,-product.agreements.product"
         "&eq(status,active)"
@@ -35,15 +35,15 @@ def test_build_url(filter_status_active):
 
 
 def test_empty_build(query_state):
-    query_string = query_state.build()
+    result = query_state.build()
 
-    assert not query_string
+    assert not result
 
 
 def test_build_with_params(filter_status_active):
     query_state = QueryState(rql=filter_status_active, order_by=["created"], select=["name"])
     query_params = {"limit": "10"}
 
-    query_string = query_state.build(query_params)
+    result = query_state.build(query_params)
 
-    assert query_string == "limit=10&order=created&select=name&eq(status,active)"
+    assert result == "limit=10&order=created&select=name&eq(status,active)"

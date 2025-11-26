@@ -28,47 +28,55 @@ def created_document_from_url(logger, vendor_document_service, document_data, pd
         print(f"TEARDOWN - Unable to delete document {document.id}: {error.title}")
 
 
-def test_create_document(created_document_from_file, document_data):
+def test_create_document(created_document_from_file, document_data):  # noqa: AAA01
     assert created_document_from_file.name == document_data["name"]
     assert created_document_from_file.description == document_data["description"]
 
 
-def test_create_document_from_url(created_document_from_url, document_data):
+def test_create_document_from_url(created_document_from_url, document_data):  # noqa: AAA01
     assert created_document_from_url.name == document_data["name"]
     assert created_document_from_url.description == document_data["description"]
 
 
 def test_update_document(vendor_document_service, created_document_from_file):
     update_data = {"name": "Updated e2e test document - please delete"}
-    document = vendor_document_service.update(created_document_from_file.id, update_data)
-    assert document.name == update_data["name"]
+
+    result = vendor_document_service.update(created_document_from_file.id, update_data)
+
+    assert result.name == update_data["name"]
 
 
 def test_get_document(vendor_document_service, document_id):
-    document = vendor_document_service.get(document_id)
-    assert document.id == document_id
+    result = vendor_document_service.get(document_id)
+
+    assert result.id == document_id
 
 
 def test_download_document(vendor_document_service, document_id):
-    file_response = vendor_document_service.download(document_id)
-    assert file_response.file_contents is not None
-    assert file_response.filename == "pdf - empty.pdf"
+    result = vendor_document_service.download(document_id)
+
+    assert result.file_contents is not None
+    assert result.filename == "pdf - empty.pdf"
 
 
 def test_iterate_documents(vendor_document_service, created_document_from_file):
     documents = list(vendor_document_service.iterate())
-    assert any(doc.id == created_document_from_file.id for doc in documents)
+
+    result = any(doc.id == created_document_from_file.id for doc in documents)
+
+    assert result is True
 
 
 def test_filter_documents(vendor_document_service, created_document_from_file):
-    documents = list(
+    result = list(
         vendor_document_service.filter(RQLQuery(id=created_document_from_file.id)).iterate()
     )
-    assert len(documents) == 1
-    assert documents[0].id == created_document_from_file.id
+
+    assert len(result) == 1
+    assert result[0].id == created_document_from_file.id
 
 
-@pytest.mark.skip(reason="Leaves test documents in published state")
+@pytest.mark.skip(reason="Leaves test documents in published state")  # noqa: AAA01
 def test_review_and_publish_document(mpt_vendor, mpt_ops, created_document_from_file, product_id):
     vendor_service = mpt_vendor.catalog.products.documents(product_id)
     ops_service = mpt_ops.catalog.products.documents(product_id)
@@ -89,6 +97,7 @@ def test_not_found(vendor_document_service):
 
 
 def test_delete_document(vendor_document_service, created_document_from_file):
-    vendor_document_service.delete(created_document_from_file.id)
+    vendor_document_service.delete(created_document_from_file.id)  # act
+
     with pytest.raises(MPTAPIError):
         vendor_document_service.get(created_document_from_file.id)

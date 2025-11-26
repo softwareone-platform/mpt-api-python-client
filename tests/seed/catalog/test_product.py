@@ -29,15 +29,16 @@ async def test_get_product(context: Context, vendor_client, product, products_se
     products_service.get.return_value = product
     vendor_client.catalog.products = products_service
 
-    fetched_product = await get_product(context=context, mpt_vendor=vendor_client)
+    result = await get_product(context=context, mpt_vendor=vendor_client)
 
-    assert fetched_product == product
+    assert result == product
     assert context.get_resource("catalog.product", product.id) == product
 
 
 async def test_get_product_without_id(context: Context) -> None:
-    product = await get_product(context=context)
-    assert product is None
+    result = await get_product(context=context)
+
+    assert result is None
 
 
 async def test_get_or_create_product_create_new(
@@ -52,8 +53,9 @@ async def test_get_or_create_product_create_new(
         patch("seed.catalog.product.icon", new=MagicMock()),
         patch("pathlib.Path.open", return_value=fake_icon_bytes),
     ):
-        created = await init_product(context, mpt_vendor=vendor_client)
-        assert created == product
+        result = await init_product(context, mpt_vendor=vendor_client)
+
+        assert result == product
         products_service.create.assert_called_once()
 
 
@@ -66,16 +68,18 @@ async def test_review_product_draft_status(
     with (
         patch("seed.catalog.product.get_product", return_value=product),
     ):
-        reviewed = await review_product(context, mpt_vendor=vendor_client)
-        assert reviewed == product
+        result = await review_product(context, mpt_vendor=vendor_client)
+
+        assert result == product
         products_service.review.assert_called_once()
 
 
 async def test_review_product_non_draft_status(product) -> None:
     product.status = "Published"
     with patch("seed.catalog.product.get_product", return_value=product):
-        unchanged = await review_product()
-        assert unchanged == product
+        result = await review_product()
+
+        assert result == product
 
 
 async def test_publish_product_reviewing_status(context, operations_client, product) -> None:
@@ -84,16 +88,18 @@ async def test_publish_product_reviewing_status(context, operations_client, prod
     with (
         patch("seed.catalog.product.get_product", return_value=product),
     ):
-        published = await publish_product(context, mpt_operations=operations_client)
-        assert published == product
+        result = await publish_product(context, mpt_operations=operations_client)
+
+        assert result == product
         operations_client.catalog.products.publish.assert_called_once()
 
 
 async def test_publish_product_non_reviewing_status(product) -> None:
     product.status = "Draft"
     with patch("seed.catalog.product.get_product", return_value=product):
-        unchanged = await publish_product()
-        assert unchanged == product
+        result = await publish_product()
+
+        assert result == product
 
 
 async def test_seed_product_sequence() -> None:
@@ -102,7 +108,8 @@ async def test_seed_product_sequence() -> None:
         patch("seed.catalog.product.review_product", new_callable=AsyncMock) as mock_review,
         patch("seed.catalog.product.publish_product", new_callable=AsyncMock) as mock_publish,
     ):
-        await seed_product()
+        await seed_product()  # act
+
         mock_create.assert_called_once()
         mock_review.assert_called_once()
         mock_publish.assert_called_once()

@@ -18,7 +18,9 @@ def async_erp_links_service(async_http_client):
     ["get", "create", "update", "block", "unblock"],
 )
 def test_mixins_present(erp_links_service, method):
-    assert hasattr(erp_links_service, method)
+    result = hasattr(erp_links_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -26,4 +28,6 @@ def test_mixins_present(erp_links_service, method):
     ["get", "create", "update", "block", "unblock"],
 )
 def test_async_mixins_present(async_erp_links_service, method):
-    assert hasattr(async_erp_links_service, method)
+    result = hasattr(async_erp_links_service, method)
+
+    assert result is True

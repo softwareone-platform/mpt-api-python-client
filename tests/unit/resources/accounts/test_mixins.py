@@ -178,14 +178,14 @@ def test_activatable_resource_actions(activatable_service, action, input_status)
                 json=response_expected_data,
             )
         )
-        activatable_obj = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert activatable_obj.to_dict() == response_expected_data
-        assert isinstance(activatable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -208,14 +208,14 @@ def test_activatable_resource_actions_no_data(activatable_service, action, input
                 json=response_expected_data,
             )
         )
-        activatable_obj = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert activatable_obj.to_dict() == response_expected_data
-        assert isinstance(activatable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -238,16 +238,14 @@ async def test_async_activatable_resource_actions(async_activatable_service, act
                 json=response_expected_data,
             )
         )
-        activatable_obj = await getattr(async_activatable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert activatable_obj.to_dict() == response_expected_data
-        assert isinstance(activatable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -272,16 +270,14 @@ async def test_async_activatable_resource_actions_no_data(
                 json=response_expected_data,
             )
         )
-        activatable_obj = await getattr(async_activatable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert activatable_obj.to_dict() == response_expected_data
-        assert isinstance(activatable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -304,14 +300,14 @@ def test_enablable_resource_actions(enablable_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        enablable_obj = getattr(enablable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(enablable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert enablable_obj.to_dict() == response_expected_data
-        assert isinstance(enablable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -334,14 +330,14 @@ def test_enablable_resource_actions_no_data(enablable_service, action, input_sta
                 json=response_expected_data,
             )
         )
-        enablable_obj = getattr(enablable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(enablable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert enablable_obj.to_dict() == response_expected_data
-        assert isinstance(enablable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -364,16 +360,14 @@ async def test_async_enablable_resource_actions(async_enablable_service, action,
                 json=response_expected_data,
             )
         )
-        enablable_obj = await getattr(async_enablable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_enablable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert enablable_obj.to_dict() == response_expected_data
-        assert isinstance(enablable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -398,16 +392,14 @@ async def test_async_enablable_resource_actions_no_data(
                 json=response_expected_data,
             )
         )
-        enablable_obj = await getattr(async_enablable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_enablable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert enablable_obj.to_dict() == response_expected_data
-        assert isinstance(enablable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -426,14 +418,14 @@ def test_validate_resource_actions(validate_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        validate_obj = getattr(validate_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(validate_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert validate_obj.to_dict() == response_expected_data
-        assert isinstance(validate_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(("action", "input_status"), [("validate", None)])
@@ -450,14 +442,14 @@ def test_validate_resource_actions_no_data(validate_service, action, input_statu
                 json=response_expected_data,
             )
         )
-        validate_obj = getattr(validate_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(validate_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert validate_obj.to_dict() == response_expected_data
-        assert isinstance(validate_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -476,14 +468,14 @@ async def test_async_validate_resource_actions(async_validate_service, action, i
                 json=response_expected_data,
             )
         )
-        validate_obj = await getattr(async_validate_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_validate_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert validate_obj.to_dict() == response_expected_data
-        assert isinstance(validate_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(("action", "input_status"), [("validate", None)])
@@ -502,14 +494,14 @@ async def test_async_validate_resource_actions_no_data(
                 json=response_expected_data,
             )
         )
-        validate_obj = await getattr(async_validate_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_validate_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert validate_obj.to_dict() == response_expected_data
-        assert isinstance(validate_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -532,14 +524,14 @@ def test_blockable_resource_actions(blockable_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        blockable_obj = getattr(blockable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(blockable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -562,14 +554,14 @@ def test_blockable_resource_actions_no_data(blockable_service, action, input_sta
                 json=response_expected_data,
             )
         )
-        blockable_obj = getattr(blockable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(blockable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -592,16 +584,14 @@ async def test_async_blockable_resource_actions(async_blockable_service, action,
                 json=response_expected_data,
             )
         )
-        blockable_obj = await getattr(async_blockable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_blockable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -626,16 +616,14 @@ async def test_async_blockable_resource_actions_no_data(
                 json=response_expected_data,
             )
         )
-        blockable_obj = await getattr(async_blockable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_blockable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -660,14 +648,14 @@ def test_invitable_resource_actions(invitable_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        invitable_obj = getattr(invitable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(invitable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert invitable_obj.to_dict() == response_expected_data
-        assert isinstance(invitable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -692,14 +680,14 @@ def test_invitable_resource_actions_no_data(invitable_service, action, input_sta
                 json=response_expected_data,
             )
         )
-        invitable_obj = getattr(invitable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(invitable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert invitable_obj.to_dict() == response_expected_data
-        assert isinstance(invitable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -724,16 +712,15 @@ async def test_async_invitable_resource_actions(async_invitable_service, action,
                 json=response_expected_data,
             )
         )
-        invitable_obj = await getattr(async_invitable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_invitable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
 
         assert request.content == request_expected_content
-        assert invitable_obj.to_dict() == response_expected_data
-        assert isinstance(invitable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -760,13 +747,11 @@ async def test_async_invitable_resource_actions_no_data(
                 json=response_expected_data,
             )
         )
-        invitable_obj = await getattr(async_invitable_service, action)(
-            "OBJ-0000-0001", input_status
-        )
+
+        result = await getattr(async_invitable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert invitable_obj.to_dict() == response_expected_data
-        assert isinstance(invitable_obj, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)

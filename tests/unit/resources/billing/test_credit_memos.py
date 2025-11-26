@@ -25,7 +25,9 @@ def async_credit_memos_service(async_http_client):
     ["get", "create", "update"],
 )
 def test_mixins_present(credit_memos_service, method):
-    assert hasattr(credit_memos_service, method)
+    result = hasattr(credit_memos_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -33,7 +35,9 @@ def test_mixins_present(credit_memos_service, method):
     ["get", "create", "update"],
 )
 def test_async_mixins_present(async_credit_memos_service, method):
-    assert hasattr(async_credit_memos_service, method)
+    result = hasattr(async_credit_memos_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -43,10 +47,10 @@ def test_async_mixins_present(async_credit_memos_service, method):
     ],
 )
 def test_property_services(credit_memos_service, service_method, expected_service_class):
-    service = getattr(credit_memos_service, service_method)("CRM-0000-0001")
+    result = getattr(credit_memos_service, service_method)("CRM-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"credit_memo_id": "CRM-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"credit_memo_id": "CRM-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -58,7 +62,7 @@ def test_property_services(credit_memos_service, service_method, expected_servic
 def test_async_property_services(
     async_credit_memos_service, service_method, expected_service_class
 ):
-    service = getattr(async_credit_memos_service, service_method)("CRM-0000-0001")
+    result = getattr(async_credit_memos_service, service_method)("CRM-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"credit_memo_id": "CRM-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"credit_memo_id": "CRM-0000-0001"}

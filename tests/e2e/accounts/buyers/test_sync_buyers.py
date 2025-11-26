@@ -24,14 +24,17 @@ def created_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon):
 
 
 def test_get_buyer_by_id(mpt_ops, buyer_id):
-    buyer = mpt_ops.accounts.buyers.get(buyer_id)
-    assert buyer is not None
+    result = mpt_ops.accounts.buyers.get(buyer_id)
+
+    assert result is not None
 
 
 def test_list_buyers(mpt_ops):
     limit = 10
-    buyers = mpt_ops.accounts.buyers.fetch_page(limit=limit)
-    assert len(buyers) > 0
+
+    result = mpt_ops.accounts.buyers.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 def test_get_buyer_by_id_not_found(mpt_ops, invalid_buyer_id):
@@ -41,25 +44,25 @@ def test_get_buyer_by_id_not_found(mpt_ops, invalid_buyer_id):
 
 def test_filter_buyers(mpt_ops, buyer_id):
     select_fields = ["-address"]
-
     filtered_buyers = (
         mpt_ops.accounts.buyers.filter(RQLQuery(id=buyer_id))
         .filter(RQLQuery(name="E2E Seeded Buyer"))
         .select(*select_fields)
     )
 
-    buyers = list(filtered_buyers.iterate())
+    result = list(filtered_buyers.iterate())
 
-    assert len(buyers) == 1
+    assert len(result) == 1
 
 
 def test_create_buyer(created_buyer):
-    new_buyer = created_buyer
-    assert new_buyer is not None
+    result = created_buyer
+
+    assert result is not None
 
 
 def test_delete_buyer(mpt_ops, created_buyer):
-    mpt_ops.accounts.buyers.delete(created_buyer.id)
+    mpt_ops.accounts.buyers.delete(created_buyer.id)  # act
 
 
 def test_delete_buyer_not_found(mpt_ops, invalid_buyer_id):
@@ -70,11 +73,9 @@ def test_delete_buyer_not_found(mpt_ops, invalid_buyer_id):
 def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, created_buyer):
     updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
-    updated_buyer = mpt_ops.accounts.buyers.update(
-        created_buyer.id, updated_buyer_data, logo=account_icon
-    )
+    result = mpt_ops.accounts.buyers.update(created_buyer.id, updated_buyer_data, logo=account_icon)
 
-    assert updated_buyer is not None
+    assert result is not None
 
 
 def test_update_buyer_not_found(
@@ -87,9 +88,9 @@ def test_update_buyer_not_found(
 
 
 def test_buyer_disable(mpt_ops, created_buyer):
-    disabled_buyer = mpt_ops.accounts.buyers.disable(created_buyer.id)
+    result = mpt_ops.accounts.buyers.disable(created_buyer.id)
 
-    assert disabled_buyer is not None
+    assert result is not None
 
 
 def test_buyer_disable_not_found(mpt_ops, invalid_buyer_id):
@@ -100,9 +101,9 @@ def test_buyer_disable_not_found(mpt_ops, invalid_buyer_id):
 def test_buyer_enable(mpt_ops, created_buyer):
     mpt_ops.accounts.buyers.disable(created_buyer.id)
 
-    enabled_buyer = mpt_ops.accounts.buyers.enable(created_buyer.id)
+    result = mpt_ops.accounts.buyers.enable(created_buyer.id)
 
-    assert enabled_buyer is not None
+    assert result is not None
 
 
 def test_buyer_enable_not_found(mpt_ops, invalid_buyer_id):

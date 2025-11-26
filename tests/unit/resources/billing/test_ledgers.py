@@ -26,7 +26,9 @@ def async_ledgers_service(async_http_client):
     ["get", "create"],
 )
 def test_mixins_present(ledgers_service, method):
-    assert hasattr(ledgers_service, method)
+    result = hasattr(ledgers_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -34,7 +36,9 @@ def test_mixins_present(ledgers_service, method):
     ["get", "create"],
 )
 def test_async_mixins_present(async_ledgers_service, method):
-    assert hasattr(async_ledgers_service, method)
+    result = hasattr(async_ledgers_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -45,10 +49,10 @@ def test_async_mixins_present(async_ledgers_service, method):
     ],
 )
 def test_property_services(ledgers_service, service_method, expected_service_class):
-    service = getattr(ledgers_service, service_method)("LED-0000-0001")
+    result = getattr(ledgers_service, service_method)("LED-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"ledger_id": "LED-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"ledger_id": "LED-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -59,7 +63,7 @@ def test_property_services(ledgers_service, service_method, expected_service_cla
     ],
 )
 def test_async_property_services(async_ledgers_service, service_method, expected_service_class):
-    service = getattr(async_ledgers_service, service_method)("LED-0000-0001")
+    result = getattr(async_ledgers_service, service_method)("LED-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"ledger_id": "LED-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"ledger_id": "LED-0000-0001"}

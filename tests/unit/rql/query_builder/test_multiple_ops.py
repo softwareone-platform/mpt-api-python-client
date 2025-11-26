@@ -1,7 +1,7 @@
 from mpt_api_client.rql import RQLQuery
 
 
-def test_and_or():  # noqa: WPS218 WPS473
+def test_and_or():  # noqa: WPS218 WPS473 AAA01
     r1 = RQLQuery(id="ID")
     r2 = RQLQuery(field="value")
 
@@ -30,7 +30,7 @@ def test_and_or():  # noqa: WPS218 WPS473
     assert str(r5) == "or(and(eq(id,ID),eq(field,value)),not(eq(other,value2)))"
 
 
-def test_and_merge():  # noqa: WPS210
+def test_and_merge():  # noqa: WPS210  AAA01
     r1 = RQLQuery(id="ID")
     r2 = RQLQuery(name="name")
 

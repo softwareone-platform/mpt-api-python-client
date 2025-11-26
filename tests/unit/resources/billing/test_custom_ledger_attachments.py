@@ -21,22 +21,30 @@ def async_custom_ledger_attachments_service(async_http_client):
 
 
 def test_endpoint(custom_ledger_attachments_service):
-    assert custom_ledger_attachments_service.path == (
+    result = custom_ledger_attachments_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/attachments"
     )
+
+    assert result is True
 
 
 def test_async_endpoint(async_custom_ledger_attachments_service):
-    assert async_custom_ledger_attachments_service.path == (
+    result = async_custom_ledger_attachments_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/attachments"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_methods_present(custom_ledger_attachments_service, method: str):
-    assert hasattr(custom_ledger_attachments_service, method)
+    result = hasattr(custom_ledger_attachments_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_methods_present(async_custom_ledger_attachments_service, method: str):
-    assert hasattr(async_custom_ledger_attachments_service, method)
+    result = hasattr(async_custom_ledger_attachments_service, method)
+
+    assert result is True

@@ -22,10 +22,10 @@ def invalid_response_fixture():
 
 
 def test_meta_from_response(responses_fixture):
-    meta = Meta.from_response(responses_fixture)
+    result = Meta.from_response(responses_fixture)
 
-    assert isinstance(meta.pagination, Pagination)
-    assert meta.pagination == Pagination(limit=25, offset=50, total=300)
+    assert isinstance(result.pagination, Pagination)
+    assert result.pagination == Pagination(limit=25, offset=50, total=300)
 
 
 def test_invalid_meta_from_response(invalid_response_fixture):

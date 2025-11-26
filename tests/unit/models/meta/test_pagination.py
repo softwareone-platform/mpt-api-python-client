@@ -4,24 +4,23 @@ from mpt_api_client.models import Pagination
 
 
 def test_default_page():  # noqa: WPS218
-    pagination = Pagination()
+    result = Pagination()
 
-    assert pagination.limit == 0
-    assert pagination.offset == 0
-    assert pagination.total == 0
-
-    assert pagination.has_next() is False
-    assert pagination.num_page() == 0
-    assert pagination.total_pages() == 0
-    assert pagination.next_offset() == 0
+    assert result.limit == 0
+    assert result.offset == 0
+    assert result.total == 0
+    assert result.has_next() is False
+    assert result.num_page() == 0
+    assert result.total_pages() == 0
+    assert result.next_offset() == 0
 
 
 def test_pagination_initialization():
-    pagination = Pagination(limit=10, offset=0, total=100)
+    result = Pagination(limit=10, offset=0, total=100)
 
-    assert pagination.limit == 10
-    assert pagination.offset == 0
-    assert pagination.total == 100
+    assert result.limit == 10
+    assert result.offset == 0
+    assert result.total == 100
 
 
 @pytest.mark.parametrize(
@@ -37,9 +36,9 @@ def test_has_next(mocker, num_page, total_pages, expected_has_next):
     mocker.patch.object(pagination, "num_page", return_value=num_page)
     mocker.patch.object(pagination, "total_pages", return_value=total_pages)
 
-    has_next = pagination.has_next()
+    result = pagination.has_next()
 
-    assert has_next == expected_has_next
+    assert result == expected_has_next
 
 
 @pytest.mark.parametrize(
@@ -55,7 +54,9 @@ def test_has_next(mocker, num_page, total_pages, expected_has_next):
 def test_num_page(limit, offset, expected_page):
     pagination = Pagination(limit=limit, offset=offset, total=5)
 
-    assert pagination.num_page() == expected_page
+    result = pagination.num_page()
+
+    assert result == expected_page
 
 
 @pytest.mark.parametrize(
@@ -70,7 +71,9 @@ def test_num_page(limit, offset, expected_page):
 def test_total_pages(limit, total, expected_total_pages):
     pagination = Pagination(limit=limit, offset=0, total=total)
 
-    assert pagination.total_pages() == expected_total_pages
+    result = pagination.total_pages()
+
+    assert result == expected_total_pages
 
 
 @pytest.mark.parametrize(
@@ -84,4 +87,6 @@ def test_total_pages(limit, total, expected_total_pages):
 def test_next_offset(limit, offset, expected_next_offset):
     pagination = Pagination(limit=limit, offset=offset, total=3)
 
-    assert pagination.next_offset() == expected_next_offset
+    result = pagination.next_offset()
+
+    assert result == expected_next_offset

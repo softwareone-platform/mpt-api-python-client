@@ -12,31 +12,34 @@ class ParametrisedDummyService(  # noqa: WPS215
 
 
 def test_endpoint(http_client):
-    service = ParametrisedDummyService(
+    result = ParametrisedDummyService(
         http_client=http_client, endpoint_params={"version": "vLatest", "tenant": "T-123"}
     )
 
-    assert service.endpoint_params == {"version": "vLatest", "tenant": "T-123"}
-    assert service.path == "/api/vLatest/test/T-123"
+    assert result.endpoint_params == {"version": "vLatest", "tenant": "T-123"}
+    assert result.path == "/api/vLatest/test/T-123"
 
 
 def test_endpoint_with_multiple_params(http_client):
-    service = ParametrisedDummyService(
+    result = ParametrisedDummyService(
         http_client=http_client, endpoint_params={"version": "v2", "tenant": "test-tenant"}
     )
 
-    assert service.path == "/api/v2/test/test-tenant"
+    assert result.path == "/api/v2/test/test-tenant"
 
 
 def test_build_url_no_query_params(dummy_service):
-    url = dummy_service.build_path()
-    assert url == "/api/v1/test"
+    result = dummy_service.build_path()
+
+    assert result == "/api/v1/test"
 
 
 def test_build_url_with_query_params(dummy_service):
     query_params = {"limit": "10", "offset": "20"}
-    url = dummy_service.build_path(query_params)
-    assert url == "/api/v1/test?limit=10&offset=20"
+
+    result = dummy_service.build_path(query_params)
+
+    assert result == "/api/v1/test?limit=10&offset=20"
 
 
 def test_build_url_with_query_state(http_client, filter_status_active):
@@ -47,8 +50,9 @@ def test_build_url_with_query_state(http_client, filter_status_active):
         ),
     )
 
-    url = service_with_state.build_path()
-    assert url == "/api/v1/test?order=created,-name&select=id,name&eq(status,active)"
+    result = service_with_state.build_path()
+
+    assert result == "/api/v1/test?order=created,-name&select=id,name&eq(status,active)"
 
 
 def test_build_url_with_query_state_and_params(http_client, filter_status_active):
@@ -57,10 +61,11 @@ def test_build_url_with_query_state_and_params(http_client, filter_status_active
         query_state=QueryState(rql=filter_status_active),
         endpoint_params={"version": "v2", "tenant": "T-123"},
     )
-
     query_params = {"limit": "5"}
-    url = service_with_state.build_path(query_params)
-    assert url == "/api/v2/test/T-123?limit=5&eq(status,active)"
+
+    result = service_with_state.build_path(query_params)
+
+    assert result == "/api/v2/test/T-123?limit=5&eq(status,active)"
 
 
 def test_build_url_with_chained_methods(dummy_service, filter_status_active):
@@ -70,8 +75,9 @@ def test_build_url_with_chained_methods(dummy_service, filter_status_active):
         .select("id", "name", "-audit")
     )
 
-    url = chained_service.build_path({"limit": "10"})
+    result = chained_service.build_path({"limit": "10"})
+
     expected_url = (
         "/api/v1/test?limit=10&order=-created,name&select=id,name,-audit&eq(status,active)"
     )
-    assert url == expected_url
+    assert result == expected_url

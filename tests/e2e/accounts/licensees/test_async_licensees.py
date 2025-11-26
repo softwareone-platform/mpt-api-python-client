@@ -23,14 +23,17 @@ async def async_created_licensee(async_mpt_client, licensee_factory, account_ico
 
 
 async def test_get_licensee_by_id(async_mpt_client, licensee_id):
-    licensee = await async_mpt_client.accounts.licensees.get(licensee_id)
-    assert licensee is not None
+    result = await async_mpt_client.accounts.licensees.get(licensee_id)
+
+    assert result is not None
 
 
 async def test_list_licensees(async_mpt_client):
     limit = 10
-    licensees = await async_mpt_client.accounts.licensees.fetch_page(limit=limit)
-    assert len(licensees) > 0
+
+    result = await async_mpt_client.accounts.licensees.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 async def test_get_licensee_by_id_not_found(async_mpt_client, invalid_licensee_id):
@@ -40,22 +43,21 @@ async def test_get_licensee_by_id_not_found(async_mpt_client, invalid_licensee_i
 
 async def test_filter_licensees(async_mpt_client, licensee_id):
     select_fields = ["-address"]
-
     async_filtered_licensees = (
         async_mpt_client.accounts.licensees.filter(RQLQuery(id=licensee_id))
         .filter(RQLQuery(name="E2E Seeded Licensee"))
         .select(*select_fields)
     )
 
-    licensees = [
-        filtered_licensee async for filtered_licensee in async_filtered_licensees.iterate()
-    ]
+    result = [filtered_licensee async for filtered_licensee in async_filtered_licensees.iterate()]
 
-    assert len(licensees) == 1
+    assert len(result) == 1
 
 
 def test_create_licensee(async_created_licensee):
-    assert async_created_licensee is not None
+    result = async_created_licensee
+
+    assert result is not None
 
 
 async def test_delete_licensee(async_mpt_client, async_created_licensee):
@@ -72,11 +74,11 @@ async def test_update_licensee(
 ):
     updated_licensee_data = licensee_factory(name="E2E Updated Licensee")
 
-    updated_licensee = await async_mpt_client.accounts.licensees.update(
+    result = await async_mpt_client.accounts.licensees.update(
         async_created_licensee.id, updated_licensee_data, logo=account_icon
     )
 
-    assert updated_licensee is not None
+    assert result is not None
 
 
 async def test_update_licensee_not_found(
@@ -91,9 +93,9 @@ async def test_update_licensee_not_found(
 
 
 async def test_licensee_disable(async_mpt_client, async_created_licensee):
-    disabled_licensee = await async_mpt_client.accounts.licensees.disable(async_created_licensee.id)
+    result = await async_mpt_client.accounts.licensees.disable(async_created_licensee.id)
 
-    assert disabled_licensee is not None
+    assert result is not None
 
 
 async def test_licensee_disable_not_found(async_mpt_client, invalid_licensee_id):
@@ -104,9 +106,9 @@ async def test_licensee_disable_not_found(async_mpt_client, invalid_licensee_id)
 async def test_licensee_enable(async_mpt_client, async_created_licensee):
     await async_mpt_client.accounts.licensees.disable(async_created_licensee.id)
 
-    enabled_licensee = await async_mpt_client.accounts.licensees.enable(async_created_licensee.id)
+    result = await async_mpt_client.accounts.licensees.enable(async_created_licensee.id)
 
-    assert enabled_licensee is not None
+    assert result is not None
 
 
 async def test_licensee_enable_not_found(async_mpt_client, invalid_licensee_id):

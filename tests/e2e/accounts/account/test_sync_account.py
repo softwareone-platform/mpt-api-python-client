@@ -26,29 +26,31 @@ def test_get_account_by_id_not_found(mpt_ops):
 
 
 def test_get_account_by_id(mpt_ops, account_id):
-    account = mpt_ops.accounts.accounts.get(account_id)
-    assert account is not None
+    result = mpt_ops.accounts.accounts.get(account_id)
+
+    assert result is not None
 
 
 def test_list_accounts(mpt_ops):
     limit = 10
-    accounts_page = mpt_ops.accounts.accounts.fetch_page(limit=limit)
-    assert len(accounts_page) > 0
+
+    result = mpt_ops.accounts.accounts.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 def test_create_account(created_account):
-    account = created_account
-    assert account is not None
+    result = created_account
+
+    assert result is not None
 
 
 def test_update_account(mpt_ops, created_account, account_factory, account_icon):
     updated_data = account_factory(name="Updated Account Name")
 
-    updated_account = mpt_ops.accounts.accounts.update(
-        created_account.id, updated_data, logo=account_icon
-    )
+    result = mpt_ops.accounts.accounts.update(created_account.id, updated_data, logo=account_icon)
 
-    assert updated_account is not None
+    assert result is not None
 
 
 def test_update_account_invalid_data(mpt_ops, account_factory, created_account, account_icon):
@@ -70,9 +72,9 @@ def test_update_account_not_found(mpt_ops, account_factory, invalid_account_id, 
 def test_account_enable(mpt_ops, account_factory, created_account):
     mpt_ops.accounts.accounts.disable(created_account.id)
 
-    account = mpt_ops.accounts.accounts.enable(created_account.id)
+    result = mpt_ops.accounts.accounts.enable(created_account.id)
 
-    assert account is not None
+    assert result is not None
 
 
 def test_account_enable_not_found(mpt_ops, invalid_account_id):
@@ -81,9 +83,9 @@ def test_account_enable_not_found(mpt_ops, invalid_account_id):
 
 
 def test_account_disable(mpt_ops, created_account):
-    account = mpt_ops.accounts.accounts.disable(created_account.id)
+    result = mpt_ops.accounts.accounts.disable(created_account.id)
 
-    assert account is not None
+    assert result is not None
 
 
 def test_account_disable_not_found(mpt_ops, invalid_account_id):
@@ -99,6 +101,6 @@ def test_account_rql_filter(mpt_ops, account_id):
         .select(*selected_fields)
     )
 
-    accounts = list(filtered_accounts.iterate())
+    result = list(filtered_accounts.iterate())
 
-    assert len(accounts) > 0
+    assert len(result) > 0

@@ -10,11 +10,11 @@ from mpt_api_client.exceptions import (
 
 
 def test_http_error():
-    exception = MPTHttpError(status_code=400, message="Bad request", body="Content")
+    result = MPTHttpError(status_code=400, message="Bad request", body="Content")
 
-    assert exception.status_code == 400
-    assert exception.body == "Content"
-    assert str(exception) == "HTTP 400: Bad request"
+    assert result.status_code == 400
+    assert result.body == "Content"
+    assert str(result) == "HTTP 400: Bad request"
 
 
 def test_http_error_not_found_from_mpt():  # noqa: WPS218
@@ -28,16 +28,16 @@ def test_http_error_not_found_from_mpt():  # noqa: WPS218
         "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
     )
 
-    exception = MPTAPIError(status_code=status_code, message=message, payload=payload)
+    result = MPTAPIError(status_code=status_code, message=message, payload=payload)
 
-    assert exception.status_code == status_code
-    assert exception.payload == payload
-    assert exception.status == api_status_code
-    assert exception.title == "Resource not found"
-    assert exception.detail == message
-    assert exception.trace_id is None
-    assert exception.errors is None
-    assert str(exception) == f"404 Resource not found - {message} (no-trace-id)"
+    assert result.status_code == status_code
+    assert result.payload == payload
+    assert result.status == api_status_code
+    assert result.title == "Resource not found"
+    assert result.detail == message
+    assert result.trace_id is None
+    assert result.errors is None
+    assert str(result) == f"404 Resource not found - {message} (no-trace-id)"
 
 
 def test_api_error():  # noqa: WPS218
@@ -48,15 +48,16 @@ def test_api_error():  # noqa: WPS218
         "traceId": "abc123",
         "errors": "Some error details",
     }
-    exception = MPTAPIError(status_code=400, message="Bad Request", payload=payload)
 
-    assert exception.status_code == 400
-    assert exception.payload == payload
-    assert exception.status == "400"
-    assert exception.title == "Bad Request"
-    assert exception.detail == "Invalid input"
-    assert exception.trace_id == "abc123"
-    assert exception.errors == "Some error details"
+    result = MPTAPIError(status_code=400, message="Bad Request", payload=payload)
+
+    assert result.status_code == 400
+    assert result.payload == payload
+    assert result.status == "400"
+    assert result.title == "Bad Request"
+    assert result.detail == "Invalid input"
+    assert result.trace_id == "abc123"
+    assert result.errors == "Some error details"
 
 
 def test_api_error_str_and_repr():
@@ -67,10 +68,11 @@ def test_api_error_str_and_repr():
         "traceId": "abc123",
         "errors": "Some error details",
     }
-    exception = MPTAPIError(status_code=400, message="Bad request", payload=payload)
 
-    assert str(exception) == '400 Bad Request - Invalid input (abc123)\n"Some error details"'
-    assert repr(exception) == (
+    result = MPTAPIError(status_code=400, message="Bad request", payload=payload)
+
+    assert str(result) == '400 Bad Request - Invalid input (abc123)\n"Some error details"'
+    assert repr(result) == (
         "{'status': '400', 'title': 'Bad Request', 'detail': 'Invalid input', "
         "'traceId': 'abc123', 'errors': 'Some error details'}"
     )
@@ -84,9 +86,9 @@ def test_api_error_str_no_errors():
         "traceId": "abc123",
     }
 
-    exception = MPTAPIError(status_code=400, message="Bad request", payload=payload)
+    result = MPTAPIError(status_code=400, message="Bad request", payload=payload)
 
-    assert str(exception) == "400 Bad Request - Invalid input (abc123)"
+    assert str(result) == "400 Bad Request - Invalid input (abc123)"
 
 
 def test_transform_http_status_exception_api():
@@ -105,11 +107,11 @@ def test_transform_http_status_exception_api():
     )
     exc = HTTPStatusError("error", request=response.request, response=response)
 
-    err = transform_http_status_exception(exc)
+    result = transform_http_status_exception(exc)
 
-    assert isinstance(err, MPTAPIError)
-    assert err.status_code == 400
-    assert err.payload == payload
+    assert isinstance(result, MPTAPIError)
+    assert result.status_code == 400
+    assert result.payload == payload
 
 
 def test_transform_http_status_exception():
@@ -121,9 +123,9 @@ def test_transform_http_status_exception():
     )
     exc = HTTPStatusError("Error message", request=response.request, response=response)
 
-    err = transform_http_status_exception(exc)
+    result = transform_http_status_exception(exc)
 
-    assert isinstance(err, MPTHttpError)
-    assert err.status_code == 500
-    assert err.body == "Internal Server Error"
-    assert str(err) == "HTTP 500: Error message"
+    assert isinstance(result, MPTHttpError)
+    assert result.status_code == 500
+    assert result.body == "Internal Server Error"
+    assert str(result) == "HTTP 500: Error message"

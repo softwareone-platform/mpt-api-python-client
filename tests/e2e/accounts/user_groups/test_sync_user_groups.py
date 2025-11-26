@@ -20,14 +20,17 @@ def created_user_group(mpt_ops, user_group_factory):
 
 
 def test_get_user_group_by_id(mpt_ops, user_group_id):
-    user_group = mpt_ops.accounts.user_groups.get(user_group_id)
-    assert user_group is not None
+    result = mpt_ops.accounts.user_groups.get(user_group_id)
+
+    assert result is not None
 
 
 def test_list_user_groups(mpt_ops):
     limit = 10
-    user_groups = mpt_ops.accounts.user_groups.fetch_page(limit=limit)
-    assert len(user_groups) > 0
+
+    result = mpt_ops.accounts.user_groups.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 def test_get_user_group_by_id_not_found(mpt_ops, invalid_user_group_id):
@@ -37,25 +40,25 @@ def test_get_user_group_by_id_not_found(mpt_ops, invalid_user_group_id):
 
 def test_filter_user_groups(mpt_ops, user_group_id):
     select_fields = ["-name"]
-
     filtered_user_groups = (
         mpt_ops.accounts.user_groups.filter(RQLQuery(id=user_group_id))
         .filter(RQLQuery(name="E2E Seeded User Group"))
         .select(*select_fields)
     )
 
-    user_groups = list(filtered_user_groups.iterate())
+    result = list(filtered_user_groups.iterate())
 
-    assert len(user_groups) == 1
+    assert len(result) == 1
 
 
 def test_create_user_group(created_user_group):
-    new_user_group = created_user_group
-    assert new_user_group is not None
+    result = created_user_group
+
+    assert result is not None
 
 
 def test_delete_user_group(mpt_ops, created_user_group):
-    mpt_ops.accounts.user_groups.delete(created_user_group.id)
+    mpt_ops.accounts.user_groups.delete(created_user_group.id)  # act
 
 
 def test_delete_user_group_not_found(mpt_ops, invalid_user_group_id):
@@ -66,11 +69,9 @@ def test_delete_user_group_not_found(mpt_ops, invalid_user_group_id):
 def test_update_user_group(mpt_ops, user_group_factory, created_user_group):
     updated_user_group_data = user_group_factory(name="E2E Updated User Group")
 
-    updated_user_group = mpt_ops.accounts.user_groups.update(
-        created_user_group.id, updated_user_group_data
-    )
+    result = mpt_ops.accounts.user_groups.update(created_user_group.id, updated_user_group_data)
 
-    assert updated_user_group is not None
+    assert result is not None
 
 
 def test_update_user_group_not_found(mpt_ops, user_group_factory, invalid_user_group_id):

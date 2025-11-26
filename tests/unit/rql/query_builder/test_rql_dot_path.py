@@ -11,28 +11,30 @@ def test_dotted_path_comp(op):
     class Test:  # noqa: WPS431
         pass  # noqa: WPS604 WPS420
 
+    # BL
     test = Test()
     today = dt.datetime.now(dt.UTC).date()
     now = dt.datetime.now(dt.UTC)
-
     today_expected_result = f"{op}(asset.id,{today.isoformat()})"
     now_expected_result = f"{op}(asset.id,{now.isoformat()})"
 
-    assert str(getattr(RQLQuery().asset.id, op)(today)) == today_expected_result
-    assert str(getattr(RQLQuery().asset.id, op)(now)) == now_expected_result
     with pytest.raises(TypeError):
         getattr(RQLQuery().asset.id, op)(test)
+
+    assert str(getattr(RQLQuery().asset.id, op)(today)) == today_expected_result
+    assert str(getattr(RQLQuery().asset.id, op)(now)) == now_expected_result
 
 
 @pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])
 def test_dotted_path_comp_bool_and_str(op):
-    attribute_op_match = getattr(RQLQuery().asset.id, op)
-    assert str(attribute_op_match("value")) == f"{op}(asset.id,value)"
-    assert str(attribute_op_match(True)) == f"{op}(asset.id,true)"  # noqa: FBT003
-    assert str(attribute_op_match(False)) == f"{op}(asset.id,false)"  # noqa: FBT003
+    result = getattr(RQLQuery().asset.id, op)
+
+    assert str(result("value")) == f"{op}(asset.id,value)"
+    assert str(result(True)) == f"{op}(asset.id,true)"  # noqa: FBT003
+    assert str(result(False)) == f"{op}(asset.id,false)"  # noqa: FBT003
 
 
-@pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])
+@pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])  # noqa: AAA01
 def test_dotted_path_comp_numerics(op):
     decimal_object = Decimal("32983.328238273")
     attribute_op_match = getattr(RQLQuery().asset.id, op)
@@ -48,11 +50,12 @@ def test_dotted_path_comp_numerics(op):
 
 @pytest.mark.parametrize("op", ["like", "ilike"])
 def test_dotted_path_search(op):
-    attribute_op_match = getattr(RQLQuery().asset.id, op)
-    assert str(attribute_op_match("value")) == f"{op}(asset.id,value)"
-    assert str(attribute_op_match("*value")) == f"{op}(asset.id,*value)"
-    assert str(attribute_op_match("value*")) == f"{op}(asset.id,value*)"
-    assert str(attribute_op_match("*value*")) == f"{op}(asset.id,*value*)"
+    result = getattr(RQLQuery().asset.id, op)
+
+    assert str(result("value")) == f"{op}(asset.id,value)"
+    assert str(result("*value")) == f"{op}(asset.id,*value)"
+    assert str(result("value*")) == f"{op}(asset.id,value*)"
+    assert str(result("*value*")) == f"{op}(asset.id,*value*)"
 
 
 @pytest.mark.parametrize(
@@ -63,14 +66,15 @@ def test_dotted_path_search(op):
         ("out", "out"),
     ],
 )
-def test_dotted_path_list(method, op):
+def test_dotted_path_list(method, op):  # noqa: AAA01
     rexpr_set = getattr(RQLQuery().asset.id, method)(("first", "second"))
     rexpr_list = getattr(RQLQuery().asset.id, method)(["first", "second"])
 
-    assert str(rexpr_set) == f"{op}(asset.id,(first,second))"
-    assert str(rexpr_list) == f"{op}(asset.id,(first,second))"
     with pytest.raises(TypeError):
         getattr(RQLQuery().asset.id, method)("Test")
+
+    assert str(rexpr_set) == f"{op}(asset.id,(first,second))"
+    assert str(rexpr_list) == f"{op}(asset.id,(first,second))"
 
 
 @pytest.mark.parametrize(
@@ -85,9 +89,10 @@ def test_dotted_path_list(method, op):
 def test_dotted_path_bool(expr, expression_param, expected_op):
     expected_result = f"{expected_op}(asset.id,{expr}())"
     attribute = getattr(RQLQuery().asset.id, expr)
-    result_dotted_path = str(attribute(expression_param))
 
-    assert result_dotted_path == expected_result
+    result = str(attribute(expression_param))
+
+    assert result == expected_result
 
 
 def test_dotted_path_already_evaluated():

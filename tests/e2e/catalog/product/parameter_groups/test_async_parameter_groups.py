@@ -16,22 +16,28 @@ async def async_created_parameter_group(logger, async_mpt_vendor, product_id, pa
 
 @pytest.mark.flaky
 def test_create_parameter_group(async_created_parameter_group):
-    assert async_created_parameter_group.name == "e2e - please delete"
+    result = async_created_parameter_group.name == "e2e - please delete"
+
+    assert result is True
 
 
 @pytest.mark.flaky
 async def test_update_parameter_group(async_mpt_vendor, product_id, async_created_parameter_group):
     service = async_mpt_vendor.catalog.products.parameter_groups(product_id)
     update_data = {"name": "e2e - delete me (updated)"}
-    group = await service.update(async_created_parameter_group.id, update_data)
-    assert group.name == "e2e - delete me (updated)"
+
+    result = await service.update(async_created_parameter_group.id, update_data)
+
+    assert result.name == "e2e - delete me (updated)"
 
 
 @pytest.mark.flaky
 async def test_get_parameter_group(async_mpt_vendor, product_id, parameter_group_id):
     service = async_mpt_vendor.catalog.products.parameter_groups(product_id)
-    group = await service.get(parameter_group_id)
-    assert group.id == parameter_group_id
+
+    result = await service.get(parameter_group_id)
+
+    assert result.id == parameter_group_id
 
 
 @pytest.mark.flaky
@@ -40,12 +46,16 @@ async def test_iterate_parameter_groups(
 ):
     service = async_mpt_vendor.catalog.products.parameter_groups(product_id)
     groups = [group async for group in service.iterate()]
-    assert any(group.id == async_created_parameter_group.id for group in groups)
+
+    result = any(group.id == async_created_parameter_group.id for group in groups)
+
+    assert result is True
 
 
 @pytest.mark.flaky
 async def test_delete_parameter_group(async_mpt_vendor, product_id, async_created_parameter_group):
     service = async_mpt_vendor.catalog.products.parameter_groups(product_id)
     await service.delete(async_created_parameter_group.id)
+
     with pytest.raises(MPTAPIError):
         await service.get(async_created_parameter_group.id)

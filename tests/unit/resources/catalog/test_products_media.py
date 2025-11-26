@@ -19,22 +19,30 @@ def async_media_service(async_http_client) -> AsyncMediaService:
 
 
 def test_endpoint(media_service) -> None:
-    assert media_service.path == "/public/v1/catalog/products/PRD-001/media"
+    result = media_service.path == "/public/v1/catalog/products/PRD-001/media"
+
+    assert result is True
 
 
 def test_async_endpoint(async_media_service) -> None:
-    assert async_media_service.path == "/public/v1/catalog/products/PRD-001/media"
+    result = async_media_service.path == "/public/v1/catalog/products/PRD-001/media"
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
 )
 def test_methods_present(media_service, method: str) -> None:
-    assert hasattr(media_service, method)
+    result = hasattr(media_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
 )
 def test_async_methods_present(async_media_service, method: str) -> None:
-    assert hasattr(async_media_service, method)
+    result = hasattr(async_media_service, method)
+
+    assert result is True

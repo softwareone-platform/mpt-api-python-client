@@ -33,36 +33,43 @@ async def created_document_from_link_async(logger, async_document_service, docum
         print(f"TEARDOWN - Unable to delete document {document.id}: {error.title}")
 
 
-def test_create_document_async(created_document_from_file_async, document_data):
+def test_create_document_async(created_document_from_file_async, document_data):  # noqa: AAA01
     assert created_document_from_file_async.name == document_data["name"]
     assert created_document_from_file_async.description == document_data["description"]
 
 
-def test_create_from_link_async(created_document_from_link_async, pdf_url, document_data):
+def test_create_from_link_async(created_document_from_link_async, pdf_url, document_data):  # noqa: AAA01
     assert created_document_from_link_async.name == document_data["name"]
     assert created_document_from_link_async.description == document_data["description"]
 
 
 async def test_update_document_async(async_document_service, created_document_from_file_async):
     update_data = {"name": "Updated e2e test document - please delete"}
-    document = await async_document_service.update(created_document_from_file_async.id, update_data)
-    assert document.name == update_data["name"]
+
+    result = await async_document_service.update(created_document_from_file_async.id, update_data)
+
+    assert result.name == update_data["name"]
 
 
 async def test_get_document_async(async_document_service, document_id):
-    document = await async_document_service.get(document_id)
-    assert document.id == document_id
+    result = await async_document_service.get(document_id)
+
+    assert result.id == document_id
 
 
 async def test_download_document_async(async_document_service, document_id):
-    file_response = await async_document_service.download(document_id)
-    assert file_response.file_contents is not None
-    assert file_response.filename == "pdf - empty.pdf"
+    result = await async_document_service.download(document_id)
+
+    assert result.file_contents is not None
+    assert result.filename == "pdf - empty.pdf"
 
 
 async def test_iterate_documents_async(async_document_service, created_document_from_file_async):
     documents = [doc async for doc in async_document_service.iterate()]
-    assert any(doc.id == created_document_from_file_async.id for doc in documents)
+
+    result = any(doc.id == created_document_from_file_async.id for doc in documents)
+
+    assert result is True
 
 
 async def test_filter_documents_async(async_document_service, created_document_from_file_async):

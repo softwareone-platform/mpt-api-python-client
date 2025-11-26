@@ -23,7 +23,7 @@ def mock_response(mock_request):
 def test_async_http_initialization(mocker):
     mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
 
-    AsyncHTTPClient(base_url=API_URL, api_token=API_TOKEN)
+    AsyncHTTPClient(base_url=API_URL, api_token=API_TOKEN)  # act
 
     mock_async_client.assert_called_once_with(
         base_url=API_URL,
@@ -43,7 +43,7 @@ def test_async_env_initialization(monkeypatch, mocker):
     monkeypatch.setenv("MPT_URL", API_URL)
     mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
 
-    AsyncHTTPClient()
+    AsyncHTTPClient()  # act
 
     mock_async_client.assert_called_once_with(
         base_url=API_URL,
@@ -72,10 +72,10 @@ def test_async_http_without_url():
 async def test_async_http_call_success(async_http_client, mock_response):
     success_route = respx.get(f"{API_URL}/").mock(return_value=mock_response)
 
-    success_response = await async_http_client.request("GET", "/")
+    result = await async_http_client.request("GET", "/")
 
-    assert success_response.status_code == codes.OK
-    assert json.loads(success_response.content) == {"message": "Hello, World!"}
+    assert result.status_code == codes.OK
+    assert json.loads(result.content) == {"message": "Hello, World!"}
     assert success_route.called
 
 
@@ -92,18 +92,17 @@ async def test_async_http_call_failure(async_http_client):
 async def test_http_call_with_json_and_files(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210
     json_data = {"foo": "bar"}
     files = {"file": ("test.txt", io.StringIO("file content"), "text/plain")}
-
     parent_request = mocker.patch.object(
         async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
     )
-    await async_http_client.request("POST", "/upload", files=files, json=json_data)
+
+    await async_http_client.request("POST", "/upload", files=files, json=json_data)  # act
 
     called_kwargs = parent_request.call_args[1]
     assert called_kwargs["json"] is None
     sent_files = called_kwargs["files"]
     assert "file" in sent_files
     assert "_attachment_data" in sent_files
-
     payload_tuple = sent_files["_attachment_data"]
     assert payload_tuple[2] == "application/json"
     assert payload_tuple[1].decode() == '{"foo":"bar"}'
@@ -111,19 +110,16 @@ async def test_http_call_with_json_and_files(mocker, async_http_client, mock_htt
 
 async def test_http_call_force_multipart(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210
     json_data = {"foo": "bar"}
-
     parent_request = mocker.patch.object(
         async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
     )
 
-    await async_http_client.request("POST", "/upload", json=json_data, force_multipart=True)
+    await async_http_client.request("POST", "/upload", json=json_data, force_multipart=True)  # act
 
     called_kwargs = parent_request.call_args[1]
     sent_files = called_kwargs["files"]
-
     assert called_kwargs["json"] is None
     assert "_attachment_data" in sent_files
-
     payload_tuple = sent_files["_attachment_data"]
     assert payload_tuple[2] == "application/json"
     assert payload_tuple[1].decode() == '{"foo":"bar"}'

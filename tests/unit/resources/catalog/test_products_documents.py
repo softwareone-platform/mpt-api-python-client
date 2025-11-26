@@ -19,22 +19,30 @@ def async_document_service(async_http_client) -> AsyncDocumentService:
 
 
 def test_endpoint(document_service) -> None:
-    assert document_service.path == "/public/v1/catalog/products/PRD-001/documents"
+    result = document_service.path == "/public/v1/catalog/products/PRD-001/documents"
+
+    assert result is True
 
 
 def test_async_endpoint(async_document_service) -> None:
-    assert async_document_service.path == "/public/v1/catalog/products/PRD-001/documents"
+    result = async_document_service.path == "/public/v1/catalog/products/PRD-001/documents"
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
 )
 def test_methods_present(document_service, method: str) -> None:
-    assert hasattr(document_service, method)
+    result = hasattr(document_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
 )
 def test_async_methods_present(async_document_service, method: str) -> None:
-    assert hasattr(async_document_service, method)
+    result = hasattr(async_document_service, method)
+
+    assert result is True

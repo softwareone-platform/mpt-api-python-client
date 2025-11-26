@@ -26,29 +26,33 @@ async def test_get_account_by_id_not_found(async_mpt_ops):
 
 
 async def test_get_account_by_id(async_mpt_ops, account_id):
-    account = await async_mpt_ops.accounts.accounts.get(account_id)
-    assert account is not None
+    result = await async_mpt_ops.accounts.accounts.get(account_id)
+
+    assert result is not None
 
 
 async def test_list_accounts(async_mpt_ops):
     limit = 10
-    accounts_page = await async_mpt_ops.accounts.accounts.fetch_page(limit=limit)
-    assert len(accounts_page) > 0
+
+    result = await async_mpt_ops.accounts.accounts.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 def test_create_account(async_created_account):
-    account = async_created_account
-    assert account is not None
+    result = async_created_account
+
+    assert result is not None
 
 
 async def test_update_account(async_mpt_ops, async_created_account, account_factory, account_icon):
     updated_data = account_factory(name="Updated Account Name")
 
-    updated_account = await async_mpt_ops.accounts.accounts.update(
+    result = await async_mpt_ops.accounts.accounts.update(
         async_created_account.id, updated_data, logo=account_icon
     )
 
-    assert updated_account is not None
+    assert result is not None
 
 
 async def test_update_account_invalid_data(
@@ -76,9 +80,9 @@ async def test_update_account_not_found(
 async def test_account_enable(async_mpt_ops, account_factory, async_created_account):
     await async_mpt_ops.accounts.accounts.disable(async_created_account.id)
 
-    account = await async_mpt_ops.accounts.accounts.enable(async_created_account.id)
+    result = await async_mpt_ops.accounts.accounts.enable(async_created_account.id)
 
-    assert account is not None
+    assert result is not None
 
 
 async def test_account_enable_not_found(async_mpt_ops, invalid_account_id):
@@ -87,9 +91,9 @@ async def test_account_enable_not_found(async_mpt_ops, invalid_account_id):
 
 
 async def test_account_disable(async_mpt_ops, async_created_account):
-    account = await async_mpt_ops.accounts.accounts.disable(async_created_account.id)
+    result = await async_mpt_ops.accounts.accounts.disable(async_created_account.id)
 
-    assert account is not None
+    assert result is not None
 
 
 async def test_account_disable_not_found(async_mpt_ops, invalid_account_id):
@@ -105,6 +109,6 @@ async def test_account_rql_filter(async_mpt_ops, account_id):
         .select(*selected_fields)
     )
 
-    accounts = [account async for account in filtered_accounts.iterate()]
+    result = [account async for account in filtered_accounts.iterate()]
 
-    assert len(accounts) > 0
+    assert len(result) > 0

@@ -23,45 +23,57 @@ async def async_created_term(async_vendor_terms_service, term_data):
 
 
 def test_create_term(async_created_term):
-    term = async_created_term
-    assert term.name == "e2e - please delete"
+    result = async_created_term
+
+    assert result.name == "e2e - please delete"
 
 
 async def test_update_term(async_vendor_terms_service, async_created_term):
     service = async_vendor_terms_service
     update_data = {"name": "e2e - delete me (updated)"}
-    term = await service.update(async_created_term.id, update_data)
-    assert term.name == "e2e - delete me (updated)"
+
+    result = await service.update(async_created_term.id, update_data)
+
+    assert result.name == "e2e - delete me (updated)"
 
 
 async def test_get_term(async_vendor_terms_service, term_id):
     service = async_vendor_terms_service
-    term = await service.get(term_id)
-    assert term.id == term_id
+
+    result = await service.get(term_id)
+
+    assert result.id == term_id
 
 
 async def test_get_term_by_id(async_vendor_terms_service, term_id):
     service = async_vendor_terms_service
-    term = await service.get(term_id)
-    assert term.id == term_id
+
+    result = await service.get(term_id)
+
+    assert result.id == term_id
 
 
 async def test_iterate_terms(async_vendor_terms_service, async_created_term):
     service = async_vendor_terms_service
-    terms = [term async for term in service.iterate()]
-    assert any(term.id == async_created_term.id for term in terms)
+
+    result = [term async for term in service.iterate()]
+
+    assert any(term.id == async_created_term.id for term in result)
 
 
 async def test_filter_terms(async_vendor_terms_service, term_id):
     select_fields = ["-description"]
     filtered_terms = async_vendor_terms_service.filter(RQLQuery(id=term_id)).select(*select_fields)
-    terms = [term async for term in filtered_terms.iterate()]
-    assert len(terms) == 1
-    assert terms[0].id == term_id
+
+    result = [term async for term in filtered_terms.iterate()]
+
+    assert len(result) == 1
+    assert result[0].id == term_id
 
 
 async def test_delete_term(async_vendor_terms_service, async_created_term):
     service = async_vendor_terms_service
     await service.delete(async_created_term.id)
+
     with pytest.raises(MPTAPIError):
         await service.get(async_created_term.id)

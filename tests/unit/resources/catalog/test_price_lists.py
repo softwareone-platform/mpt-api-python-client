@@ -22,12 +22,16 @@ def async_price_lists_service(http_client):
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_mixins_present(price_lists_service, method):
-    assert hasattr(price_lists_service, method)
+    result = hasattr(price_lists_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_mixins_present(async_price_lists_service, method):
-    assert hasattr(async_price_lists_service, method)
+    result = hasattr(async_price_lists_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -37,10 +41,10 @@ def test_async_mixins_present(async_price_lists_service, method):
     ],
 )
 def test_property_services(price_lists_service, service_method, expected_model_class):
-    property_service = getattr(price_lists_service, service_method)("ITM-0000-0001")
+    result = getattr(price_lists_service, service_method)("ITM-0000-0001")
 
-    assert isinstance(property_service, expected_model_class)
-    assert property_service.endpoint_params == {"price_list_id": "ITM-0000-0001"}
+    assert isinstance(result, expected_model_class)
+    assert result.endpoint_params == {"price_list_id": "ITM-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -50,7 +54,7 @@ def test_property_services(price_lists_service, service_method, expected_model_c
     ],
 )
 def test_async_property_services(async_price_lists_service, service_method, expected_model_class):
-    property_service = getattr(async_price_lists_service, service_method)("ITM-0000-0001")
+    result = getattr(async_price_lists_service, service_method)("ITM-0000-0001")
 
-    assert isinstance(property_service, expected_model_class)
-    assert property_service.endpoint_params == {"price_list_id": "ITM-0000-0001"}
+    assert isinstance(result, expected_model_class)
+    assert result.endpoint_params == {"price_list_id": "ITM-0000-0001"}

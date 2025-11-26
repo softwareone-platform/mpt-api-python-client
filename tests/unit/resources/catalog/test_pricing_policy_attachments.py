@@ -23,28 +23,36 @@ def async_pricing_policy_attachments_service(
 
 
 def test_endpoint(pricing_policy_attachments_service) -> None:
-    assert (
+    result = (
         pricing_policy_attachments_service.path
         == "/public/v1/catalog/pricing-policies/PRP-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 def test_async_endpoint(async_pricing_policy_attachments_service) -> None:
-    assert (
+    result = (
         async_pricing_policy_attachments_service.path
         == "/public/v1/catalog/pricing-policies/PRP-0000-0001/attachments"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "activate", "deactivate"]
 )
 def test_methods_present(pricing_policy_attachments_service, method: str) -> None:
-    assert hasattr(pricing_policy_attachments_service, method)
+    result = hasattr(pricing_policy_attachments_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "activate", "deactivate"]
 )
 def test_async_methods_present(async_pricing_policy_attachments_service, method: str) -> None:
-    assert hasattr(async_pricing_policy_attachments_service, method)
+    result = hasattr(async_pricing_policy_attachments_service, method)
+
+    assert result is True

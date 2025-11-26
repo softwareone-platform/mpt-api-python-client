@@ -18,19 +18,21 @@ def created_product(logger, mpt_vendor, product_data, logo_fd):
 
 @pytest.mark.flaky
 def test_create_product(created_product, product_data):
-    assert created_product.name == product_data["name"]
+    result = created_product.name == product_data["name"]
+
+    assert result is True
 
 
 @pytest.mark.flaky
 def test_update_product(mpt_vendor, created_product, logo_fd):
     update_data = {"name": "Updated Product"}
 
-    product = mpt_vendor.catalog.products.update(created_product.id, update_data, icon=logo_fd)
+    result = mpt_vendor.catalog.products.update(created_product.id, update_data, icon=logo_fd)
 
-    assert product.name == update_data["name"]
+    assert result.name == update_data["name"]
 
 
-@pytest.mark.skip(reason="Leaves test products in the catalog")
+@pytest.mark.skip(reason="Leaves test products in the catalog")  # noqa: AAA01
 @pytest.mark.flaky
 def test_product_review_and_publish(mpt_vendor, mpt_ops, created_product):
     mpt_vendor.catalog.products.review(created_product.id)
@@ -39,23 +41,23 @@ def test_product_review_and_publish(mpt_vendor, mpt_ops, created_product):
 
 @pytest.mark.flaky
 def test_get_product(mpt_vendor, product_id):
-    mpt_vendor.catalog.products.get(product_id)
+    mpt_vendor.catalog.products.get(product_id)  # act
 
 
 @pytest.mark.flaky
 def test_product_save_settings(mpt_vendor, created_product):
-    mpt_vendor.catalog.products.update_settings(created_product.id, {"itemSelection": True})
+    mpt_vendor.catalog.products.update_settings(created_product.id, {"itemSelection": True})  # act
 
 
 @pytest.mark.flaky
 def test_filter_and_select_products(mpt_vendor, product_id):
     select_fields = ["-icon", "-revision", "-settings", "-vendor", "-statistics", "-website"]
-
     filtered_products = (
         mpt_vendor.catalog.products.filter(RQLQuery(id=product_id))
         .filter(RQLQuery(name="E2E Seeded"))
         .select(*select_fields)
     )
 
-    products = list(filtered_products.iterate())
-    assert len(products) == 1
+    result = list(filtered_products.iterate())
+
+    assert len(result) == 1

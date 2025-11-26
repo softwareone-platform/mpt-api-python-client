@@ -21,7 +21,9 @@ def async_manual_overrides_service(http_client):
     ["get", "create", "update"],
 )
 def test_mixins_present(manual_overrides_service, method):
-    assert hasattr(manual_overrides_service, method)
+    result = hasattr(manual_overrides_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -29,4 +31,6 @@ def test_mixins_present(manual_overrides_service, method):
     ["get", "create", "update"],
 )
 def test_async_mixins_present(async_manual_overrides_service, method):
-    assert hasattr(async_manual_overrides_service, method)
+    result = hasattr(async_manual_overrides_service, method)
+
+    assert result is True

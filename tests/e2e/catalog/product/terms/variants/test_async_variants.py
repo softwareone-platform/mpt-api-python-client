@@ -42,12 +42,15 @@ async def created_variant_from_url(
 
 
 def test_create_variant(async_created_variant):
-    variant = async_created_variant
-    assert variant.name == "e2e - please delete"
+    result = async_created_variant
+
+    assert result.name == "e2e - please delete"
 
 
 def test_create_variant_from_url(created_variant_from_url, variant_data):
-    assert created_variant_from_url.name == variant_data["name"]
+    result = created_variant_from_url.name == variant_data["name"]
+
+    assert result is True
 
 
 async def test_update_variant(
@@ -55,32 +58,40 @@ async def test_update_variant(
 ):
     service = async_vendor_variant_service
     update_data = {"name": "e2e - delete me (updated)"}
-    variant = await service.update(async_created_variant.id, update_data)
-    assert variant.name == "e2e - delete me (updated)"
+
+    result = await service.update(async_created_variant.id, update_data)
+
+    assert result.name == "e2e - delete me (updated)"
 
 
 async def test_get_variant(
     async_mpt_vendor, product_id, term_id, variant_id, async_vendor_variant_service
 ):
     service = async_vendor_variant_service
-    variant = await service.get(variant_id)
-    assert variant.id == variant_id
+
+    result = await service.get(variant_id)
+
+    assert result.id == variant_id
 
 
 async def test_get_variant_by_id(
     async_mpt_vendor, product_id, term_id, variant_id, async_vendor_variant_service
 ):
     service = async_vendor_variant_service
-    variant = await service.get(variant_id)
-    assert variant.id == variant_id
+
+    result = await service.get(variant_id)
+
+    assert result.id == variant_id
 
 
 async def test_iterate_variants(
     async_mpt_vendor, product_id, term_id, async_created_variant, async_vendor_variant_service
 ):
     service = async_vendor_variant_service
-    variants = [variant async for variant in service.iterate()]
-    assert any(variant.id == async_created_variant.id for variant in variants)
+
+    result = [variant async for variant in service.iterate()]
+
+    assert any(variant.id == async_created_variant.id for variant in result)
 
 
 async def test_filter_variants(
@@ -90,9 +101,11 @@ async def test_filter_variants(
     filtered_variants = async_vendor_variant_service.filter(RQLQuery(id=variant_id)).select(
         *select_fields
     )
-    variants = [variant async for variant in filtered_variants.iterate()]
-    assert len(variants) == 1
-    assert variants[0].id == variant_id
+
+    result = [variant async for variant in filtered_variants.iterate()]
+
+    assert len(result) == 1
+    assert result[0].id == variant_id
 
 
 async def test_delete_variant(
@@ -100,5 +113,6 @@ async def test_delete_variant(
 ):
     service = async_vendor_variant_service
     await service.delete(async_created_variant.id)
+
     with pytest.raises(MPTAPIError):
         await service.get(async_created_variant.id)

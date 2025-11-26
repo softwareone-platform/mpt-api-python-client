@@ -18,14 +18,18 @@ async def async_created_item(logger, async_mpt_vendor, item_data):
 
 
 def test_create_item(async_created_item):
-    assert async_created_item.name == "e2e - please delete"
+    result = async_created_item.name == "e2e - please delete"
+
+    assert result is True
 
 
 async def test_update_item(async_mpt_vendor, async_created_item):
     service = async_mpt_vendor.catalog.items
     update_data = {"name": "e2e - delete me (updated)"}
-    item = await service.update(async_created_item.id, update_data)
-    assert item.name == "e2e - delete me (updated)"
+
+    result = await service.update(async_created_item.id, update_data)
+
+    assert result.name == "e2e - delete me (updated)"
 
 
 @pytest.mark.skip(reason="Leaves test items in the catalog")
@@ -39,31 +43,41 @@ async def test_review_and_publish_item(async_mpt_vendor, async_mpt_ops, async_cr
 
 async def test_get_item(async_mpt_vendor, item_id):
     service = async_mpt_vendor.catalog.items
-    item = await service.get(item_id)
-    assert item.id == item_id
+
+    result = await service.get(item_id)
+
+    assert result.id == item_id
 
 
 async def test_iterate_items(async_mpt_vendor, async_created_item):
     service = async_mpt_vendor.catalog.items
     items = [item async for item in service.iterate()]
-    assert any(item.id == async_created_item.id for item in items)
+
+    result = any(item.id == async_created_item.id for item in items)
+
+    assert result is True
 
 
 async def test_filter(async_mpt_vendor, item_id):
     service = async_mpt_vendor.catalog.items
-    items = [item async for item in service.filter(RQLQuery(id=item_id)).iterate()]
-    assert len(items) == 1
-    assert items[0].id == item_id
+
+    result = [item async for item in service.filter(RQLQuery(id=item_id)).iterate()]
+
+    assert len(result) == 1
+    assert result[0].id == item_id
 
 
 async def test_not_found(async_mpt_vendor):
     service = async_mpt_vendor.catalog.items
+
     with pytest.raises(MPTAPIError):
         await service.get("ITM-000-000")
 
 
 async def test_delete_item(async_mpt_vendor, async_created_item):
     service = async_mpt_vendor.catalog.items
-    await service.delete(async_created_item.id)
+
+    await service.delete(async_created_item.id)  # act
+
     with pytest.raises(MPTAPIError):
         await service.get(async_created_item.id)

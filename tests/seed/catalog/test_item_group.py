@@ -43,23 +43,23 @@ async def test_get_item_group(context, vendor_client, item_group, mock_set_item_
     vendor_client.catalog.products.item_groups.return_value = service
     mock_set_item_group.return_value = item_group
 
-    fetched_group = await get_item_group(context=context, mpt_vendor=vendor_client)
+    result = await get_item_group(context=context, mpt_vendor=vendor_client)
 
-    assert fetched_group == item_group
+    assert result == item_group
     service.get.assert_called_once_with(context["catalog.item_group.id"])
     service.create.assert_not_called()
 
 
 async def test_get_item_group_without_id(context) -> None:
-    no_group = await get_item_group(context=context)
+    result = await get_item_group(context=context)
 
-    assert no_group is None
+    assert result is None
 
 
 def test_set_item_group(context, item_group) -> None:
-    stored_group = set_item_group(item_group, context=context)
+    result = set_item_group(item_group, context=context)
 
-    assert stored_group == item_group
+    assert result == item_group
     assert context.get("catalog.item_group.id") == "group-123"
     assert context.get("catalog.item_group[group-123]") == item_group
 
@@ -67,9 +67,9 @@ def test_set_item_group(context, item_group) -> None:
 def test_build_item_group(context) -> None:
     context["catalog.product.id"] = "product-123"
 
-    item_group_payload = build_item_group(context=context)
+    result = build_item_group(context=context)
 
-    assert item_group_payload["product"]["id"] == "product-123"
+    assert result["product"]["id"] == "product-123"
 
 
 async def test_get_or_create_item_group_create_new(
@@ -84,15 +84,15 @@ async def test_get_or_create_item_group_create_new(
         patch("seed.catalog.item_group.build_item_group", return_value=item_group),
         patch("seed.catalog.item_group.set_item_group", return_value=item_group) as set_item_group,
     ):
-        created_group = await init_item_group(context=context, mpt_vendor=vendor_client)
+        result = await init_item_group(context=context, mpt_vendor=vendor_client)
 
-        assert created_group == item_group
+        assert result == item_group
         set_item_group.assert_called_once_with(item_group)
         item_group_service.create.assert_called_once()
 
 
 async def test_seed_item_group() -> None:
     with patch("seed.catalog.item_group.init_item_group", new_callable=AsyncMock) as mock_create:
-        await seed_item_group()
+        await seed_item_group()  # act
 
         mock_create.assert_called_once()

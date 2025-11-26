@@ -22,17 +22,25 @@ def async_subscription_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_mixins_present(subscription_service, method):
-    assert hasattr(subscription_service, method)
+    result = hasattr(subscription_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_async_mixins_present(async_subscription_service, method):
-    assert hasattr(async_subscription_service, method)
+    result = hasattr(async_subscription_service, method)
+
+    assert result is True
 
 
 def test_endpoint(subscription_service):
-    assert subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"
+    result = subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"
+
+    assert result is True
 
 
 def test_async_endpoint(async_subscription_service):
-    assert async_subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"
+    result = async_subscription_service.path == "/public/v1/commerce/orders/ORD-123/subscriptions"
+
+    assert result is True

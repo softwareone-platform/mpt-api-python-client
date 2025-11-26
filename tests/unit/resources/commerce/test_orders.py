@@ -42,14 +42,14 @@ def test_custom_resource_actions(orders_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        order = getattr(orders_service, action)("ORD-123", input_status)
+
+        result = getattr(orders_service, action)("ORD-123", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, Order)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Order)
 
 
 @pytest.mark.parametrize(
@@ -76,13 +76,13 @@ def test_custom_resource_actions_no_data(orders_service, action, input_status):
             )
         )
 
-        order = getattr(orders_service, action)("ORD-123")
+        result = getattr(orders_service, action)("ORD-123")
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, Order)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Order)
 
 
 def test_notify(orders_service):
@@ -98,7 +98,7 @@ def test_notify(orders_service):
         )
         user_data = {"email": "user@example.com", "name": "John Doe"}
 
-        orders_service.notify("ORD-123", user_data)
+        orders_service.notify("ORD-123", user_data)  # act
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
@@ -117,11 +117,11 @@ def test_template(orders_service):
             )
         )
 
-        markdown_template = orders_service.template("ORD-123")
+        result = orders_service.template("ORD-123")
 
         assert mock_route.called
         assert mock_route.call_count == 1
-        assert markdown_template == "# Order Template\n\nThis is a markdown template."
+        assert result == "# Order Template\n\nThis is a markdown template."
 
 
 @pytest.mark.parametrize(
@@ -147,14 +147,14 @@ async def test_async_custom_resource_actions(async_orders_service, action, input
                 json=response_expected_data,
             )
         )
-        order = await getattr(async_orders_service, action)("ORD-123", input_status)
+
+        result = await getattr(async_orders_service, action)("ORD-123", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, Order)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Order)
 
 
 @pytest.mark.parametrize(
@@ -180,13 +180,14 @@ async def test_async_custom_resource_actions_nodata(async_orders_service, action
                 json=response_expected_data,
             )
         )
-        order = await getattr(async_orders_service, action)("ORD-123")
+
+        result = await getattr(async_orders_service, action)("ORD-123")
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, Order)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Order)
 
 
 async def test_async_notify(async_orders_service):
@@ -202,7 +203,7 @@ async def test_async_notify(async_orders_service):
         )
         user_data = {"email": "user@example.com", "name": "John Doe"}
 
-        await async_orders_service.notify("ORD-123", user_data)
+        await async_orders_service.notify("ORD-123", user_data)  # act
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
@@ -220,34 +221,38 @@ async def test_async_template(async_orders_service):
             )
         )
 
-        template = await async_orders_service.template("ORD-123")
+        result = await async_orders_service.template("ORD-123")
 
-        assert template == template_content
+        assert result == template_content
 
 
 def test_subscription_service(http_client):
     orders_service = OrdersService(http_client=http_client)
 
-    subscriptions = orders_service.subscriptions("ORD-123")
+    result = orders_service.subscriptions("ORD-123")
 
-    assert isinstance(subscriptions, OrderSubscriptionsService)
-    assert subscriptions.endpoint_params == {"order_id": "ORD-123"}
+    assert isinstance(result, OrderSubscriptionsService)
+    assert result.endpoint_params == {"order_id": "ORD-123"}
 
 
 def test_async_subscription_service(async_http_client):
     orders_service = AsyncOrdersService(http_client=async_http_client)
 
-    subscriptions = orders_service.subscriptions("ORD-123")
+    result = orders_service.subscriptions("ORD-123")
 
-    assert isinstance(subscriptions, AsyncOrderSubscriptionsService)
-    assert subscriptions.endpoint_params == {"order_id": "ORD-123"}
+    assert isinstance(result, AsyncOrderSubscriptionsService)
+    assert result.endpoint_params == {"order_id": "ORD-123"}
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_mixins_present(orders_service, method):
-    assert hasattr(orders_service, method)
+    result = hasattr(orders_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_mixins_present(async_orders_service, method):
-    assert hasattr(async_orders_service, method)
+    result = hasattr(async_orders_service, method)
+
+    assert result is True

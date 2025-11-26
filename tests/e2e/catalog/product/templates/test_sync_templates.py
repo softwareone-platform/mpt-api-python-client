@@ -24,26 +24,29 @@ def created_template(template_service, template_payload):
 
 
 def test_list_templates(template_service, product_id):
-    templates = list(template_service.iterate())
-    assert isinstance(templates, list)
+    result = list(template_service.iterate())
+
+    assert isinstance(result, list)
 
 
 def test_created_template(created_template, template_payload):
-    assert created_template.name == template_payload["name"]
+    result = created_template.name == template_payload["name"]
+
+    assert result is True
 
 
 def test_get_template(template_service, template_id):
-    template = template_service.get(template_id)
+    result = template_service.get(template_id)
 
-    assert template.id == template_id
+    assert result.id == template_id
 
 
 def test_update_template(created_template, template_service):
     update_payload = {"name": "Updated name"}
 
-    updated_template = template_service.update(created_template.id, update_payload)
+    result = template_service.update(created_template.id, update_payload)
 
-    assert updated_template.name == "Updated name"
+    assert result.name == "Updated name"
 
 
 def test_delete_template(template_service, created_template, template_payload):
@@ -54,9 +57,9 @@ def test_delete_template(template_service, created_template, template_payload):
 
 
 def test_filter_templates(template_service, template_id):
-    template = template_service.filter(RQLQuery(id=template_id)).fetch_one()
+    result = template_service.filter(RQLQuery(id=template_id)).fetch_one()
 
-    assert template.id == template_id
+    assert result.id == template_id
 
 
 def test_not_found(template_service):

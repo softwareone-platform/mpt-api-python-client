@@ -22,21 +22,29 @@ def async_price_list_items_service(async_http_client):
 
 @pytest.fixture
 def test_endpoint(price_list_items_service):
-    assert price_list_items_service.path == "/public/v1/catalog/price-lists/ITM-0000-0001/items"
+    result = price_list_items_service.path == "/public/v1/catalog/price-lists/ITM-0000-0001/items"
+
+    assert result is True
 
 
 @pytest.fixture
 def async_test_endpoint(async_price_list_items_service):
-    assert async_price_list_items_service.path == (
+    result = async_price_list_items_service.path == (
         "/public/v1/catalog/price-lists/ITM-0000-0001/items"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_methods_present(price_list_items_service, method):
-    assert hasattr(price_list_items_service, method)
+    result = hasattr(price_list_items_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_async_methods_present(async_price_list_items_service, method):
-    assert hasattr(async_price_list_items_service, method)
+    result = hasattr(async_price_list_items_service, method)
+
+    assert result is True

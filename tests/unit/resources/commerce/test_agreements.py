@@ -21,9 +21,9 @@ async def test_async_template(async_http_client):
             )
         )
 
-        template = await async_agreements_service.template("AGR-123")
+        result = await async_agreements_service.template("AGR-123")
 
-        assert template == template_content
+        assert result == template_content
 
 
 def test_template(http_client):
@@ -39,38 +39,44 @@ def test_template(http_client):
             )
         )
 
-        markdown_template = agreements_service.template("AGR-123")
+        result = agreements_service.template("AGR-123")
 
         assert mock_route.called
         assert mock_route.call_count == 1
-        assert markdown_template == "# Order Template\n\nThis is a markdown template."
+        assert result == "# Order Template\n\nThis is a markdown template."
 
 
 def test_attachments_service(http_client):
     agreements_service = AgreementsService(http_client=http_client)
 
-    attachments = agreements_service.attachments("AGR-123")
+    result = agreements_service.attachments("AGR-123")
 
-    assert isinstance(attachments, AgreementsAttachmentService)
-    assert attachments.endpoint_params == {"agreement_id": "AGR-123"}
+    assert isinstance(result, AgreementsAttachmentService)
+    assert result.endpoint_params == {"agreement_id": "AGR-123"}
 
 
 def test_async_attachments_service(http_client):
     agreements_service = AsyncAgreementsService(http_client=http_client)
 
-    attachments = agreements_service.attachments("AGR-123")
+    result = agreements_service.attachments("AGR-123")
 
-    assert isinstance(attachments, AsyncAgreementsAttachmentService)
-    assert attachments.endpoint_params == {"agreement_id": "AGR-123"}
+    assert isinstance(result, AsyncAgreementsAttachmentService)
+    assert result.endpoint_params == {"agreement_id": "AGR-123"}
 
 
 @pytest.mark.parametrize("method", ["create", "update", "get"])
 def test_mixins_present(http_client, method):
     service = AgreementsService(http_client=http_client)
-    assert hasattr(service, method)
+
+    result = hasattr(service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["create", "update", "get"])
 def test_async_mixins_present(async_http_client, method):
     service = AgreementsService(http_client=async_http_client)
-    assert hasattr(service, method)
+
+    result = hasattr(service, method)
+
+    assert result is True

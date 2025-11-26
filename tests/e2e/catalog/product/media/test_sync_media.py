@@ -31,23 +31,25 @@ def created_media_from_url(logger, vendor_media_service, media_data, jpg_url):
         print(f"TEARDOWN - Unable to delete media {media.id}: {error.title}")
 
 
-def test_create_media(created_media_from_file, media_data):
+def test_create_media(created_media_from_file, media_data):  # noqa: AAA01
     assert created_media_from_file.name == media_data["name"]
     assert created_media_from_file.description == media_data["description"]
 
 
-def test_create_media_from_url(created_media_from_file, media_data):
+def test_create_media_from_url(created_media_from_file, media_data):  # noqa: AAA01
     assert created_media_from_file.name == media_data["name"]
     assert created_media_from_file.description == media_data["description"]
 
 
 def test_update_media(vendor_media_service, created_media_from_file):
     update_data = {"name": "Updated e2e test media - please delete"}
-    media = vendor_media_service.update(created_media_from_file.id, update_data)
-    assert media.name == update_data["name"]
+
+    result = vendor_media_service.update(created_media_from_file.id, update_data)
+
+    assert result.name == update_data["name"]
 
 
-def test_media_lifecycle(mpt_vendor, mpt_ops, created_media_from_file):
+def test_media_lifecycle(mpt_vendor, mpt_ops, created_media_from_file):  # noqa: AAA01
     mpt_vendor.catalog.products.media(created_media_from_file.product.id).review(
         created_media_from_file.id
     )
@@ -61,19 +63,22 @@ def test_media_lifecycle(mpt_vendor, mpt_ops, created_media_from_file):
 
 def test_delete_media(vendor_media_service, created_media_from_file):
     vendor_media_service.delete(created_media_from_file.id)
+
     with pytest.raises(MPTAPIError):
         vendor_media_service.get(created_media_from_file.id)
 
 
 def test_get_media(vendor_media_service, created_media_from_file):
-    media = vendor_media_service.get(created_media_from_file.id)
-    assert media.id == created_media_from_file.id
+    result = vendor_media_service.get(created_media_from_file.id)
+
+    assert result.id == created_media_from_file.id
 
 
 def test_download_media(vendor_media_service, created_media_from_file):
-    file_response = vendor_media_service.download(created_media_from_file.id)
-    assert file_response.file_contents is not None
-    assert file_response.filename == "logo.png"
+    result = vendor_media_service.download(created_media_from_file.id)
+
+    assert result.file_contents is not None
+    assert result.filename == "logo.png"
 
 
 async def test_get_not_found_media(vendor_media_service):

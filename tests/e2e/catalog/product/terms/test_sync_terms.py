@@ -35,45 +35,58 @@ def created_term_from_url(logger, vendor_terms_service, term_data, pdf_url):
 
 
 def test_create_term(created_term):
-    term = created_term
-    assert term.name == "e2e - please delete"
+    result = created_term
+
+    assert result.name == "e2e - please delete"
 
 
 def test_update_term(vendor_terms_service, created_term):
     service = vendor_terms_service
     update_data = {"name": "e2e - delete me (updated)"}
-    term = service.update(created_term.id, update_data)
-    assert term.name == "e2e - delete me (updated)"
+
+    result = service.update(created_term.id, update_data)
+
+    assert result.name == "e2e - delete me (updated)"
 
 
 def test_get_term(vendor_terms_service, term_id):
     service = vendor_terms_service
-    term = service.get(term_id)
-    assert term.id == term_id
+
+    result = service.get(term_id)
+
+    assert result.id == term_id
 
 
 def test_get_term_by_id(vendor_terms_service, term_id):
     service = vendor_terms_service
-    term = service.get(term_id)
-    assert term.id == term_id
+
+    result = service.get(term_id)
+
+    assert result.id == term_id
 
 
 def test_iterate_terms(vendor_terms_service, created_term):
     service = vendor_terms_service
-    terms = list(service.iterate())
-    assert any(term.id == created_term.id for term in terms)
+
+    result = list(service.iterate())
+
+    assert any(term.id == created_term.id for term in result)
 
 
 def test_filter_terms(vendor_terms_service, term_id):
     select_fields = ["-description"]
     filtered_terms = vendor_terms_service.filter(RQLQuery(id=term_id)).select(*select_fields)
-    terms = list(filtered_terms.iterate())
-    assert len(terms) == 1
-    assert terms[0].id == term_id
+
+    result = list(filtered_terms.iterate())
+
+    assert len(result) == 1
+    assert result[0].id == term_id
 
 
 def test_delete_term(vendor_terms_service, created_term):
     service = vendor_terms_service
-    service.delete(created_term.id)
+
+    service.delete(created_term.id)  # act
+
     with pytest.raises(MPTAPIError):
         service.get(created_term.id)

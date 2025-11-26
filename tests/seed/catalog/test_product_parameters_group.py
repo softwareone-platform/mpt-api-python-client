@@ -34,22 +34,25 @@ async def test_get_parameter_group(
     parameter_groups_service.get.return_value = parameter_group
     vendor_client.catalog.products.parameter_groups.return_value = parameter_groups_service
 
-    fetched_parameter_group = await get_parameter_group(context=context, mpt_vendor=vendor_client)
+    result = await get_parameter_group(context=context, mpt_vendor=vendor_client)
 
-    assert fetched_parameter_group == parameter_group
+    assert result == parameter_group
     assert context.get("catalog.product.parameter_group.id") == parameter_group.id
     assert context.get(f"catalog.product.parameter_group[{parameter_group.id}]") == parameter_group
 
 
 async def test_get_parameter_group_without_id(context: Context) -> None:
-    maybe_parameter_group = await get_parameter_group(context=context)
+    result = await get_parameter_group(context=context)
 
-    assert maybe_parameter_group is None
+    assert result is None
 
 
 def test_build_parameter_group(context: Context) -> None:
     parameter_group_payload = build_parameter_group(context=context)
-    assert isinstance(parameter_group_payload, dict)
+
+    result = isinstance(parameter_group_payload, dict)
+
+    assert result is True
 
 
 async def test_get_or_create_parameter_group_create_new(

@@ -36,20 +36,22 @@ async def created_media_from_url_async(logger, async_media_service, media_data, 
         print(f"TEARDOWN - Unable to delete media {media.id}: {error.title}")
 
 
-def test_create_media_async(created_media_from_file_async, media_data):
+def test_create_media_async(created_media_from_file_async, media_data):  # noqa: AAA01
     assert created_media_from_file_async.name == media_data["name"]
     assert created_media_from_file_async.description == media_data["description"]
 
 
-def test_create_media_async_from_url(created_media_from_file_async, media_data):
+def test_create_media_async_from_url(created_media_from_file_async, media_data):  # noqa: AAA01
     assert created_media_from_file_async.name == media_data["name"]
     assert created_media_from_file_async.description == media_data["description"]
 
 
 async def test_update_media_async(async_media_service, created_media_from_file_async):
     update_data = {"name": "Updated e2e test media - please delete"}
-    media = await async_media_service.update(created_media_from_file_async.id, update_data)
-    assert media.name == update_data["name"]
+
+    result = await async_media_service.update(created_media_from_file_async.id, update_data)
+
+    assert result.name == update_data["name"]
 
 
 async def test_media_lifecycle_async(
@@ -67,20 +69,23 @@ async def test_media_lifecycle_async(
 
 
 async def test_delete_media_async(async_vendor_media_service, created_media_from_file_async):
-    await async_vendor_media_service.delete(created_media_from_file_async.id)
+    await async_vendor_media_service.delete(created_media_from_file_async.id)  # act
+
     with pytest.raises(MPTAPIError):
         await async_vendor_media_service.get(created_media_from_file_async.id)
 
 
 async def test_get_media_async(async_vendor_media_service, created_media_from_file_async):
-    media = await async_vendor_media_service.get(created_media_from_file_async.id)
-    assert media.id == created_media_from_file_async.id
+    result = await async_vendor_media_service.get(created_media_from_file_async.id)
+
+    assert result.id == created_media_from_file_async.id
 
 
 async def test_download_media_async(async_vendor_media_service, created_media_from_file_async):
-    file_response = await async_vendor_media_service.download(created_media_from_file_async.id)
-    assert file_response.file_contents is not None
-    assert file_response.filename == "logo.png"
+    result = await async_vendor_media_service.download(created_media_from_file_async.id)
+
+    assert result.file_contents is not None
+    assert result.filename == "logo.png"
 
 
 async def test_get_not_found_media_async(async_vendor_media_service):

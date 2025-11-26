@@ -23,14 +23,17 @@ def created_licensee(mpt_client, licensee_factory, account_icon):
 
 
 def test_get_licensee_by_id(mpt_client, licensee_id):
-    licensee = mpt_client.accounts.licensees.get(licensee_id)
-    assert licensee is not None
+    result = mpt_client.accounts.licensees.get(licensee_id)
+
+    assert result is not None
 
 
 def test_list_licensees(mpt_client):
     limit = 10
-    licensees = mpt_client.accounts.licensees.fetch_page(limit=limit)
-    assert len(licensees) > 0
+
+    result = mpt_client.accounts.licensees.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 def test_get_licensee_by_id_not_found(mpt_client, invalid_licensee_id):
@@ -40,25 +43,25 @@ def test_get_licensee_by_id_not_found(mpt_client, invalid_licensee_id):
 
 def test_filter_licensees(mpt_client, licensee_id):
     select_fields = ["-address"]
-
     filtered_licensees = (
         mpt_client.accounts.licensees.filter(RQLQuery(id=licensee_id))
         .filter(RQLQuery(name="E2E Seeded Licensee"))
         .select(*select_fields)
     )
 
-    licensees = list(filtered_licensees.iterate())
+    result = list(filtered_licensees.iterate())
 
-    assert len(licensees) == 1
+    assert len(result) == 1
 
 
 def test_create_licensee(created_licensee):
-    new_licensee = created_licensee
-    assert new_licensee is not None
+    result = created_licensee
+
+    assert result is not None
 
 
 def test_delete_licensee(mpt_client, created_licensee):
-    mpt_client.accounts.licensees.delete(created_licensee.id)
+    mpt_client.accounts.licensees.delete(created_licensee.id)  # act
 
 
 def test_delete_licensee_not_found(mpt_client, invalid_licensee_id):
@@ -69,11 +72,11 @@ def test_delete_licensee_not_found(mpt_client, invalid_licensee_id):
 def test_update_licensee(mpt_client, licensee_factory, account_icon, created_licensee):
     updated_licensee_data = licensee_factory(name="E2E Updated Licensee")
 
-    updated_licensee = mpt_client.accounts.licensees.update(
+    result = mpt_client.accounts.licensees.update(
         created_licensee.id, updated_licensee_data, logo=account_icon
     )
 
-    assert updated_licensee is not None
+    assert result is not None
 
 
 def test_update_licensee_not_found(mpt_client, licensee_factory, account_icon, invalid_licensee_id):
@@ -86,9 +89,9 @@ def test_update_licensee_not_found(mpt_client, licensee_factory, account_icon, i
 
 
 def test_licensee_disable(mpt_client, created_licensee):
-    disabled_licensee = mpt_client.accounts.licensees.disable(created_licensee.id)
+    result = mpt_client.accounts.licensees.disable(created_licensee.id)
 
-    assert disabled_licensee is not None
+    assert result is not None
 
 
 def test_licensee_disable_not_found(mpt_client, invalid_licensee_id):
@@ -99,9 +102,9 @@ def test_licensee_disable_not_found(mpt_client, invalid_licensee_id):
 def test_licensee_enable(mpt_client, created_licensee):
     mpt_client.accounts.licensees.disable(created_licensee.id)
 
-    enabled_licensee = mpt_client.accounts.licensees.enable(created_licensee.id)
+    result = mpt_client.accounts.licensees.enable(created_licensee.id)
 
-    assert enabled_licensee is not None
+    assert result is not None
 
 
 def test_licensee_enable_not_found(mpt_client, invalid_licensee_id):

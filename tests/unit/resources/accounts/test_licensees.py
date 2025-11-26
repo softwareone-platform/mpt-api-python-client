@@ -20,7 +20,9 @@ def async_licensees_service(async_http_client):
     ["get", "create", "delete", "update", "enable", "disable"],
 )
 def test_licensees_mixins_present(licensees_service, method):
-    assert hasattr(licensees_service, method)
+    result = hasattr(licensees_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -28,7 +30,9 @@ def test_licensees_mixins_present(licensees_service, method):
     ["get", "create", "delete", "update", "enable", "disable"],
 )
 def test_async_licensees_mixins_present(async_licensees_service, method):
-    assert hasattr(async_licensees_service, method)
+    result = hasattr(async_licensees_service, method)
+
+    assert result is True
 
 
 def test_create_licensee(licensees_service, tmp_path):  # noqa: WPS210
@@ -36,23 +40,20 @@ def test_create_licensee(licensees_service, tmp_path):  # noqa: WPS210
         "id": "LIC-0000-0001",
         "name": "Test E2E Licensee",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.post(licensees_service.path).mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=licensee_data)
         )
 
-        licensee = licensees_service.create(licensee_data, logo=logo_file)
+        result = licensees_service.create(licensee_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "POST"
     assert request.url.path == "/public/v1/accounts/licensees"
-    assert licensee.to_dict() == licensee_data
+    assert result.to_dict() == licensee_data
 
 
 def test_update_licensees(licensees_service, tmp_path):  # noqa: WPS210
@@ -60,23 +61,20 @@ def test_update_licensees(licensees_service, tmp_path):  # noqa: WPS210
     licensee_data = {
         "name": "Updated Test licensee",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.put(f"{licensees_service.path}/{licensee_id}").mock(
             return_value=httpx.Response(httpx.codes.OK, json={"id": licensee_id, **licensee_data})
         )
 
-        licensee = licensees_service.update(licensee_id, licensee_data, logo=logo_file)
+        result = licensees_service.update(licensee_id, licensee_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/accounts/licensees/{licensee_id}"
-    assert licensee.to_dict() == {"id": licensee_id, **licensee_data}
+    assert result.to_dict() == {"id": licensee_id, **licensee_data}
 
 
 async def test_async_create_licensees(async_licensees_service, tmp_path):  # noqa: WPS210
@@ -84,10 +82,8 @@ async def test_async_create_licensees(async_licensees_service, tmp_path):  # noq
         "id": "BUY-0000-0001",
         "name": "Test licensee",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.post(async_licensees_service.path).mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=licensee_data)
@@ -96,7 +92,6 @@ async def test_async_create_licensees(async_licensees_service, tmp_path):  # noq
         licensee = await async_licensees_service.create(licensee_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "POST"
     assert request.url.path == "/public/v1/accounts/licensees"
@@ -108,10 +103,8 @@ async def test_async_update_licensees(async_licensees_service, tmp_path):  # noq
     licensee_data = {
         "name": "Updated Test licensee",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.put(f"{async_licensees_service.path}/{licensee_id}").mock(
             return_value=httpx.Response(httpx.codes.OK, json={"id": licensee_id, **licensee_data})
@@ -120,7 +113,6 @@ async def test_async_update_licensees(async_licensees_service, tmp_path):  # noq
         licensee = await async_licensees_service.update(licensee_id, licensee_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/accounts/licensees/{licensee_id}"
