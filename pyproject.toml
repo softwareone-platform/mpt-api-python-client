@@ -27,6 +27,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dependency-injector>=4.48.2",
+    "flake8-aaa>=0.17.2",
+    "flake8-pyproject>=1.2.3",
     "freezegun==1.5.*",
     "ipdb==0.13.*",
     "ipython==9.*",
@@ -88,11 +90,47 @@ omit = [
     "*/__init__.py"
 ]
 
+[tool.flake8]
+allowed-domain-names = ["result"]
+aaa_act_block_style = "large"
+doctests = true
+extend-ignore = ["WPS226", "WPS412"]
+extend-exclude = [".venv"]
+format = "wemake"
+max-imports = 17
+max-line-length = 100
+select = ["AAA", "E999", "WPS"]
+show-source = true
+statistics = false
+per-file-ignores = [
+  "mpt_api_client/mpt_client.py: WPS214 WPS235",
+  "mpt_api_client/http/mixins.py: WPS202 WPS204 WPS235",
+  "mpt_api_client/resources/*: WPS215",
+  "mpt_api_client/models/model.py: WPS215 WPS110",
+  "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235",
+  "mpt_api_client/resources/billing/*.py: WPS202 WPS204 WPS214 WPS215",
+  "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
+  "mpt_api_client/resources/catalog/mixins.py: WPS110 WPS202 WPS214 WPS215 WPS235",
+  "mpt_api_client/resources/catalog/products.py: WPS204 WPS214 WPS215 WPS235",
+  "mpt_api_client/rql/query_builder.py: WPS110 WPS115 WPS210 WPS214",
+  "tests/unit/http/test_async_service.py: WPS204 WPS202",
+  "tests/unit/http/test_service.py: WPS204 WPS202",
+  "tests/unit/http/test_mixins.py: WPS204 WPS202 WPS210",
+  "tests/unit/resources/catalog/test_products.py: WPS202 WPS210",
+  "tests/unit/resources/accounts/*.py: WPS204 WPS202 WPS210",
+  "tests/unit/resources/*/test_mixins.py: WPS118 WPS202 WPS204 WPS235",
+  "tests/unit/test_mpt_client.py: WPS235",
+  "tests/e2e/accounts/*.py: WPS430 WPS202",
+  "tests/e2e/catalog/*.py: WPS202 WPS421",
+  "tests/e2e/catalog/items/*.py: WPS110 WPS202",
+  "tests/*: WPS432 WPS202"
+]
+
 [tool.ruff]
 # Ruff config: https://docs.astral.sh/ruff/settings
 preview = true
 target-version = "py312"
-extend-exclude = [".vscode", ".devcontainer", "swo"]
+extend-exclude = [".vscode", ".devcontainer"]
 output-format = "full"
 line-length = 100
 
@@ -165,7 +203,7 @@ ignore = [
   "PT011", # pytest.raises({exception}) is too broad, set the match parameter or use a more specific exception
   "TRY003",  # long exception messages from `tryceratops`
 ]
-external = [ "WPS" ]
+external = [ "AAA", "WPS" ]
 
 # Plugin configs:
 flake8-import-conventions.banned-from = [ "datetime" ]
