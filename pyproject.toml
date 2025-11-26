@@ -63,7 +63,7 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 testpaths = "tests"
 pythonpath = "."
-addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=html --cov-report=xml --import-mode=importlib"
+addopts = "--cov=mpt_api_client --cov-report=term-missing --cov-report=xml --import-mode=importlib"
 log_cli = false
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -83,9 +83,6 @@ exclude_also = [
     "if __name__ == \"__main__\":",
     "raise NotImplementedError",
 ]
-include = [
-    "mpt_api_client/**",
-]
 omit = [
     "*/__init__.py"
 ]
@@ -95,7 +92,16 @@ allowed-domain-names = ["result"]
 aaa_act_block_style = "large"
 doctests = true
 extend-ignore = ["WPS226", "WPS412"]
-extend-exclude = [".venv"]
+extend-exclude = [
+  ".coverage",
+  ".github",
+  ".idea",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  "uv.lock",
+  ".venv"
+]
 format = "wemake"
 max-imports = 17
 max-line-length = 100
@@ -130,7 +136,6 @@ per-file-ignores = [
 # Ruff config: https://docs.astral.sh/ruff/settings
 preview = true
 target-version = "py312"
-extend-exclude = [".vscode", ".devcontainer"]
 output-format = "full"
 line-length = 100
 
