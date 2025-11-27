@@ -395,6 +395,46 @@ class AsyncGetMixin[Model]:
         return await self._resource_action(resource_id=resource_id, query_params={"select": select})  # type: ignore[attr-defined, no-any-return]
 
 
+class AsyncEnableMixin[Model: BaseModel]:
+    """Enable resource mixin."""
+
+    async def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Enable a specific resource."""
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id=resource_id, method="POST", action="enable", json=resource_data
+        )
+
+
+class EnableMixin[Model: BaseModel]:
+    """Enable resource mixin."""
+
+    def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Enable a specific resource."""
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id=resource_id, method="POST", action="enable", json=resource_data
+        )
+
+
+class AsyncDisableMixin[Model: BaseModel]:
+    """Disable resource mixin."""
+
+    async def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Disable a specific resource."""
+        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id=resource_id, method="POST", action="disable", json=resource_data
+        )
+
+
+class DisableMixin[Model: BaseModel]:
+    """Disable resource mixin."""
+
+    def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
+        """Disable a specific resource  ."""
+        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
+            resource_id=resource_id, method="POST", action="disable", json=resource_data
+        )
+
+
 class QueryableMixin:
     """Mixin providing query functionality for filtering, ordering, and selecting fields."""
 
