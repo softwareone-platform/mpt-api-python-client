@@ -116,3 +116,13 @@ def logo_fd():
 @pytest.fixture
 def user_id(e2e_config):
     return e2e_config["accounts.user.id"]
+
+
+@pytest.fixture
+def user_group_id(e2e_config):
+    return e2e_config["accounts.user_group.id"]
+
+
+@pytest.fixture
+def account_id(e2e_config):
+    return e2e_config["accounts.account.id"]
