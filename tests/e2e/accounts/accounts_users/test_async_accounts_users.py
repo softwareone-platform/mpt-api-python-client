@@ -1,5 +1,3 @@
-# noqa: WPS204, WPS420, WPS421, WPS210, AAA01
-# noqa: WPS402
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
