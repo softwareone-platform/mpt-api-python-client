@@ -21,22 +21,30 @@ def async_custom_ledger_charges_service(async_http_client):
 
 
 def test_endpoint(custom_ledger_charges_service):
-    assert custom_ledger_charges_service.path == (
+    result = custom_ledger_charges_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/charges"
     )
+
+    assert result is True
 
 
 def test_async_endpoint(async_custom_ledger_charges_service):
-    assert async_custom_ledger_charges_service.path == (
+    result = async_custom_ledger_charges_service.path == (
         "/public/v1/billing/custom-ledgers/LDG-0000-0001/charges"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get"])
 def test_methods_present(custom_ledger_charges_service, method):
-    assert hasattr(custom_ledger_charges_service, method)
+    result = hasattr(custom_ledger_charges_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get"])
 def test_async_methods_present(async_custom_ledger_charges_service, method):
-    assert hasattr(async_custom_ledger_charges_service, method)
+    result = hasattr(async_custom_ledger_charges_service, method)
+
+    assert result is True

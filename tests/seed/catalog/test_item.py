@@ -29,24 +29,25 @@ async def test_get_item(context: Context, vendor_client, resource_item) -> None:
     service.get.return_value = resource_item
     vendor_client.catalog.items = service
 
-    fetched_item = await get_item(context=context, mpt_vendor=vendor_client)
+    result = await get_item(context=context, mpt_vendor=vendor_client)
 
-    assert fetched_item == resource_item
+    assert result == resource_item
     assert context.get(f"catalog.item[{resource_item.id}]") == resource_item
 
 
 async def test_get_item_without_id(context: Context) -> None:
-    missing_item = await get_item(context=context)
-    assert missing_item is None
+    result = await get_item(context=context)
+
+    assert result is None
 
 
 async def test_create_item(context: Context, vendor_client, resource_item, items_service) -> None:  # noqa: WPS110
     items_service.create.return_value = resource_item
     vendor_client.catalog.items = items_service
 
-    created = await create_item(context=context, mpt_vendor=vendor_client)
+    result = await create_item(context=context, mpt_vendor=vendor_client)
 
-    assert created == resource_item
+    assert result == resource_item
     assert context.get("catalog.item.id") == resource_item.id
     assert context.get(f"catalog.item[{resource_item.id}]") == resource_item
 
@@ -60,9 +61,9 @@ async def test_review_item_draft_status(
     context.set_resource("catalog.item", resource_item)
     context["catalog.item.id"] = resource_item.id
 
-    reviewed_item = await review_item(context=context, mpt_vendor=vendor_client)
+    result = await review_item(context=context, mpt_vendor=vendor_client)
 
-    assert reviewed_item == resource_item
+    assert result == resource_item
     items_service.review.assert_called_once()
 
 
@@ -70,13 +71,13 @@ async def test_review_item_non_draft_status(
     context: Context, vendor_client, resource_item, items_service
 ) -> None:  # noqa: WPS110
     resource_item.status = "Published"
-
     items_service.review.return_value = resource_item
     vendor_client.catalog.items = items_service
     context.set_resource("catalog.item", resource_item)
     context["catalog.item.id"] = resource_item.id
 
-    await review_item(context=context, mpt_vendor=vendor_client)
+    await review_item(context=context, mpt_vendor=vendor_client)  # act
+
     items_service.review.assert_not_called()
 
 
@@ -89,9 +90,9 @@ async def test_publish_item_reviewing_status(
     context.set_resource("catalog.item", resource_item)
     context["catalog.item.id"] = resource_item.id
 
-    published_item = await publish_item(context=context, mpt_operations=operations_client)
+    result = await publish_item(context=context, mpt_operations=operations_client)
 
-    assert published_item == resource_item
+    assert result == resource_item
     operations_client.catalog.items.publish.assert_called_once()
 
 
@@ -104,7 +105,7 @@ async def test_publish_item_non_reviewing_status(
     context.set_resource("catalog.item", resource_item)
     context["catalog.item.id"] = resource_item.id
 
-    await publish_item(context=context, mpt_operations=operations_client)
+    await publish_item(context=context, mpt_operations=operations_client)  # act
 
     operations_client.catalog.items.publish.assert_not_called()
 
@@ -118,7 +119,7 @@ async def test_seed_items(context: Context) -> None:
         patch("seed.catalog.item.review_item", new_callable=AsyncMock) as mock_review,
         patch("seed.catalog.item.publish_item", new_callable=AsyncMock) as mock_publish,
     ):
-        await seed_items(context=context)
+        await seed_items(context=context)  # act
 
         mock_refresh.assert_called_once()
         mock_create.assert_called_once()

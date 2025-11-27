@@ -38,11 +38,11 @@ def test_activate(pricing_policies_service):
             )
         )
 
-        pricing_policy_activated = pricing_policies_service.activate(
+        result = pricing_policies_service.activate(
             "PRP-0000-0001", {"name": "Active Pricing Policy"}
         )
 
-        assert pricing_policy_activated.to_dict() == pricing_policy_expected
+        assert result.to_dict() == pricing_policy_expected
 
 
 async def test_async_activate(async_pricing_policies_service):
@@ -61,11 +61,11 @@ async def test_async_activate(async_pricing_policies_service):
             )
         )
 
-        pricing_policy_activated = await async_pricing_policies_service.activate(
+        result = await async_pricing_policies_service.activate(
             "PRP-0000-0001", {"name": "Active Pricing Policy"}
         )
 
-        assert pricing_policy_activated.to_dict() == pricing_policy_expected
+        assert result.to_dict() == pricing_policy_expected
 
 
 def test_disable(pricing_policies_service):
@@ -84,11 +84,11 @@ def test_disable(pricing_policies_service):
             )
         )
 
-        pricing_policy_disabled = pricing_policies_service.disable(
+        result = pricing_policies_service.disable(
             "PRP-0000-0001", {"name": "Inactive Pricing Policy"}
         )
 
-        assert pricing_policy_disabled.to_dict() == pricing_policy_expected
+        assert result.to_dict() == pricing_policy_expected
 
 
 async def test_async_disable(async_pricing_policies_service):
@@ -107,11 +107,11 @@ async def test_async_disable(async_pricing_policies_service):
             )
         )
 
-        pricing_policy_disabled = await async_pricing_policies_service.disable(
+        result = await async_pricing_policies_service.disable(
             "PRP-0000-0001", {"name": "Inactive Pricing Policy"}
         )
 
-        assert pricing_policy_disabled.to_dict() == pricing_policy_expected
+        assert result.to_dict() == pricing_policy_expected
 
 
 @pytest.mark.parametrize(
@@ -121,10 +121,10 @@ async def test_async_disable(async_pricing_policies_service):
     ],
 )
 def test_property_services(pricing_policies_service, service_method, expected_service_class):
-    property_service = getattr(pricing_policies_service, service_method)("PRP-0000-0001")
+    result = getattr(pricing_policies_service, service_method)("PRP-0000-0001")
 
-    assert isinstance(property_service, expected_service_class)
-    assert property_service.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -136,10 +136,10 @@ def test_property_services(pricing_policies_service, service_method, expected_se
 def test_async_property_services(
     async_pricing_policies_service, service_method, expected_service_class
 ):
-    property_service = getattr(async_pricing_policies_service, service_method)("PRP-0000-0001")
+    result = getattr(async_pricing_policies_service, service_method)("PRP-0000-0001")
 
-    assert isinstance(property_service, expected_service_class)
-    assert property_service.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"pricing_policy_id": "PRP-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -147,7 +147,9 @@ def test_async_property_services(
     ["get", "create", "update", "delete", "activate", "disable"],
 )
 def test_mixins_present(pricing_policies_service, method):
-    assert hasattr(pricing_policies_service, method)
+    result = hasattr(pricing_policies_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -155,4 +157,6 @@ def test_mixins_present(pricing_policies_service, method):
     ["get", "create", "update", "delete", "activate", "disable"],
 )
 def test_async_mixins_present(async_pricing_policies_service, method):
-    assert hasattr(async_pricing_policies_service, method)
+    result = hasattr(async_pricing_policies_service, method)
+
+    assert result is True

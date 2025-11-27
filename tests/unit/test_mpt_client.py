@@ -36,19 +36,21 @@ def get_mpt_client():
 )
 def test_mpt_client(resource_name: str, expected_type: type) -> None:
     mpt = MPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
-    resource = getattr(mpt, resource_name)
+
+    result = getattr(mpt, resource_name)
+
     assert isinstance(mpt, MPTClient)
-    assert isinstance(resource, expected_type)
+    assert isinstance(result, expected_type)
 
 
 def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MPT_URL", API_URL)
     monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
 
-    mpt = MPTClient()
+    result = MPTClient()
 
-    assert isinstance(mpt, MPTClient)
-    assert isinstance(mpt.http_client, HTTPClient)
+    assert isinstance(result, MPTClient)
+    assert isinstance(result.http_client, HTTPClient)
 
 
 @pytest.mark.parametrize(
@@ -64,17 +66,18 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
 )
 def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
     mpt = AsyncMPTClient.from_config(base_url=API_URL, api_token=API_TOKEN)
-    resource = getattr(mpt, resource_name)
+
+    result = getattr(mpt, resource_name)
 
     assert isinstance(mpt, AsyncMPTClient)
-    assert isinstance(resource, expected_type)
+    assert isinstance(result, expected_type)
 
 
 def test_async_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("MPT_URL", API_URL)
     monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
 
-    mpt = AsyncMPTClient()
+    result = AsyncMPTClient()
 
-    assert isinstance(mpt, AsyncMPTClient)
-    assert isinstance(mpt.http_client, AsyncHTTPClient)
+    assert isinstance(result, AsyncMPTClient)
+    assert isinstance(result.http_client, AsyncHTTPClient)

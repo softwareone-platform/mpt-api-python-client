@@ -21,18 +21,26 @@ def async_journal_upload_service(async_http_client):
 
 
 def test_endpoint(journal_upload_service) -> None:
-    assert journal_upload_service.path == "/public/v1/billing/journals/JRN-0000-0001/upload"
+    result = journal_upload_service.path == "/public/v1/billing/journals/JRN-0000-0001/upload"
+
+    assert result is True
 
 
 def test_async_endpoint(async_journal_upload_service) -> None:
-    assert async_journal_upload_service.path == "/public/v1/billing/journals/JRN-0000-0001/upload"
+    result = async_journal_upload_service.path == "/public/v1/billing/journals/JRN-0000-0001/upload"
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["create"])
 def test_methods_present(journal_upload_service, method: str) -> None:
-    assert hasattr(journal_upload_service, method)
+    result = hasattr(journal_upload_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["create"])
 def test_async_methods_present(async_journal_upload_service, method: str) -> None:
-    assert hasattr(async_journal_upload_service, method)
+    result = hasattr(async_journal_upload_service, method)
+
+    assert result is True

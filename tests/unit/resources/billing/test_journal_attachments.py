@@ -21,23 +21,31 @@ def async_journal_attachments_service(async_http_client) -> AsyncJournalAttachme
 
 
 def test_endpoint(journal_attachments_service) -> None:
-    assert (
+    result = (
         journal_attachments_service.path == "/public/v1/billing/journals/JRN-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 def test_async_endpoint(async_journal_attachments_service) -> None:
-    assert (
+    result = (
         async_journal_attachments_service.path
         == "/public/v1/billing/journals/JRN-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_methods_present(journal_attachments_service, method: str) -> None:
-    assert hasattr(journal_attachments_service, method)
+    result = hasattr(journal_attachments_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_methods_present(async_journal_attachments_service, method: str) -> None:
-    assert hasattr(async_journal_attachments_service, method)
+    result = hasattr(async_journal_attachments_service, method)
+
+    assert result is True

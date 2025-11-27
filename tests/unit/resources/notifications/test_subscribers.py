@@ -18,9 +18,13 @@ def async_subscribers_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["create", "update", "delete", "get", "iterate"])
 def test_mixins_present(subscribers_service, method):
-    assert hasattr(subscribers_service, method)
+    result = hasattr(subscribers_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["create", "update", "delete", "get", "iterate"])
 def test_async_mixins_present(async_subscribers_service, method):
-    assert hasattr(async_subscribers_service, method)
+    result = hasattr(async_subscribers_service, method)
+
+    assert result is True

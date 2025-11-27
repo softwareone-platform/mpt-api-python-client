@@ -38,10 +38,11 @@ def test_custom_category_actions(categories_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        category = getattr(categories_service, action)("CAT-123", input_status)
+
+        result = getattr(categories_service, action)("CAT-123", input_status)
 
         assert mock_route.call_count == 1
-        assert category.to_dict() == response_expected_data
+        assert result.to_dict() == response_expected_data
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
 
@@ -66,9 +67,10 @@ async def test_async_custom_category_actions(async_categories_service, action, i
                 json=response_expected_data,
             )
         )
-        category = await getattr(async_categories_service, action)("CAT-123", input_status)
 
-        assert category.to_dict() == response_expected_data
+        result = await getattr(async_categories_service, action)("CAT-123", input_status)
+
+        assert result.to_dict() == response_expected_data
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content

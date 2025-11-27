@@ -42,11 +42,10 @@ def async_billing(async_http_client):
     ],
 )
 def test_billing_properties(billing, property_name, expected_service_class):
-    """Test that Billing properties return correct instances."""
-    service = getattr(billing, property_name)
+    result = getattr(billing, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is billing.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is billing.http_client
 
 
 @pytest.mark.parametrize(
@@ -62,22 +61,21 @@ def test_billing_properties(billing, property_name, expected_service_class):
     ],
 )
 def test_async_billing_properties(async_billing, property_name, expected_service_class):
-    """Test that AsyncBilling properties return correct instances."""
-    service = getattr(async_billing, property_name)
+    result = getattr(async_billing, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is async_billing.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is async_billing.http_client
 
 
 def test_billing_initialization(http_client):
-    billing = Billing(http_client=http_client)
+    result = Billing(http_client=http_client)
 
-    assert billing.http_client is http_client
-    assert isinstance(billing, Billing)
+    assert result.http_client is http_client
+    assert isinstance(result, Billing)
 
 
 def test_async_billing_initialization(async_http_client):
-    async_billing = AsyncBilling(http_client=async_http_client)
+    result = AsyncBilling(http_client=async_http_client)
 
-    assert async_billing.http_client is async_http_client
-    assert isinstance(async_billing, AsyncBilling)
+    assert result.http_client is async_http_client
+    assert isinstance(result, AsyncBilling)

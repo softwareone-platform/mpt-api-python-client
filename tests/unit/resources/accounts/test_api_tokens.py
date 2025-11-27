@@ -21,7 +21,9 @@ def async_api_tokens_service(async_http_client):
     ["get", "create", "update", "delete", "enable", "disable"],
 )
 def test_api_tokens_mixins_present(api_tokens_service, method):
-    assert hasattr(api_tokens_service, method)
+    result = hasattr(api_tokens_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -29,4 +31,6 @@ def test_api_tokens_mixins_present(api_tokens_service, method):
     ["get", "create", "update", "delete", "enable", "disable"],
 )
 def test_async_api_tokens_mixins_present(async_api_tokens_service, method):
-    assert hasattr(async_api_tokens_service, method)
+    result = hasattr(async_api_tokens_service, method)
+
+    assert result is True

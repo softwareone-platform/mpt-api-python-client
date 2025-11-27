@@ -34,7 +34,9 @@ def async_journals_service(async_http_client):
     ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
 )
 def test_mixins_present(journals_service, method):
-    assert hasattr(journals_service, method)
+    result = hasattr(journals_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -42,7 +44,9 @@ def test_mixins_present(journals_service, method):
     ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
 )
 def test_async_mixins_present(async_journals_service, method):
-    assert hasattr(async_journals_service, method)
+    result = hasattr(async_journals_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -55,10 +59,10 @@ def test_async_mixins_present(async_journals_service, method):
     ],
 )
 def test_property_services(journals_service, service_method, expected_service_class):
-    service = getattr(journals_service, service_method)("JRN-0000-0001")
+    result = getattr(journals_service, service_method)("JRN-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"journal_id": "JRN-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"journal_id": "JRN-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -71,7 +75,7 @@ def test_property_services(journals_service, service_method, expected_service_cl
     ],
 )
 def test_async_property_services(async_journals_service, service_method, expected_service_class):
-    service = getattr(async_journals_service, service_method)("JRN-0000-0001")
+    result = getattr(async_journals_service, service_method)("JRN-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"journal_id": "JRN-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"journal_id": "JRN-0000-0001"}

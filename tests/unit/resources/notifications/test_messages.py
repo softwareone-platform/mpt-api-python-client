@@ -17,18 +17,26 @@ def async_messages_service(async_http_client):
 
 
 def test_messages_service_instance(messages_service):
-    assert isinstance(messages_service, MessagesService)
+    result = isinstance(messages_service, MessagesService)
+
+    assert result is True
 
 
 def test_async_messages_service_instance(async_messages_service):
-    assert isinstance(async_messages_service, AsyncMessagesService)
+    result = isinstance(async_messages_service, AsyncMessagesService)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "iterate"])
 def test_sync_messages_service_methods(messages_service, method):
-    assert hasattr(messages_service, method)
+    result = hasattr(messages_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "iterate"])
 def test_async_messages_service_methods(async_messages_service, method):
-    assert hasattr(async_messages_service, method)
+    result = hasattr(async_messages_service, method)
+
+    assert result is True

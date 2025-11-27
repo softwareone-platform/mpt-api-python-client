@@ -25,7 +25,9 @@ def async_account_users_service(http_client):
     ["get", "create", "accept_invite", "resend_invite", "send_new_invite"],
 )
 def test_methods_present(account_users_service, method):
-    assert hasattr(account_users_service, method)
+    result = hasattr(account_users_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -33,7 +35,9 @@ def test_methods_present(account_users_service, method):
     ["get", "create", "accept_invite", "resend_invite", "send_new_invite"],
 )
 def test_async_methods_present(async_account_users_service, method):
-    assert hasattr(async_account_users_service, method)
+    result = hasattr(async_account_users_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -43,10 +47,10 @@ def test_async_methods_present(async_account_users_service, method):
     ],
 )
 def test_property_services(account_users_service, service_method, expected_service_class):
-    service = getattr(account_users_service, service_method)("ACC-0000-0001")
+    result = getattr(account_users_service, service_method)("ACC-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"account_user_id": "ACC-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"account_user_id": "ACC-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -58,7 +62,7 @@ def test_property_services(account_users_service, service_method, expected_servi
 def test_async_property_services(
     async_account_users_service, service_method, expected_service_class
 ):
-    service = getattr(async_account_users_service, service_method)("ACC-0000-0001")
+    result = getattr(async_account_users_service, service_method)("ACC-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"account_user_id": "ACC-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"account_user_id": "ACC-0000-0001"}

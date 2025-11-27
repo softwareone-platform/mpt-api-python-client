@@ -22,12 +22,16 @@ def async_batches_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["get", "create", "iterate", "get_batch_attachment"])
 def test_sync_batches_service_methods(batches_service, method):
-    assert hasattr(batches_service, method)
+    result = hasattr(batches_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "iterate", "get_batch_attachment"])
 def test_async_batches_service_methods(async_batches_service, method):
-    assert hasattr(async_batches_service, method)
+    result = hasattr(async_batches_service, method)
+
+    assert result is True
 
 
 def test_sync_get_batch_attachment(batches_service):
@@ -47,12 +51,13 @@ def test_sync_get_batch_attachment(batches_service):
                 content=attachment_content,
             )
         )
-        downloaded_file = batches_service.get_batch_attachment("BAT-123", "ATT-456")
+
+        result = batches_service.get_batch_attachment("BAT-123", "ATT-456")
 
         assert mock_route.call_count == 1
-        assert downloaded_file.file_contents == attachment_content
-        assert downloaded_file.content_type == "application/octet-stream"
-        assert downloaded_file.filename == "batch_attachment.pdf"
+        assert result.file_contents == attachment_content
+        assert result.content_type == "application/octet-stream"
+        assert result.filename == "batch_attachment.pdf"
 
 
 @pytest.mark.asyncio
@@ -73,12 +78,13 @@ async def test_async_get_batch_attachment(async_batches_service):
                 content=attachment_content,
             )
         )
-        downloaded_file = await async_batches_service.get_batch_attachment("BAT-123", "ATT-456")
+
+        result = await async_batches_service.get_batch_attachment("BAT-123", "ATT-456")
 
         assert mock_route.call_count == 1
-        assert downloaded_file.file_contents == attachment_content
-        assert downloaded_file.content_type == "application/octet-stream"
-        assert downloaded_file.filename == "batch_attachment.pdf"
+        assert result.file_contents == attachment_content
+        assert result.content_type == "application/octet-stream"
+        assert result.filename == "batch_attachment.pdf"
 
 
 def test_sync_batches_create_with_data(batches_service):
@@ -91,12 +97,14 @@ def test_sync_batches_create_with_data(batches_service):
             )
         )
         files = {"attachment": ("test.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
-        new_batch = batches_service.create(batch_data, files=files)
+
+        result = batches_service.create(batch_data, files=files)
+
         request = mock_route.calls[0].request
         assert b'Content-Disposition: form-data; name="_attachment_data"' in request.content
         assert mock_route.call_count == 1
-        assert new_batch.id == "BAT-133"
-        assert new_batch.name == "Test Batch"
+        assert result.id == "BAT-133"
+        assert result.name == "Test Batch"
 
 
 @pytest.mark.asyncio
@@ -110,9 +118,11 @@ async def test_async_batches_create_with_data(async_batches_service):
             )
         )
         files = {"attachment": ("test.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
-        new_batch = await async_batches_service.create(batch_data, files=files)
+
+        result = await async_batches_service.create(batch_data, files=files)
+
         request = mock_route.calls[0].request
         assert b'Content-Disposition: form-data; name="_attachment_data"' in request.content
         assert mock_route.call_count == 1
-        assert new_batch.id == "BAT-133"
-        assert new_batch.name == "Test Batch"
+        assert result.id == "BAT-133"
+        assert result.name == "Test Batch"

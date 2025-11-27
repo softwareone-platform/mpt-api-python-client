@@ -23,17 +23,21 @@ def async_accounts_user_groups_service(async_http_client):
 
 
 def test_endpoint(accounts_user_groups_service):
-    assert (
+    result = (
         accounts_user_groups_service.path
         == "/public/v1/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
     )
 
+    assert result is True
+
 
 def test_async_endpoint(async_accounts_user_groups_service):
-    assert (
+    result = (
         async_accounts_user_groups_service.path
         == "/public/v1/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -41,7 +45,9 @@ def test_async_endpoint(async_accounts_user_groups_service):
     ["create", "update", "delete"],
 )
 def test_mixins_present(accounts_user_groups_service, method):
-    assert hasattr(accounts_user_groups_service, method)
+    result = hasattr(accounts_user_groups_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -49,4 +55,6 @@ def test_mixins_present(accounts_user_groups_service, method):
     ["create", "update", "delete"],
 )
 def test_async_mixins_present(async_accounts_user_groups_service, method):
-    assert hasattr(async_accounts_user_groups_service, method)
+    result = hasattr(async_accounts_user_groups_service, method)
+
+    assert result is True

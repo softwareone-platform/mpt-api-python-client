@@ -11,17 +11,18 @@ def empty_file():
 
 def test_download_file_init():
     response = Response(200)
-    download_file = FileModel(response)
 
-    assert download_file.response == response
+    result = FileModel(response)
+
+    assert result.response == response
 
 
 def test_filename(empty_file):
     empty_file.response.headers["content-disposition"] = 'attachment; filename="test.pdf"'
 
-    filename = empty_file.filename
+    result = empty_file.filename
 
-    assert filename == "test.pdf"
+    assert result == "test.pdf"
 
 
 def test_filename_with_utf8_format(empty_file):
@@ -29,9 +30,9 @@ def test_filename_with_utf8_format(empty_file):
         "attachment; filename*=UTF-8''test%20file.pdf"
     )
 
-    filename = empty_file.filename
+    result = empty_file.filename
 
-    assert filename == "test%20file.pdf"
+    assert result == "test%20file.pdf"
 
 
 def test_filename_without_quotes():
@@ -39,24 +40,26 @@ def test_filename_without_quotes():
     response.headers["content-disposition"] = "attachment; filename=test.pdf"
     download_file = FileModel(response)
 
-    filename = download_file.filename
+    result = download_file.filename
 
-    assert filename == "test.pdf"
+    assert result == "test.pdf"
 
 
 def test_filename_case_insensitive(empty_file):
     empty_file.response.headers["content-disposition"] = 'ATTACHMENT; FILENAME="test.pdf"'
 
-    assert empty_file.filename == "test.pdf"
+    result = empty_file.filename == "test.pdf"
+
+    assert result is True
 
 
 def test_filename_no_content_disposition(empty_file):
-    filename = empty_file.filename
+    result = empty_file.filename
 
-    assert filename is None
+    assert result is None
 
 
-def test_filename_empty_content_disposition(empty_file):
+def test_filename_empty_content_disposition(empty_file):  # noqa: AAA01
     empty_file.response.headers["content-disposition"] = ""
 
     assert empty_file.filename is None
@@ -67,28 +70,31 @@ def test_filename_no_filename_in_header():
     response.headers["content-disposition"] = "attachment"
     download_file = FileModel(response)
 
-    filename = download_file.filename
+    result = download_file.filename
 
-    assert filename is None
+    assert result is None
 
 
 def test_file_contents():
     response = Response(200, content=b"test content")
-    download_file = FileModel(response)
 
-    assert download_file.file_contents == b"test content"
+    result = FileModel(response)
+
+    assert result.file_contents == b"test content"
 
 
 def test_content_type():
     response = Response(200)
     response.headers["content-type"] = "application/pdf"
-    download_file = FileModel(response)
 
-    assert download_file.content_type == "application/pdf"
+    result = FileModel(response)
+
+    assert result.content_type == "application/pdf"
 
 
 def test_content_type_none():
     response = Response(200)
-    download_file = FileModel(response)
 
-    assert not download_file.content_type
+    result = FileModel(response)
+
+    assert not result.content_type

@@ -53,11 +53,10 @@ def async_accounts(async_http_client):
     ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
-    """Test that Accounts properties return correct instances."""
-    service = getattr(accounts, property_name)
+    result = getattr(accounts, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is accounts.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is accounts.http_client
 
 
 @pytest.mark.parametrize(
@@ -77,22 +76,21 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
     ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):
-    """Test that AsyncAccounts properties return correct instances."""
-    service = getattr(async_accounts, property_name)
+    result = getattr(async_accounts, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is async_accounts.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is async_accounts.http_client
 
 
 def test_accounts_initialization(http_client):
-    accounts = Accounts(http_client=http_client)
+    result = Accounts(http_client=http_client)
 
-    assert accounts.http_client is http_client
-    assert isinstance(accounts, Accounts)
+    assert result.http_client is http_client
+    assert isinstance(result, Accounts)
 
 
 def test_async_accounts_initialization(async_http_client):
-    accounts = AsyncAccounts(http_client=async_http_client)
+    result = AsyncAccounts(http_client=async_http_client)
 
-    assert accounts.http_client is async_http_client
-    assert isinstance(accounts, AsyncAccounts)
+    assert result.http_client is async_http_client
+    assert isinstance(result, AsyncAccounts)

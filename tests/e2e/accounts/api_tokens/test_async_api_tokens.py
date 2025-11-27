@@ -22,14 +22,17 @@ async def created_api_token(async_mpt_vendor, api_token_factory):
 
 
 async def test_get_api_token_by_id(async_mpt_vendor, api_token_id):
-    api_token = await async_mpt_vendor.accounts.api_tokens.get(api_token_id)
-    assert api_token is not None
+    result = await async_mpt_vendor.accounts.api_tokens.get(api_token_id)
+
+    assert result is not None
 
 
 async def test_list_api_tokens(async_mpt_vendor):
     limit = 10
-    api_tokens = await async_mpt_vendor.accounts.api_tokens.fetch_page(limit=limit)
-    assert len(api_tokens) > 0
+
+    result = await async_mpt_vendor.accounts.api_tokens.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 async def test_get_api_token_by_id_not_found(async_mpt_vendor, invalid_api_token_id):
@@ -39,25 +42,25 @@ async def test_get_api_token_by_id_not_found(async_mpt_vendor, invalid_api_token
 
 async def test_filter_api_tokens(async_mpt_vendor, api_token_id):
     select_fields = ["-description"]
-
     filtered_api_tokens = (
         async_mpt_vendor.accounts.api_tokens.filter(RQLQuery(id=api_token_id))
         .filter(RQLQuery(name="E2E Seeded Token"))
         .select(*select_fields)
     )
 
-    api_tokens = [filtered_api_token async for filtered_api_token in filtered_api_tokens.iterate()]
+    result = [filtered_api_token async for filtered_api_token in filtered_api_tokens.iterate()]
 
-    assert len(api_tokens) == 1
+    assert len(result) == 1
 
 
 def test_create_api_token(created_api_token):
-    new_api_token = created_api_token
-    assert new_api_token is not None
+    result = created_api_token
+
+    assert result is not None
 
 
 async def test_delete_api_token(async_mpt_vendor, created_api_token):
-    await async_mpt_vendor.accounts.api_tokens.delete(created_api_token.id)
+    await async_mpt_vendor.accounts.api_tokens.delete(created_api_token.id)  # act
 
 
 async def test_delete_api_token_not_found(async_mpt_vendor, invalid_api_token_id):
@@ -68,11 +71,11 @@ async def test_delete_api_token_not_found(async_mpt_vendor, invalid_api_token_id
 async def test_update_api_token(async_mpt_vendor, api_token_factory, created_api_token):
     updated_api_token_data = api_token_factory(name="E2E Updated API Token")
 
-    updated_api_token = await async_mpt_vendor.accounts.api_tokens.update(
+    result = await async_mpt_vendor.accounts.api_tokens.update(
         created_api_token.id, updated_api_token_data
     )
 
-    assert updated_api_token is not None
+    assert result is not None
 
 
 async def test_update_api_token_not_found(
@@ -87,9 +90,9 @@ async def test_update_api_token_not_found(
 
 
 async def test_api_token_disable(async_mpt_vendor, created_api_token):
-    disabled_api_token = await async_mpt_vendor.accounts.api_tokens.disable(created_api_token.id)
+    result = await async_mpt_vendor.accounts.api_tokens.disable(created_api_token.id)
 
-    assert disabled_api_token is not None
+    assert result is not None
 
 
 async def test_api_token_disable_not_found(async_mpt_vendor, invalid_api_token_id):
@@ -100,9 +103,9 @@ async def test_api_token_disable_not_found(async_mpt_vendor, invalid_api_token_i
 async def test_api_token_enable(async_mpt_vendor, created_api_token):
     await async_mpt_vendor.accounts.api_tokens.disable(created_api_token.id)
 
-    enabled_api_token = await async_mpt_vendor.accounts.api_tokens.enable(created_api_token.id)
+    result = await async_mpt_vendor.accounts.api_tokens.enable(created_api_token.id)
 
-    assert enabled_api_token is not None
+    assert result is not None
 
 
 async def test_api_token_enable_not_found(async_mpt_vendor, invalid_api_token_id):

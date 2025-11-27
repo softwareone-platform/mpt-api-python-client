@@ -14,5 +14,6 @@ def test_unauthorised(base_url):
 
 @pytest.mark.flaky
 def test_access(mpt_vendor, product_id):
-    product = mpt_vendor.catalog.products.get(product_id)
-    assert product.id == product_id
+    result = mpt_vendor.catalog.products.get(product_id)
+
+    assert result.id == product_id

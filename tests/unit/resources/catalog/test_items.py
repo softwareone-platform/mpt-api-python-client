@@ -17,11 +17,15 @@ def async_items_service(async_http_client):
     "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
 )
 def test_mixins_present(items_service, method):
-    assert hasattr(items_service, method)
+    result = hasattr(items_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
 )
 def test_async_mixins_present(async_items_service, method):
-    assert hasattr(async_items_service, method)
+    result = hasattr(async_items_service, method)
+
+    assert result is True

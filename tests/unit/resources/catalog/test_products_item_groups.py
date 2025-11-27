@@ -19,18 +19,26 @@ def async_item_groups_service(async_http_client):
 
 
 def test_endpoint(item_groups_service):
-    assert item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
+    result = item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
+
+    assert result is True
 
 
 def test_async_endpoint(async_item_groups_service):
-    assert async_item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
+    result = async_item_groups_service.path == "/public/v1/catalog/products/PRD-001/item-groups"
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_methods_present(item_groups_service, method):
-    assert hasattr(item_groups_service, method)
+    result = hasattr(item_groups_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
 def test_async_methods_present(async_item_groups_service, method):
-    assert hasattr(async_item_groups_service, method)
+    result = hasattr(async_item_groups_service, method)
+
+    assert result is True

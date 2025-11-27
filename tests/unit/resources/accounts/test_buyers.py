@@ -32,7 +32,9 @@ def async_buyers_service(async_http_client):
     ],
 )
 def test_mixins_present(buyers_service, method):
-    assert hasattr(buyers_service, method)
+    result = hasattr(buyers_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -52,7 +54,9 @@ def test_mixins_present(buyers_service, method):
     ],
 )
 def test_async_mixins_present(async_buyers_service, method):
-    assert hasattr(async_buyers_service, method)
+    result = hasattr(async_buyers_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -74,13 +78,13 @@ def test_buyers_resource_action(buyers_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        buyers_obj = getattr(buyers_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(buyers_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert buyers_obj.to_dict() == response_expected_data
-        assert isinstance(buyers_obj, Buyer)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Buyer)
 
 
 @pytest.mark.parametrize(
@@ -99,13 +103,13 @@ def test_buyers_resouce_action_no_data(buyers_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        buyers_obj = getattr(buyers_service, action)("OBJ-0000-0001", None)
+
+        result = getattr(buyers_service, action)("OBJ-0000-0001", None)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert buyers_obj.to_dict() == response_expected_data
-        assert isinstance(buyers_obj, Buyer)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Buyer)
 
 
 @pytest.mark.parametrize(
@@ -127,13 +131,13 @@ async def test_async_buyers_resource_action(async_buyers_service, action, input_
                 json=response_expected_data,
             )
         )
-        buyers_obj = await getattr(async_buyers_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_buyers_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert buyers_obj.to_dict() == response_expected_data
-        assert isinstance(buyers_obj, Buyer)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Buyer)
 
 
 @pytest.mark.parametrize(
@@ -152,13 +156,13 @@ async def test_async_buyers_resource_action_no_data(async_buyers_service, action
                 json=response_expected_data,
             )
         )
-        buyers_obj = await getattr(async_buyers_service, action)("OBJ-0000-0001", None)
+
+        result = await getattr(async_buyers_service, action)("OBJ-0000-0001", None)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert buyers_obj.to_dict() == response_expected_data
-        assert isinstance(buyers_obj, Buyer)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, Buyer)
 
 
 def test_buyers_create(buyers_service, tmp_path):  # noqa: WPS210
@@ -166,23 +170,20 @@ def test_buyers_create(buyers_service, tmp_path):  # noqa: WPS210
         "id": "BUY-0000-0001",
         "name": "Test Buyer",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.post(buyers_service.path).mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
         )
 
-        buyer = buyers_service.create(buyer_data, logo=logo_file)
+        result = buyers_service.create(buyer_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "POST"
     assert request.url.path == "/public/v1/accounts/buyers"
-    assert buyer.to_dict() == buyer_data
+    assert result.to_dict() == buyer_data
 
 
 def test_buyers_update(buyers_service, tmp_path):  # noqa: WPS210
@@ -190,23 +191,20 @@ def test_buyers_update(buyers_service, tmp_path):  # noqa: WPS210
     buyer_data = {
         "name": "Updated Test Buyer",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.put(f"{buyers_service.path}/{buyer_id}").mock(
             return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
         )
 
-        buyer = buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+        result = buyers_service.update(buyer_id, buyer_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/accounts/buyers/{buyer_id}"
-    assert buyer.to_dict() == {"id": buyer_id, **buyer_data}
+    assert result.to_dict() == {"id": buyer_id, **buyer_data}
 
 
 async def test_async_buyers_create(async_buyers_service, tmp_path):  # noqa: WPS210
@@ -214,23 +212,20 @@ async def test_async_buyers_create(async_buyers_service, tmp_path):  # noqa: WPS
         "id": "BUY-0000-0001",
         "name": "Test Buyer",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
-
     with logo_path.open("rb") as logo_file, respx.mock:
         mock_route = respx.post(async_buyers_service.path).mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
         )
 
-        buyer = await async_buyers_service.create(buyer_data, logo=logo_file)
+        result = await async_buyers_service.create(buyer_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "POST"
     assert request.url.path == "/public/v1/accounts/buyers"
-    assert buyer.to_dict() == buyer_data
+    assert result.to_dict() == buyer_data
 
 
 async def test_async_buyers_update(async_buyers_service, tmp_path):  # noqa: WPS210
@@ -238,7 +233,6 @@ async def test_async_buyers_update(async_buyers_service, tmp_path):  # noqa: WPS
     buyer_data = {
         "name": "Updated Test Buyer",
     }
-
     logo_path = tmp_path / "logo.png"
     logo_path.write_bytes(b"fake-logo-data")
 
@@ -247,11 +241,10 @@ async def test_async_buyers_update(async_buyers_service, tmp_path):  # noqa: WPS
             return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
         )
 
-        buyer = await async_buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+        result = await async_buyers_service.update(buyer_id, buyer_data, logo=logo_file)
 
     request = mock_route.calls[0].request
-
     assert mock_route.call_count == 1
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/accounts/buyers/{buyer_id}"
-    assert buyer.to_dict() == {"id": buyer_id, **buyer_data}
+    assert result.to_dict() == {"id": buyer_id, **buyer_data}

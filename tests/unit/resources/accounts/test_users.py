@@ -19,14 +19,18 @@ def async_users_service(async_http_client):
     "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check", "set_password"]
 )
 def test_mixins_present(users_service, method):
-    assert hasattr(users_service, method)
+    result = hasattr(users_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "update", "delete", "block", "unblock", "sso", "sso_check", "set_password"]
 )
 def test_async_mixins_present(async_users_service, method):
-    assert hasattr(async_users_service, method)
+    result = hasattr(async_users_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -49,13 +53,13 @@ def test_resource_actions(users_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        blockable_obj = getattr(users_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(users_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)
 
 
 @pytest.mark.parametrize(
@@ -78,13 +82,13 @@ def test_resource_actions_no_data(users_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        blockable_obj = getattr(users_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(users_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)
 
 
 @pytest.mark.parametrize(
@@ -107,13 +111,13 @@ async def test_async_resource_actions(async_users_service, action, input_status)
                 json=response_expected_data,
             )
         )
-        blockable_obj = await getattr(async_users_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_users_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)
 
 
 @pytest.mark.parametrize(
@@ -136,13 +140,13 @@ async def test_async_resource_actions_no_data(async_users_service, action, input
                 json=response_expected_data,
             )
         )
-        blockable_obj = await getattr(async_users_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_users_service, action)("OBJ-0000-0001", input_status)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)
 
 
 @pytest.mark.parametrize(
@@ -165,13 +169,13 @@ def test_set_password_action(users_service, action, input_password):
                 json=response_expected_data,
             )
         )
-        blockable_obj = getattr(users_service, action)("OBJ-0000-0001", input_password)
+
+        result = getattr(users_service, action)("OBJ-0000-0001", input_password)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)
 
 
 @pytest.mark.parametrize(
@@ -194,10 +198,10 @@ async def test_async_set_password_action(async_users_service, action, input_pass
                 json=response_expected_data,
             )
         )
-        blockable_obj = await getattr(async_users_service, action)("OBJ-0000-0001", input_password)
+
+        result = await getattr(async_users_service, action)("OBJ-0000-0001", input_password)
 
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert blockable_obj.to_dict() == response_expected_data
-        assert isinstance(blockable_obj, User)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, User)

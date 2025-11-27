@@ -15,9 +15,13 @@ def async_module_service(http_client):
 
 @pytest.mark.parametrize("method", ["get"])
 def test_modules_mixins_present(module_service, method):
-    assert hasattr(module_service, method)
+    result = hasattr(module_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get"])
 def test_async_modules_mixins_present(async_module_service, method):
-    assert hasattr(async_module_service, method)
+    result = hasattr(async_module_service, method)
+
+    assert result is True

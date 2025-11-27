@@ -20,12 +20,16 @@ def async_subscriptions_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["get", "create", "delete"])
 def test_methods_present(subscriptions_service, method):
-    assert hasattr(subscriptions_service, method)
+    result = hasattr(subscriptions_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "delete"])
 def test_async_methods_present(async_subscriptions_service, method):
-    assert hasattr(async_subscriptions_service, method)
+    result = hasattr(async_subscriptions_service, method)
+
+    assert result is True
 
 
 async def test_async_terminate(async_subscriptions_service):
@@ -75,11 +79,9 @@ def test_terminate(subscriptions_service):
             )
         )
 
-        subscription_updated = subscriptions_service.terminate(
-            "SUB-123", {"name": "Terminated SUB-123"}
-        )
+        result = subscriptions_service.terminate("SUB-123", {"name": "Terminated SUB-123"})
 
-        assert subscription_updated.to_dict() == subscription_expected
+        assert result.to_dict() == subscription_expected
 
 
 def test_render(subscriptions_service):
@@ -93,6 +95,6 @@ def test_render(subscriptions_service):
             )
         )
 
-        template = subscriptions_service.render("SUB-123")
+        result = subscriptions_service.render("SUB-123")
 
-        assert template == template_content
+        assert result == template_content

@@ -15,9 +15,13 @@ def async_event_types_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["get", "update"])
 def test_mixins_present(event_types_service, method):
-    assert hasattr(event_types_service, method)
+    result = hasattr(event_types_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "update"])
 def test_async_mixins_present(async_event_types_service, method):
-    assert hasattr(async_event_types_service, method)
+    result = hasattr(async_event_types_service, method)
+
+    assert result is True

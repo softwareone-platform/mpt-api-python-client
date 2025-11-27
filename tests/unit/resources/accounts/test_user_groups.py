@@ -21,7 +21,9 @@ def async_user_groups_service(http_client):
     ["get", "create", "update", "delete"],
 )
 def test_mixins_present(user_groups_service, method):
-    assert hasattr(user_groups_service, method)
+    result = hasattr(user_groups_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -29,4 +31,6 @@ def test_mixins_present(user_groups_service, method):
     ["get", "create", "update", "delete"],
 )
 def test_async_mixins_present(async_user_groups_service, method):
-    assert hasattr(async_user_groups_service, method)
+    result = hasattr(async_user_groups_service, method)
+
+    assert result is True

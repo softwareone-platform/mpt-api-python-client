@@ -21,21 +21,31 @@ def async_ledger_attachments_service(async_http_client) -> AsyncLedgerAttachment
 
 
 def test_endpoint(ledger_attachments_service) -> None:
-    assert ledger_attachments_service.path == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
+    result = (
+        ledger_attachments_service.path == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
+    )
+
+    assert result is True
 
 
 def test_async_endpoint(async_ledger_attachments_service) -> None:
-    assert (
+    result = (
         async_ledger_attachments_service.path
         == "/public/v1/billing/ledgers/LED-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_methods_present(ledger_attachments_service, method: str) -> None:
-    assert hasattr(ledger_attachments_service, method)
+    result = hasattr(ledger_attachments_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_methods_present(async_ledger_attachments_service, method: str) -> None:
-    assert hasattr(async_ledger_attachments_service, method)
+    result = hasattr(async_ledger_attachments_service, method)
+
+    assert result is True

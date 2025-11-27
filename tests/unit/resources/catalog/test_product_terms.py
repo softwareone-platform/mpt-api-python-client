@@ -25,38 +25,46 @@ def async_term_service(async_http_client: Any) -> AsyncTermService:
 
 
 def test_endpoint(term_service: TermService) -> None:
-    assert term_service.path == "/public/v1/catalog/products/PRD-001/terms"
+    result = term_service.path == "/public/v1/catalog/products/PRD-001/terms"
+
+    assert result is True
 
 
 def test_async_endpoint(async_term_service: AsyncTermService) -> None:
-    assert async_term_service.path == "/public/v1/catalog/products/PRD-001/terms"
+    result = async_term_service.path == "/public/v1/catalog/products/PRD-001/terms"
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "review", "publish", "unpublish"]
 )
 def test_methods_present(term_service: TermService, method: str) -> None:
-    assert hasattr(term_service, method)
+    result = hasattr(term_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "review", "publish", "unpublish"]
 )
 def test_async_methods_present(async_term_service: AsyncTermService, method: str) -> None:
-    assert hasattr(async_term_service, method)
+    result = hasattr(async_term_service, method)
+
+    assert result is True
 
 
 def test_variants_property(term_service: TermService) -> None:
-    """Test that variants property returns TermVariantService."""
-    variants = term_service.variants("TCS-001")
-    assert isinstance(variants, TermVariantService)
-    assert variants.http_client == term_service.http_client
-    assert variants.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
+    result = term_service.variants("TCS-001")
+
+    assert isinstance(result, TermVariantService)
+    assert result.http_client == term_service.http_client
+    assert result.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
 
 
 def test_async_variants_property(async_term_service: AsyncTermService) -> None:
-    """Test that variants property returns AsyncTermVariantService."""
-    variants = async_term_service.variants("TCS-001")
-    assert isinstance(variants, AsyncTermVariantService)
-    assert variants.http_client == async_term_service.http_client
-    assert variants.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
+    result = async_term_service.variants("TCS-001")
+
+    assert isinstance(result, AsyncTermVariantService)
+    assert result.http_client == async_term_service.http_client
+    assert result.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}

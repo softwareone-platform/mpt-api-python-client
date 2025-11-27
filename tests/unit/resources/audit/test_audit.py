@@ -23,11 +23,10 @@ def async_audit(async_http_client):
     ],
 )
 def test_audit_properties(audit, property_name, expected_service_class):
-    """Test that Audit properties return correct instances."""
-    service = getattr(audit, property_name)
+    result = getattr(audit, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is audit.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is audit.http_client
 
 
 @pytest.mark.parametrize(
@@ -38,22 +37,21 @@ def test_audit_properties(audit, property_name, expected_service_class):
     ],
 )
 def test_async_audit_properties(async_audit, property_name, expected_service_class):
-    """Test that AsyncAudit properties return correct instances."""
-    service = getattr(async_audit, property_name)
+    result = getattr(async_audit, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is async_audit.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is async_audit.http_client
 
 
 def test_audit_initialization(http_client):
-    audit = Audit(http_client=http_client)
+    result = Audit(http_client=http_client)
 
-    assert audit.http_client is http_client
-    assert isinstance(audit, Audit)
+    assert result.http_client is http_client
+    assert isinstance(result, Audit)
 
 
 def test_async_audit_initialization(async_http_client):
-    async_audit = AsyncAudit(http_client=async_http_client)
+    result = AsyncAudit(http_client=async_http_client)
 
-    assert async_audit.http_client is async_http_client
-    assert isinstance(async_audit, AsyncAudit)
+    assert result.http_client is async_http_client
+    assert isinstance(result, AsyncAudit)

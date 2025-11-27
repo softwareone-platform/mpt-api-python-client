@@ -1,7 +1,7 @@
 from mpt_api_client.rql import RQLQuery
 
 
-def test_repr():
+def test_repr():  # noqa: AAA01
     products = ["PRD-1", "PRD-2"]
     product_ids = ",".join(products)
     expression_query = RQLQuery(product__id__in=products)
@@ -11,7 +11,7 @@ def test_repr():
     assert repr(or_expression) == "<RQLQuery(or)>"
 
 
-def test_len():
+def test_len():  # noqa: AAA01
     empty_query = RQLQuery()
     simple_query = RQLQuery(id="ID")
     complex_query = RQLQuery(id="ID", status__in=("a", "b"))
@@ -21,13 +21,13 @@ def test_len():
     assert len(complex_query) == 2
 
 
-def test_bool():
+def test_bool():  # noqa: AAA01
     assert bool(RQLQuery()) is False
     assert bool(RQLQuery(id="ID")) is True
     assert bool(RQLQuery(id="ID", status__in=("a", "b"))) is True
 
 
-def test_str():
+def test_str():  # noqa: AAA01
     assert str(RQLQuery(id="ID")) == "eq(id,ID)"
     assert str(~RQLQuery(id="ID")) == "not(eq(id,ID))"
     assert str(~RQLQuery(id="ID", field="value")) == "not(and(eq(id,ID),eq(field,value)))"
@@ -37,15 +37,14 @@ def test_str():
 def test_hash():
     query_set = set()
 
-    rql = RQLQuery(id="ID", field="value")
+    result = RQLQuery(id="ID", field="value")
 
-    query_set.add(rql)
-    query_set.add(rql)
-
+    query_set.add(result)
+    query_set.add(result)
     assert len(query_set) == 1
 
 
-def test_empty():
+def test_empty():  # noqa: AAA01
     assert RQLQuery("value").empty() == RQLQuery("value").empty()
     assert str(RQLQuery("value1").empty()) == "eq(value1,empty())"
     assert str(RQLQuery("value2").not_empty()) == "ne(value2,empty())"

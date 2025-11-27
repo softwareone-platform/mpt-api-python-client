@@ -21,7 +21,9 @@ def async_cloud_tenants_service(async_http_client):
     ["get", "create", "update", "delete"],
 )
 def test_cloud_tenants_mixins_present(cloud_tenants_service, method):
-    assert hasattr(cloud_tenants_service, method)
+    result = hasattr(cloud_tenants_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -29,4 +31,6 @@ def test_cloud_tenants_mixins_present(cloud_tenants_service, method):
     ["get", "create", "update", "delete"],
 )
 def test_async_cloud_tenants_mixins_present(async_cloud_tenants_service, method):
-    assert hasattr(async_cloud_tenants_service, method)
+    result = hasattr(async_cloud_tenants_service, method)
+
+    assert result is True

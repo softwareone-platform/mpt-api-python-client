@@ -45,11 +45,10 @@ def async_catalog(async_http_client):
     ],
 )
 def test_catalog_properties(catalog, property_name, expected_service_class):
-    """Test that Catalog properties return correct instances."""
-    service = getattr(catalog, property_name)
+    result = getattr(catalog, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is catalog.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is catalog.http_client
 
 
 @pytest.mark.parametrize(
@@ -65,24 +64,21 @@ def test_catalog_properties(catalog, property_name, expected_service_class):
     ],
 )
 def test_async_catalog_properties(async_catalog, property_name, expected_service_class):
-    """Test that AsyncCatalog properties return correct instances."""
-    service = getattr(async_catalog, property_name)
+    result = getattr(async_catalog, property_name)
 
-    assert isinstance(service, expected_service_class)
-    assert service.http_client is async_catalog.http_client
+    assert isinstance(result, expected_service_class)
+    assert result.http_client is async_catalog.http_client
 
 
 def test_catalog_initialization(http_client):
-    """Test that Catalog can be properly initialized with http_client."""
-    catalog = Catalog(http_client=http_client)
+    result = Catalog(http_client=http_client)
 
-    assert catalog.http_client is http_client
-    assert isinstance(catalog, Catalog)
+    assert result.http_client is http_client
+    assert isinstance(result, Catalog)
 
 
 def test_async_catalog_initialization(async_http_client):
-    """Test that AsyncCatalog can be properly initialized with http_client."""
-    async_catalog = AsyncCatalog(http_client=async_http_client)
+    result = AsyncCatalog(http_client=async_http_client)
 
-    assert async_catalog.http_client is async_http_client
-    assert isinstance(async_catalog, AsyncCatalog)
+    assert result.http_client is async_http_client
+    assert isinstance(result, AsyncCatalog)

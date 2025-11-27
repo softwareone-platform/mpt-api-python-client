@@ -38,10 +38,11 @@ def test_custom_contact_actions(contacts_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        contact = getattr(contacts_service, action)("CON-123", input_status)
+
+        result = getattr(contacts_service, action)("CON-123", input_status)
 
         assert mock_route.call_count == 1
-        assert contact.to_dict() == response_expected_data
+        assert result.to_dict() == response_expected_data
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
 
@@ -66,9 +67,10 @@ async def test_async_custom_contact_actions(async_contacts_service, action, inpu
                 json=response_expected_data,
             )
         )
-        contact = await getattr(async_contacts_service, action)("CON-123", input_status)
 
-        assert contact.to_dict() == response_expected_data
+        result = await getattr(async_contacts_service, action)("CON-123", input_status)
+
+        assert result.to_dict() == response_expected_data
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content

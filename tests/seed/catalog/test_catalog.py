@@ -10,7 +10,7 @@ async def test_seed_catalog_stage1() -> None:
             "seed.catalog.catalog.seed_parameter_group", new_callable=AsyncMock
         ) as mock_param_group,
     ):
-        await seed_groups_and_group_params()
+        await seed_groups_and_group_params()  # act
 
         mock_item_group.assert_called_once()
         mock_param_group.assert_called_once()
@@ -21,7 +21,7 @@ async def test_seed_catalog_stage2() -> None:
         patch("seed.catalog.catalog.seed_items", new_callable=AsyncMock) as mock_items,
         patch("seed.catalog.catalog.seed_parameters", new_callable=AsyncMock) as mock_params,
     ):
-        await seed_items_and_params()
+        await seed_items_and_params()  # act
 
         mock_items.assert_called_once()
         mock_params.assert_called_once()
@@ -37,7 +37,7 @@ async def test_seed_catalog() -> None:
             "seed.catalog.catalog.seed_groups_and_group_params", new_callable=AsyncMock
         ) as seed_groups_and_group_params,
     ):
-        await seed_catalog()
+        await seed_catalog()  # act
 
         mock_product.assert_called_once()
         seed_items_and_params.assert_called_once()

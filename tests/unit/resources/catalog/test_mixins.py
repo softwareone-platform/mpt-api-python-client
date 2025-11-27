@@ -116,14 +116,14 @@ def test_custom_resource_actions(publishable_service, action, input_status):
                 json=response_expected_data,
             )
         )
-        order = getattr(publishable_service, action)("PRD-123", input_status)
+
+        result = getattr(publishable_service, action)("PRD-123", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -148,13 +148,13 @@ def test_custom_resource_actions_no_data(publishable_service, action, input_stat
             )
         )
 
-        order = getattr(publishable_service, action)("PRD-123")
+        result = getattr(publishable_service, action)("PRD-123")
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -178,14 +178,14 @@ async def test_async_custom_resource_actions(async_publishable_service, action, 
                 json=response_expected_data,
             )
         )
-        order = await getattr(async_publishable_service, action)("PRD-123", input_status)
+
+        result = await getattr(async_publishable_service, action)("PRD-123", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -212,13 +212,13 @@ async def test_async_custom_resource_actions_no_data(
             )
         )
 
-        order = await getattr(async_publishable_service, action)("PRD-123")
+        result = await getattr(async_publishable_service, action)("PRD-123")
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
         assert request.content == request_expected_content
-        assert order.to_dict() == response_expected_data
-        assert isinstance(order, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -241,14 +241,14 @@ def test_custom_resource_activatable_actions(activatable_service, action, input_
                 json=response_expected_data,
             )
         )
-        attachment = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert attachment.to_dict() == response_expected_data
-        assert isinstance(attachment, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -271,14 +271,14 @@ def test_custom_resource_activatable_actions_no_data(activatable_service, action
                 json=response_expected_data,
             )
         )
-        attachment = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert attachment.to_dict() == response_expected_data
-        assert isinstance(attachment, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -303,14 +303,14 @@ async def test_async_custom_resource_activatable_actions(
                 json=response_expected_data,
             )
         )
-        attachment = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert attachment.to_dict() == response_expected_data
-        assert isinstance(attachment, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
@@ -335,14 +335,14 @@ async def test_async_custom_resource_activatable_actions_no_data(
                 json=response_expected_data,
             )
         )
-        attachment = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
+
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
 
         assert mock_route.call_count == 1
         request = mock_route.calls[0].request
-
         assert request.content == request_expected_content
-        assert attachment.to_dict() == response_expected_data
-        assert isinstance(attachment, DummyModel)
+        assert result.to_dict() == response_expected_data
+        assert isinstance(result, DummyModel)
 
 
 @pytest.fixture
@@ -370,17 +370,16 @@ def test_document_create_with_url(document_service):
         )
         new_doc = document_service.create(resource_data=resource_data)
 
-    request = mock_route.calls[0].request
+    result = mock_route.calls[0].request
 
     assert (
         b'Content-Disposition: form-data; name="document"\r\n'
         b"Content-Type: application/json\r\n\r\n"
         b'{"name":"My Doc","description":"My Doc","url":"https://example.com/file.pdf"}\r\n'
-        in request.content
+        in result.content
     )
-
-    assert b'Content-Disposition: form-data; name="file"' not in request.content
-    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert b'Content-Disposition: form-data; name="file"' not in result.content
+    assert "multipart/form-data" in result.headers["Content-Type"]
     assert new_doc.to_dict() == resource_data
     assert isinstance(new_doc, DummyModel)
 
@@ -389,12 +388,12 @@ def test_document_create_with_file(document_service):  # noqa: WPS210
     resource_data = {"id": "DOC-125", "name": "Data And File"}
     response_data = resource_data
     file_tuple = ("manual.pdf", io.BytesIO(b"PDF DATA"), "application/pdf")
-
     with respx.mock:
         mock_route = respx.post("https://api.example.com/public/v1/dummy/documents").mock(
             return_value=httpx.Response(status_code=httpx.codes.OK, json=response_data)
         )
-        new_doc = document_service.create(resource_data=resource_data, file=file_tuple)
+
+        result = document_service.create(resource_data=resource_data, file=file_tuple)
 
     request = mock_route.calls[0].request
     # JSON part
@@ -410,8 +409,8 @@ def test_document_create_with_file(document_service):  # noqa: WPS210
         b"PDF DATA\r\n" in request.content
     )
     assert "multipart/form-data" in request.headers["Content-Type"]
-    assert new_doc.to_dict() == response_data
-    assert isinstance(new_doc, DummyModel)
+    assert result.to_dict() == response_data
+    assert isinstance(result, DummyModel)
 
 
 async def test_async_document_create_with_url(async_document_service):
@@ -427,47 +426,44 @@ async def test_async_document_create_with_url(async_document_service):
                 json=resource_data,
             )
         )
-        new_doc = await async_document_service.create(resource_data=resource_data)
+
+        result = await async_document_service.create(resource_data=resource_data)
 
     request = mock_route.calls[0].request
-
     assert (
         b'Content-Disposition: form-data; name="document"\r\n'
         b"Content-Type: application/json\r\n\r\n"
         b'{"name":"My Doc","description":"My Doc","url":"https://example.com/file.pdf"}\r\n'
         in request.content
     )
-
     assert b'Content-Disposition: form-data; name="file"' not in request.content
     assert "multipart/form-data" in request.headers["Content-Type"]
-    assert new_doc.to_dict() == resource_data
-    assert isinstance(new_doc, DummyModel)
+    assert result.to_dict() == resource_data
+    assert isinstance(result, DummyModel)
 
 
 async def test_async_document_create_with_file(async_document_service):  # noqa: WPS210
     resource_data = {"id": "DOC-125", "name": "Data And File"}
     response_data = resource_data
     file_tuple = ("manual.pdf", io.BytesIO(b"PDF DATA"), "application/pdf")
-
     with respx.mock:
         mock_route = respx.post("https://api.example.com/public/v1/dummy/documents").mock(
             return_value=httpx.Response(status_code=httpx.codes.OK, json=response_data)
         )
-        new_doc = await async_document_service.create(resource_data, file_tuple)
+
+        result = await async_document_service.create(resource_data, file_tuple)
 
     request = mock_route.calls[0].request
-
     assert (
         b'Content-Disposition: form-data; name="document"\r\n'
         b"Content-Type: application/json\r\n\r\n"
         b'{"id":"DOC-125","name":"Data And File"}\r\n' in request.content
     )
-
     assert (
         b'Content-Disposition: form-data; name="file"; filename="manual.pdf"\r\n'
         b"Content-Type: application/pdf\r\n\r\n"
         b"PDF DATA\r\n" in request.content
     )
     assert "multipart/form-data" in request.headers["Content-Type"]
-    assert new_doc.to_dict() == response_data
-    assert isinstance(new_doc, DummyModel)
+    assert result.to_dict() == response_data
+    assert isinstance(result, DummyModel)

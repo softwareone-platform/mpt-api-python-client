@@ -26,14 +26,17 @@ async def async_created_buyer(async_mpt_ops, buyer_factory, buyer_account_id, ac
 
 
 async def test_get_buyer_by_id(async_mpt_ops, buyer_id):
-    buyer = await async_mpt_ops.accounts.buyers.get(buyer_id)
-    assert buyer is not None
+    result = await async_mpt_ops.accounts.buyers.get(buyer_id)
+
+    assert result is not None
 
 
 async def test_list_buyers(async_mpt_ops):
     limit = 10
-    buyers = await async_mpt_ops.accounts.buyers.fetch_page(limit=limit)
-    assert len(buyers) > 0
+
+    result = await async_mpt_ops.accounts.buyers.fetch_page(limit=limit)
+
+    assert len(result) > 0
 
 
 async def test_get_buyer_by_id_not_found(async_mpt_ops, invalid_buyer_id):
@@ -43,24 +46,25 @@ async def test_get_buyer_by_id_not_found(async_mpt_ops, invalid_buyer_id):
 
 async def test_filter_buyers(async_mpt_ops, buyer_id):
     select_fields = ["-address"]
-
     async_filtered_buyers = (
         async_mpt_ops.accounts.buyers.filter(RQLQuery(id=buyer_id))
         .filter(RQLQuery(name="E2E Seeded Buyer"))
         .select(*select_fields)
     )
 
-    buyers = [filtered_buyer async for filtered_buyer in async_filtered_buyers.iterate()]
+    result = [filtered_buyer async for filtered_buyer in async_filtered_buyers.iterate()]
 
-    assert len(buyers) == 1
+    assert len(result) == 1
 
 
 def test_create_buyer(async_created_buyer):
-    assert async_created_buyer is not None
+    result = async_created_buyer
+
+    assert result is not None
 
 
 async def test_delete_buyer(async_mpt_ops, async_created_buyer):
-    await async_mpt_ops.accounts.buyers.delete(async_created_buyer.id)
+    await async_mpt_ops.accounts.buyers.delete(async_created_buyer.id)  # act
 
 
 async def test_delete_buyer_not_found(async_mpt_ops, invalid_buyer_id):
@@ -73,11 +77,11 @@ async def test_update_buyer(
 ):
     updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
-    updated_buyer = await async_mpt_ops.accounts.buyers.update(
+    result = await async_mpt_ops.accounts.buyers.update(
         async_created_buyer.id, updated_buyer_data, logo=account_icon
     )
 
-    assert updated_buyer is not None
+    assert result is not None
 
 
 async def test_update_buyer_not_found(
@@ -92,9 +96,9 @@ async def test_update_buyer_not_found(
 
 
 async def test_buyer_disable(async_mpt_ops, async_created_buyer):
-    disabled_buyer = await async_mpt_ops.accounts.buyers.disable(async_created_buyer.id)
+    result = await async_mpt_ops.accounts.buyers.disable(async_created_buyer.id)
 
-    assert disabled_buyer is not None
+    assert result is not None
 
 
 async def test_buyer_disable_not_found(async_mpt_ops, invalid_buyer_id):
@@ -105,9 +109,9 @@ async def test_buyer_disable_not_found(async_mpt_ops, invalid_buyer_id):
 async def test_buyer_enable(async_mpt_ops, async_created_buyer):
     await async_mpt_ops.accounts.buyers.disable(async_created_buyer.id)
 
-    enabled_buyer = await async_mpt_ops.accounts.buyers.enable(async_created_buyer.id)
+    result = await async_mpt_ops.accounts.buyers.enable(async_created_buyer.id)
 
-    assert enabled_buyer is not None
+    assert result is not None
 
 
 async def test_buyer_enable_not_found(async_mpt_ops, invalid_buyer_id):

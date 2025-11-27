@@ -22,26 +22,29 @@ async def async_created_template(async_template_service, template_payload):
 
 
 async def test_list_templates(async_template_service):
-    templates = [template async for template in async_template_service.iterate()]
-    assert isinstance(templates, list)
+    result = [template async for template in async_template_service.iterate()]
+
+    assert isinstance(result, list)
 
 
 def test_created_template(async_created_template, template_payload):
-    assert async_created_template.name == template_payload["name"]
+    result = async_created_template.name == template_payload["name"]
+
+    assert result is True
 
 
 async def test_get_template(async_template_service, template_id):
-    template = await async_template_service.get(template_id)
+    result = await async_template_service.get(template_id)
 
-    assert template.id == template_id
+    assert result.id == template_id
 
 
 async def test_update_template(async_created_template, async_template_service):
     update_payload = {"name": "Updated name"}
-    updated_template = await async_template_service.update(
-        async_created_template.id, update_payload
-    )
-    assert updated_template.name == "Updated name"
+
+    result = await async_template_service.update(async_created_template.id, update_payload)
+
+    assert result.name == "Updated name"
 
 
 async def test_delete_template(async_template_service, async_created_template):
@@ -52,8 +55,9 @@ async def test_delete_template(async_template_service, async_created_template):
 
 
 async def test_filter_templates(async_template_service, template_id):
-    template = await async_template_service.filter(RQLQuery(id=template_id)).fetch_one()
-    assert template.id == template_id
+    result = await async_template_service.filter(RQLQuery(id=template_id)).fetch_one()
+
+    assert result.id == template_id
 
 
 async def test_not_found(async_template_service):

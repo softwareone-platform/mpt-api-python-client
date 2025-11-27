@@ -21,24 +21,32 @@ def async_credit_memo_attachments_service(async_http_client):
 
 
 def test_endpoint(credit_memo_attachments_service):
-    assert (
+    result = (
         credit_memo_attachments_service.path
         == "/public/v1/billing/credit-memos/CRM-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 def test_async_endpoint(async_credit_memo_attachments_service):
-    assert (
+    result = (
         async_credit_memo_attachments_service.path
         == "/public/v1/billing/credit-memos/CRM-0000-0001/attachments"
     )
 
+    assert result is True
+
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_methods_present(credit_memo_attachments_service, method: str):
-    assert hasattr(credit_memo_attachments_service, method)
+    result = hasattr(credit_memo_attachments_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_methods_present(async_credit_memo_attachments_service, method: str):
-    assert hasattr(async_credit_memo_attachments_service, method)
+    result = hasattr(async_credit_memo_attachments_service, method)
+
+    assert result is True

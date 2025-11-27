@@ -24,26 +24,33 @@ async def async_created_pricing_policy(async_pricing_policies_service, pricing_p
 
 
 def test_create_pricing_policy(async_created_pricing_policy, pricing_policy_data):
-    assert async_created_pricing_policy.name == pricing_policy_data["name"]
+    result = async_created_pricing_policy
+
+    assert result.name == pricing_policy_data["name"]
 
 
 async def test_get_pricing_policy(async_pricing_policies_service, async_created_pricing_policy):
-    fetched = await async_pricing_policies_service.get(async_created_pricing_policy.id)
-    assert fetched.id == async_created_pricing_policy.id
+    result = await async_pricing_policies_service.get(async_created_pricing_policy.id)
+
+    assert result.id == async_created_pricing_policy.id
 
 
 async def test_get_pricing_policy_by_id(
     async_pricing_policies_service, async_created_pricing_policy
 ):
-    fetched = await async_pricing_policies_service.get(async_created_pricing_policy.id)
-    assert fetched.id == async_created_pricing_policy.id
+    result = await async_pricing_policies_service.get(async_created_pricing_policy.id)
+
+    assert result.id == async_created_pricing_policy.id
 
 
 async def test_iterate_pricing_policies(
     async_pricing_policies_service, async_created_pricing_policy
 ):
     policies = [policy async for policy in async_pricing_policies_service.iterate()]
-    assert any(policy.id == async_created_pricing_policy.id for policy in policies)
+
+    result = any(policy.id == async_created_pricing_policy.id for policy in policies)
+
+    assert result is True
 
 
 async def test_filter_pricing_policies(
@@ -52,12 +59,14 @@ async def test_filter_pricing_policies(
     target_id = async_created_pricing_policy.id
     select_fields = ["-description"]
     filtered = async_pricing_policies_service.filter(RQLQuery(id=target_id)).select(*select_fields)
-    policies = [policy async for policy in filtered.iterate()]
-    assert len(policies) == 1
-    assert policies[0].id == target_id
+
+    result = [policy async for policy in filtered.iterate()]
+
+    assert len(result) == 1
+    assert result[0].id == target_id
 
 
-async def test_activate_deactivate_pricing_policy(
+async def test_activate_deactivate_pricing_policy(  # noqa: AAA01
     async_pricing_policies_service, async_created_pricing_policy
 ):
     deactivate = await async_pricing_policies_service.disable(async_created_pricing_policy.id)
@@ -73,11 +82,13 @@ async def test_delete_pricing_policy(async_pricing_policies_service, async_creat
 
 async def test_get_pricing_policy_not_found(async_pricing_policies_service):
     bogus_id = "PPY-0000-NOTFOUND"
+
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         await async_pricing_policies_service.get(bogus_id)
 
 
 async def test_create_pricing_policy_invalid_data(async_pricing_policies_service):
     invalid_data = {"name": "e2e - delete me", "description": "invalid data"}
+
     with pytest.raises(MPTAPIError, match=r"400 One or more validation errors occurred"):
         await async_pricing_policies_service.create(invalid_data)

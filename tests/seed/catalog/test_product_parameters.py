@@ -1,4 +1,3 @@
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -41,25 +40,25 @@ async def test_get_parameter(
     service.get.return_value = parameter
     vendor_client.catalog.products.parameters.return_value = service
 
-    fetched_parameter = await get_parameter(context=context, mpt_vendor=vendor_client)
+    result = await get_parameter(context=context, mpt_vendor=vendor_client)
 
-    assert fetched_parameter == parameter
+    assert result == parameter
     assert context.get(f"{namespace}.id") == parameter.id
     assert context.get(f"{namespace}[{parameter.id}]") == parameter
 
 
 async def test_get_parameter_without_id(context: Context) -> None:
-    maybe_parameter = await get_parameter(context=context)
+    result = await get_parameter(context=context)
 
-    assert maybe_parameter is None
+    assert result is None
 
 
 def test_build_parameter(context: Context) -> None:
     context["catalog.product.parameter_group.id"] = "group-123"
 
-    parameter_payload: dict[str, Any] = build_parameter(context=context)
+    result = build_parameter(context=context)
 
-    assert parameter_payload["group"]["id"] == "group-123"
+    assert result["group"]["id"] == "group-123"
 
 
 async def test_get_or_create_parameter_create_new(
@@ -73,9 +72,9 @@ async def test_get_or_create_parameter_create_new(
         patch("seed.catalog.product_parameters.get_parameter", return_value=None),
         patch("seed.catalog.product_parameters.build_parameter", return_value=parameter),
     ):
-        created_parameter = await init_parameter(context=context, mpt_vendor=vendor_client)
+        result = await init_parameter(context=context, mpt_vendor=vendor_client)
 
-        assert created_parameter == parameter
+        assert result == parameter
         assert context.get(f"{namespace}.id") == parameter.id
         assert context.get(f"{namespace}[{parameter.id}]") == parameter
 
@@ -98,9 +97,9 @@ async def test_create_parameter_success(
     service.create.return_value = parameter
     vendor_client.catalog.products.parameters.return_value = service
 
-    created = await create_parameter(context=context, mpt_vendor=vendor_client)
+    result = await create_parameter(context=context, mpt_vendor=vendor_client)
 
-    assert created == parameter
+    assert result == parameter
     assert context.get("catalog.product.parameter.id") == parameter.id
     assert context.get(f"catalog.product.parameter[{parameter.id}]") == parameter
 

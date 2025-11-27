@@ -25,7 +25,9 @@ def async_invoices_service(async_http_client):
     ["get", "create", "update"],
 )
 def test_methods_present(invoices_service, method):
-    assert hasattr(invoices_service, method)
+    result = hasattr(invoices_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -33,7 +35,9 @@ def test_methods_present(invoices_service, method):
     ["get", "create", "update"],
 )
 def test_async_methods_present(async_invoices_service, method):
-    assert hasattr(async_invoices_service, method)
+    result = hasattr(async_invoices_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -43,10 +47,10 @@ def test_async_methods_present(async_invoices_service, method):
     ],
 )
 def test_property_services(invoices_service, service_method, expected_service_class):
-    service = getattr(invoices_service, service_method)("INV-0000-0001")
+    result = getattr(invoices_service, service_method)("INV-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"invoice_id": "INV-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"invoice_id": "INV-0000-0001"}
 
 
 @pytest.mark.parametrize(
@@ -56,7 +60,7 @@ def test_property_services(invoices_service, service_method, expected_service_cl
     ],
 )
 def test_async_property_services(async_invoices_service, service_method, expected_service_class):
-    service = getattr(async_invoices_service, service_method)("INV-0000-0001")
+    result = getattr(async_invoices_service, service_method)("INV-0000-0001")
 
-    assert isinstance(service, expected_service_class)
-    assert service.endpoint_params == {"invoice_id": "INV-0000-0001"}
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"invoice_id": "INV-0000-0001"}

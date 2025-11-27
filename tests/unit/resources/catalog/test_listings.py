@@ -18,9 +18,13 @@ def async_listings_service(async_http_client):
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_mixins_present(listings_service, method):
-    assert hasattr(listings_service, method)
+    result = hasattr(listings_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
 def test_async_mixins_present(async_listings_service, method):
-    assert hasattr(async_listings_service, method)
+    result = hasattr(async_listings_service, method)
+
+    assert result is True

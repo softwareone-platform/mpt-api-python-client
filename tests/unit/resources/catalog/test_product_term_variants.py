@@ -24,21 +24,29 @@ def async_term_variant_service(async_http_client: Any) -> AsyncTermVariantServic
 
 
 def test_endpoint(term_variant_service: TermVariantService) -> None:
-    assert term_variant_service.path == "/public/v1/catalog/products/PRD-001/terms/TRM-001/variants"
+    result = (
+        term_variant_service.path == "/public/v1/catalog/products/PRD-001/terms/TRM-001/variants"
+    )
+
+    assert result is True
 
 
 def test_async_endpoint(async_term_variant_service: AsyncTermVariantService) -> None:
-    assert (
+    result = (
         async_term_variant_service.path
         == "/public/v1/catalog/products/PRD-001/terms/TRM-001/variants"
     )
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
     "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
 )
 def test_methods_present(term_variant_service: TermVariantService, method: str) -> None:
-    assert hasattr(term_variant_service, method)
+    result = hasattr(term_variant_service, method)
+
+    assert result is True
 
 
 @pytest.mark.parametrize(
@@ -47,4 +55,6 @@ def test_methods_present(term_variant_service: TermVariantService, method: str) 
 def test_async_methods_present(
     async_term_variant_service: AsyncTermVariantService, method: str
 ) -> None:
-    assert hasattr(async_term_variant_service, method)
+    result = hasattr(async_term_variant_service, method)
+
+    assert result is True
