@@ -12,11 +12,6 @@ def licensee_group_id(e2e_config):
 
 
 @pytest.fixture
-def licensee_id(e2e_config):
-    return e2e_config["accounts.licensee.id"]
-
-
-@pytest.fixture
 def invalid_licensee_id():
     return "LCE-0000-0000-0000"
 

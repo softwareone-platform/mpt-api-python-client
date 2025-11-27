@@ -46,6 +46,48 @@ def test_template(http_client):
         assert result == "# Order Template\n\nThis is a markdown template."
 
 
+def test_render(http_client):
+    agreements_service = AgreementsService(http_client=http_client)
+    rendered_content = "# Order Template\n\nThis is a markdown template."
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/public/v1/commerce/agreements/AGR-123/render"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                headers={"content-type": "text/html"},
+                content=rendered_content,
+            )
+        )
+
+        result = agreements_service.render("AGR-123")
+
+        assert mock_route.called
+        assert mock_route.call_count == 1
+        assert result == rendered_content
+
+
+async def test_async_render(async_http_client):
+    async_agreements_service = AsyncAgreementsService(http_client=async_http_client)
+    rendered_content = "# Order Template\n\nThis is a markdown template."
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/public/v1/commerce/agreements/AGR-123/render"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                headers={"content-type": "text/html"},
+                content=rendered_content,
+            )
+        )
+
+        result = await async_agreements_service.render("AGR-123")
+
+        assert mock_route.called
+        assert mock_route.call_count == 1
+        assert result == rendered_content
+
+
 def test_attachments_service(http_client):
     agreements_service = AgreementsService(http_client=http_client)
 
