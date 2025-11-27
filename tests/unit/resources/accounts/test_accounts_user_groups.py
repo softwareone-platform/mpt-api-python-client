@@ -1,4 +1,8 @@
+import json
+
+import httpx
 import pytest
+import respx
 
 from mpt_api_client.resources.accounts.accounts_user_groups import (
     AccountsUserGroupsService,
@@ -42,7 +46,7 @@ def test_async_endpoint(async_accounts_user_groups_service):
 
 @pytest.mark.parametrize(
     "method",
-    ["create", "update", "delete"],
+    ["create", "delete"],
 )
 def test_mixins_present(accounts_user_groups_service, method):
     result = hasattr(accounts_user_groups_service, method)
@@ -52,9 +56,63 @@ def test_mixins_present(accounts_user_groups_service, method):
 
 @pytest.mark.parametrize(
     "method",
-    ["create", "update", "delete"],
+    ["create", "delete"],
 )
 def test_async_mixins_present(async_accounts_user_groups_service, method):
     result = hasattr(async_accounts_user_groups_service, method)
 
     assert result is True
+
+
+def test_account_user_groups_update(accounts_user_groups_service):  # noqa: AAA01
+    """Test updating account user groups."""
+    group_id = "GRP-0000-0001"
+    user_id = "USR-0000-0001"
+    input_data = [{"id": group_id}]
+    request_expected_content = json.dumps(input_data, separators=(",", ":")).encode()
+    response_expected_data = {"id": group_id, "name": "Test Group"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/accounts/ACC-0000-0001/users/{user_id}/groups"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "application/json"},
+                json=response_expected_data,
+            )
+        )
+
+        updated_group = accounts_user_groups_service.update(input_data)
+
+        assert mock_route.call_count == 1
+        request = mock_route.calls[0].request
+        assert request.content == request_expected_content
+        assert updated_group.to_dict() == response_expected_data
+
+
+async def test_async_account_user_groups_update(async_accounts_user_groups_service):
+    """Test updating account user groups asynchronously."""
+    group_id = "GRP-0000-0001"
+    user_id = "USR-0000-0001"
+    input_data = [{"id": group_id}]
+    request_expected_content = json.dumps(input_data, separators=(",", ":")).encode()
+    response_expected_data = {"id": group_id, "name": "Test Group"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/accounts/ACC-0000-0001/users/{user_id}/groups"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "application/json"},
+                json=response_expected_data,
+            )
+        )
+
+        updated_group = await async_accounts_user_groups_service.update(input_data)
+
+        assert mock_route.call_count == 1
+        request = mock_route.calls[0].request
+        assert request.content == request_expected_content
+        assert updated_group.to_dict() == response_expected_data
