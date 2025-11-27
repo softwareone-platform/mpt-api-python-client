@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_item_group(logger, mpt_vendor, product_id, item_group_data):
+def created_item_group(mpt_vendor, product_id, item_group_data):
     service = mpt_vendor.catalog.products.item_groups(product_id)
     group = service.create(item_group_data)
     yield group

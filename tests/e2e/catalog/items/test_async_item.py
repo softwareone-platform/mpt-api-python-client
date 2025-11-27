@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-async def async_created_item(logger, async_mpt_vendor, item_data):
+async def async_created_item(async_mpt_vendor, item_data):
     service = async_mpt_vendor.catalog.items
     item = await service.create(item_data)
     yield item

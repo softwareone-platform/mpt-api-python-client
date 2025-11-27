@@ -16,7 +16,7 @@ def async_vendor_media_service(async_mpt_vendor, product_id):
 
 
 @pytest.fixture
-async def created_media_from_file_async(logger, async_media_service, media_data, test_media_file):
+async def created_media_from_file_async(async_media_service, media_data, test_media_file):
     media = await async_media_service.create(media_data, test_media_file)
     yield media
     try:
@@ -26,7 +26,7 @@ async def created_media_from_file_async(logger, async_media_service, media_data,
 
 
 @pytest.fixture
-async def created_media_from_url_async(logger, async_media_service, media_data, jpg_url):
+async def created_media_from_url_async(async_media_service, media_data, jpg_url):
     media_data["url"] = jpg_url
     media = await async_media_service.create(media_data)
     yield media

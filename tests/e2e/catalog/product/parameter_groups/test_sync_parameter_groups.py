@@ -4,7 +4,7 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-def created_parameter_group(logger, mpt_vendor, product_id, parameter_group_data):
+def created_parameter_group(mpt_vendor, product_id, parameter_group_data):
     service = mpt_vendor.catalog.products.parameter_groups(product_id)
     group = service.create(parameter_group_data)
     yield group

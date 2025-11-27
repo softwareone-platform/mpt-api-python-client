@@ -5,7 +5,7 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-def created_product(logger, mpt_vendor, product_data, logo_fd):
+def created_product(mpt_vendor, product_data, logo_fd):
     product = mpt_vendor.catalog.products.create(product_data, icon=logo_fd)
 
     yield product

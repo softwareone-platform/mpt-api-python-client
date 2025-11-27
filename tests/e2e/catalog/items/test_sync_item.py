@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_item(logger, mpt_vendor, item_data):
+def created_item(mpt_vendor, item_data):
     service = mpt_vendor.catalog.items
     item = service.create(item_data)
     yield item

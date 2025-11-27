@@ -11,7 +11,7 @@ def vendor_media_service(mpt_vendor, product_id):
 
 
 @pytest.fixture
-def created_media_from_file(logger, vendor_media_service, media_data, test_media_file):
+def created_media_from_file(vendor_media_service, media_data, test_media_file):
     media = vendor_media_service.create(media_data, test_media_file)
     yield media
     try:
@@ -21,7 +21,7 @@ def created_media_from_file(logger, vendor_media_service, media_data, test_media
 
 
 @pytest.fixture
-def created_media_from_url(logger, vendor_media_service, media_data, jpg_url):
+def created_media_from_url(vendor_media_service, media_data, jpg_url):
     media_data["url"] = jpg_url
     media = vendor_media_service.create(media_data)
     yield media
