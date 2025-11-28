@@ -19,11 +19,6 @@ def currencies():
 
 
 @pytest.fixture
-def account_id(e2e_config):
-    return e2e_config["accounts.account.id"]
-
-
-@pytest.fixture
 def seller_id(e2e_config):
     return e2e_config["accounts.seller.id"]
 
