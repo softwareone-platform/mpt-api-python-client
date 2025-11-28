@@ -177,7 +177,7 @@ def test_buyers_create(buyers_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
         )
 
-        result = buyers_service.create(buyer_data, logo=logo_file)
+        result = buyers_service.create(buyer_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -198,7 +198,7 @@ def test_buyers_update(buyers_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
         )
 
-        result = buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+        result = buyers_service.update(buyer_id, buyer_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -219,7 +219,7 @@ async def test_async_buyers_create(async_buyers_service, tmp_path):  # noqa: WPS
             return_value=httpx.Response(httpx.codes.CREATED, json=buyer_data)
         )
 
-        result = await async_buyers_service.create(buyer_data, logo=logo_file)
+        result = await async_buyers_service.create(buyer_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -241,7 +241,7 @@ async def test_async_buyers_update(async_buyers_service, tmp_path):  # noqa: WPS
             return_value=httpx.Response(httpx.codes.OK, json={"id": buyer_id, **buyer_data})
         )
 
-        result = await async_buyers_service.update(buyer_id, buyer_data, logo=logo_file)
+        result = await async_buyers_service.update(buyer_id, buyer_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1

@@ -8,6 +8,7 @@ pytestmark = [pytest.mark.flaky]
 
 @pytest.fixture
 def created_user_group(mpt_ops, user_group_factory):
+    """Fixture to create and yield a user group for testing."""
     new_user_group_request_data = user_group_factory()
     created_user_group = mpt_ops.accounts.user_groups.create(new_user_group_request_data)
 
@@ -26,6 +27,7 @@ def test_get_user_group_by_id(mpt_ops, user_group_id):
 
 
 def test_list_user_groups(mpt_ops):
+    """Test listing user groups with a limit."""
     limit = 10
 
     result = mpt_ops.accounts.user_groups.fetch_page(limit=limit)
@@ -34,11 +36,13 @@ def test_list_user_groups(mpt_ops):
 
 
 def test_get_user_group_by_id_not_found(mpt_ops, invalid_user_group_id):
+    """Test retrieving a user group by an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.user_groups.get(invalid_user_group_id)
 
 
 def test_filter_user_groups(mpt_ops, user_group_id):
+    """Test filtering user groups with specific criteria."""
     select_fields = ["-name"]
     filtered_user_groups = (
         mpt_ops.accounts.user_groups.filter(RQLQuery(id=user_group_id))
@@ -62,11 +66,13 @@ def test_delete_user_group(mpt_ops, created_user_group):
 
 
 def test_delete_user_group_not_found(mpt_ops, invalid_user_group_id):
+    """Test deleting a user group with an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.user_groups.delete(invalid_user_group_id)
 
 
 def test_update_user_group(mpt_ops, user_group_factory, created_user_group):
+    """Test updating a user group."""
     updated_user_group_data = user_group_factory(name="E2E Updated User Group")
 
     result = mpt_ops.accounts.user_groups.update(created_user_group.id, updated_user_group_data)
@@ -75,6 +81,7 @@ def test_update_user_group(mpt_ops, user_group_factory, created_user_group):
 
 
 def test_update_user_group_not_found(mpt_ops, user_group_factory, invalid_user_group_id):
+    """Test updating a user group with an invalid ID, expecting a 404 error."""
     updated_user_group_data = user_group_factory(name="Nonexistent User Group")
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):

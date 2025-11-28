@@ -1,17 +1,17 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
+    AsyncCreateFileMixin,
     AsyncDownloadFileMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
+    CreateFileMixin,
     DownloadFileMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.catalog.mixins import (
-    AsyncCreateFileMixin,
     AsyncPublishableMixin,
-    CreateFileMixin,
     PublishableMixin,
 )
 

@@ -8,6 +8,7 @@ pytestmark = [pytest.mark.flaky]
 
 @pytest.fixture
 def created_api_token(mpt_vendor, api_token_factory):
+    """Fixture to create and yield an API token for testing."""
     new_api_token_request_data = api_token_factory()
     created_api_token = mpt_vendor.accounts.api_tokens.create(new_api_token_request_data)
 
@@ -26,6 +27,7 @@ def test_get_api_token_by_id(mpt_vendor, api_token_id):
 
 
 def test_list_api_tokens(mpt_vendor):
+    """Test listing API tokens with a limit."""
     limit = 10
 
     result = mpt_vendor.accounts.api_tokens.fetch_page(limit=limit)
@@ -34,11 +36,13 @@ def test_list_api_tokens(mpt_vendor):
 
 
 def test_get_api_token_by_id_not_found(mpt_vendor, invalid_api_token_id):
+    """Test retrieving an API token by an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_vendor.accounts.api_tokens.get(invalid_api_token_id)
 
 
 def test_filter_api_tokens(mpt_vendor, api_token_id):
+    """Test filtering API tokens with specific criteria."""
     select_fields = ["-name"]
     filtered_api_tokens = (
         mpt_vendor.accounts.api_tokens.filter(RQLQuery(id=api_token_id))
@@ -62,11 +66,13 @@ def test_delete_api_token(mpt_vendor, created_api_token):
 
 
 def test_delete_api_token_not_found(mpt_vendor, invalid_api_token_id):
+    """Test deleting an API token with an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_vendor.accounts.api_tokens.delete(invalid_api_token_id)
 
 
 def test_update_api_token(mpt_vendor, api_token_factory, created_api_token):
+    """Test updating an API token."""
     updated_api_token_data = api_token_factory(name="E2E Updated API Token")
 
     result = mpt_vendor.accounts.api_tokens.update(created_api_token.id, updated_api_token_data)
@@ -75,6 +81,7 @@ def test_update_api_token(mpt_vendor, api_token_factory, created_api_token):
 
 
 def test_update_api_token_not_found(mpt_vendor, api_token_factory, invalid_api_token_id):
+    """Test updating an API token with an invalid ID, expecting a 404 error."""
     updated_api_token_data = api_token_factory(name="Nonexistent API Token")
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
@@ -88,11 +95,13 @@ def test_api_token_disable(mpt_vendor, created_api_token):
 
 
 def test_api_token_disable_not_found(mpt_vendor, invalid_api_token_id):
+    """Test disabling an API token with an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_vendor.accounts.api_tokens.disable(invalid_api_token_id)
 
 
 def test_api_token_enable(mpt_vendor, created_api_token):
+    """Test enabling an API token."""
     mpt_vendor.accounts.api_tokens.disable(created_api_token.id)
 
     result = mpt_vendor.accounts.api_tokens.enable(created_api_token.id)
@@ -101,5 +110,6 @@ def test_api_token_enable(mpt_vendor, created_api_token):
 
 
 def test_api_token_enable_not_found(mpt_vendor, invalid_api_token_id):
+    """Test enabling an API token with an invalid ID, expecting a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_vendor.accounts.api_tokens.enable(invalid_api_token_id)

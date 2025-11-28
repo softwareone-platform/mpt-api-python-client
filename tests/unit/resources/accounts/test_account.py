@@ -89,7 +89,7 @@ def test_account_create(account_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.CREATED, json=account_data)
         )
 
-        result = account_service.create(account_data, logo=logo_file)
+        result = account_service.create(account_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -110,7 +110,7 @@ def test_account_update(account_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.OK, json={"id": account_id, **account_data})
         )
 
-        result = account_service.update(account_id, account_data, logo=logo_file)
+        result = account_service.update(account_id, account_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -131,7 +131,7 @@ async def test_async_account_create(async_account_service, tmp_path):  # noqa: W
             return_value=httpx.Response(httpx.codes.CREATED, json=account_data)
         )
 
-        result = await async_account_service.create(account_data, logo=logo_file)
+        result = await async_account_service.create(account_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -152,7 +152,7 @@ async def test_async_account_update(async_account_service, tmp_path):  # noqa: W
             return_value=httpx.Response(httpx.codes.OK, json={"id": account_id, **account_data})
         )
 
-        result = await async_account_service.update(account_id, account_data, logo=logo_file)
+        result = await async_account_service.update(account_id, account_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1

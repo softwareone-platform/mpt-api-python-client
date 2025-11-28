@@ -1,4 +1,3 @@
-import json
 from collections.abc import AsyncIterator, Iterator
 from typing import Self
 from urllib.parse import urljoin
@@ -113,73 +112,146 @@ class FilesOperationsMixin[Model](DownloadFileMixin[Model]):
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
 
-class CreateWithIconMixin[Model]:
-    """Create resource with icon mixin."""
+class CreateFileMixin[Model]:
+    """Create file mixin."""
 
-    def create(
-        self,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str,
-        icon_key: str,
-    ) -> Model:
-        """Create resource with icon.
+    def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:  # noqa: WPS110
+        """Create logo.
+
+        Create a file resource by specifying a file image.
 
         Args:
             resource_data: Resource data.
-            data_key: Key for the resource data.
-            icon: Icon image in jpg, png, GIF, etc.
-            icon_key: Key for the icon.
+            file: File image.
 
         Returns:
-            Created resource.
+            Model: Created resource.
         """
-        files: dict[str, FileTypes] = {}
-        files[data_key] = (
-            None,
-            json.dumps(resource_data),
-            APPLICATION_JSON,
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file  # type: ignore[attr-defined]
+
+        response = self.http_client.request(  # type: ignore[attr-defined]
+            "post",
+            self.path,  # type: ignore[attr-defined]
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
+            force_multipart=True,
         )
-        files[icon_key] = icon
-        response = self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
 
-class UpdateWithIconMixin[Model]:
-    """Update resource with icon mixin."""
+class UpdateFileMixin[Model]:
+    """Update file mixin."""
 
     def update(
         self,
         resource_id: str,
         resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str,
-        icon_key: str,
+        file: FileTypes | None = None,  # noqa: WPS110
     ) -> Model:
-        """Update resource with icon.
+        """Update file.
+
+        Update a file resource by specifying a file.
 
         Args:
             resource_id: Resource ID.
             resource_data: Resource data.
-            data_key: Key for the resource data.
-            icon: Icon image in jpg, png, GIF, etc.
-            icon_key: Key for the icon.
+            file: File image.
 
         Returns:
-            Updated resource.
+            Model: Updated resource.
         """
-        files: dict[str, FileTypes] = {}
-        files[data_key] = (
-            None,
-            json.dumps(resource_data),
-            APPLICATION_JSON,
-        )
-        files[icon_key] = icon
+        files = {}
 
         url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
 
-        response = self.http_client.request("put", url, files=files)  # type: ignore[attr-defined]
+        if file:
+            files[self._upload_file_key] = file  # type: ignore[attr-defined]
+
+        response = self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class AsyncCreateFileMixin[Model]:
+    """Asynchronous Create file mixin."""
+
+    async def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:  # noqa: WPS110
+        """Create file.
+
+        Create a file resource by specifying a file.
+
+        Args:
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Created resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file  # type: ignore[attr-defined]
+
+        response = await self.http_client.request(  # type: ignore[attr-defined]
+            "post",
+            self.path,  # type: ignore[attr-defined]
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
+
+
+class AsyncUpdateFileMixin[Model]:
+    """Asynchronous Update file mixin."""
+
+    async def update(
+        self,
+        resource_id: str,
+        resource_data: ResourceData,
+        file: FileTypes | None = None,  # noqa: WPS110
+    ) -> Model:
+        """Update file.
+
+        Update a file resource by specifying a file.
+
+        Args:
+            resource_id: Resource ID.
+            resource_data: Resource data.
+            file: File image.
+
+        Returns:
+            Model: Updated resource.
+        """
+        files = {}
+
+        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+
+        if file:
+            files[self._upload_file_key] = file  # type: ignore[attr-defined]
+
+        response = await self.http_client.request(  # type: ignore[attr-defined]
+            "put",
+            url,
+            json=resource_data,
+            files=files,
+            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
+            force_multipart=True,
+        )
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
@@ -282,77 +354,6 @@ class AsyncFilesOperationsMixin[Model](AsyncDownloadFileMixin[Model]):
             )
 
         response = await self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
-
-        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
-
-
-class AsyncCreateWithIconMixin[Model]:
-    """Create resource with icon mixin."""
-
-    async def create(
-        self,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str,
-        icon_key: str,
-    ) -> Model:
-        """Create resource with icon.
-
-        Args:
-            resource_data: Resource data.
-            data_key: Key for the resource data.
-            icon: Icon image in jpg, png, GIF, etc.
-            icon_key: Key for the icon.
-
-        Returns:
-            Created resource.
-        """
-        files: dict[str, FileTypes] = {}
-        files[data_key] = (
-            None,
-            json.dumps(resource_data),
-            APPLICATION_JSON,
-        )
-        files[icon_key] = icon
-        response = await self.http_client.request("post", self.path, files=files)  # type: ignore[attr-defined]
-
-        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
-
-
-class AsyncUpdateWithIconMixin[Model]:
-    """Update resource with icon mixin."""
-
-    async def update(
-        self,
-        resource_id: str,
-        resource_data: ResourceData,
-        icon: FileTypes,
-        data_key: str,
-        icon_key: str,
-    ) -> Model:
-        """Update resource with icon.
-
-        Args:
-            resource_id: Resource ID.
-            resource_data: Resource data.
-            data_key: Key for the resource data.
-            icon: Icon image in jpg, png, GIF, etc.
-            icon_key: Key for the icon.
-
-        Returns:
-            Updated resource.
-        """
-        files: dict[str, FileTypes] = {}
-        files[data_key] = (
-            None,
-            json.dumps(resource_data),
-            APPLICATION_JSON,
-        )
-        files[icon_key] = icon
-
-        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
-
-        response = await self.http_client.request("put", url, files=files)  # type: ignore[attr-defined]
 
         return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 

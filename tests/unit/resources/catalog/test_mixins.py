@@ -17,7 +17,7 @@ from mpt_api_client.resources.catalog.mixins import (
 from tests.unit.conftest import DummyModel
 
 
-class DummyPublishableService(  # noqa: WPS215
+class DummyPublishableService(
     PublishableMixin[DummyModel],
     Service[DummyModel],
 ):
@@ -26,7 +26,7 @@ class DummyPublishableService(  # noqa: WPS215
     _collection_key = "data"
 
 
-class DummyAsyncPublishableService(  # noqa: WPS215
+class DummyAsyncPublishableService(
     AsyncPublishableMixin[DummyModel],
     AsyncService[DummyModel],
 ):
@@ -35,7 +35,7 @@ class DummyAsyncPublishableService(  # noqa: WPS215
     _collection_key = "data"
 
 
-class DummyActivatableService(  # noqa: WPS215
+class DummyActivatableService(
     ActivatableMixin[DummyModel],
     Service[DummyModel],
 ):
@@ -44,7 +44,7 @@ class DummyActivatableService(  # noqa: WPS215
     _collection_key = "data"
 
 
-class DummyAsyncActivatableService(  # noqa: WPS215
+class DummyAsyncActivatableService(
     AsyncActivatableMixin[DummyModel],
     AsyncService[DummyModel],
 ):
@@ -53,7 +53,7 @@ class DummyAsyncActivatableService(  # noqa: WPS215
     _collection_key = "data"
 
 
-class DummyDocumentService(  # noqa: WPS215
+class DummyDocumentService(
     DocumentMixin[DummyModel],
     Service[DummyModel],
 ):
@@ -64,7 +64,7 @@ class DummyDocumentService(  # noqa: WPS215
     _upload_data_key = "document"
 
 
-class DummyAsyncDocumentService(  # noqa: WPS215
+class DummyAsyncDocumentService(
     AsyncDocumentMixin[DummyModel],
     AsyncService[DummyModel],
 ):

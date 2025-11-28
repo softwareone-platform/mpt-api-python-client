@@ -9,16 +9,15 @@ from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
-    AsyncCreateWithIconMixin,
+    AsyncFilesOperationsMixin,
     AsyncManagedResourceMixin,
     AsyncModifiableResourceMixin,
-    AsyncUpdateWithIconMixin,
-    CreateWithIconMixin,
+    AsyncUpdateFileMixin,
+    FilesOperationsMixin,
     ManagedResourceMixin,
     ModifiableResourceMixin,
-    UpdateWithIconMixin,
+    UpdateFileMixin,
 )
-from mpt_api_client.http.types import FileTypes
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
@@ -26,109 +25,86 @@ from mpt_api_client.resources.catalog.products_media import (
 from tests.unit.conftest import DummyModel
 
 
+class DummyFileOperationsService(
+    FilesOperationsMixin[DummyModel],
+    Service[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/file-ops/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
+class DummyAsyncFileOperationsService(
+    AsyncFilesOperationsMixin[DummyModel],
+    AsyncService[DummyModel],
+):
+    """Dummy asynchronous file operations service for testing."""
+
+    _endpoint = "/public/v1/dummy/file-ops/"
+    _model_class = DummyModel
+    _collection_key = "data"
+
+
+class DummyUpdateFileService(
+    UpdateFileMixin[DummyModel],
+    Service[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/update-file"
+    _model_class = DummyModel
+    _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "document"
+
+
+class DummyAsyncUpdateFileService(
+    AsyncUpdateFileMixin[DummyModel],
+    AsyncService[DummyModel],
+):
+    _endpoint = "/public/v1/dummy/update-file"
+    _model_class = DummyModel
+    _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "document"
+
+
+@pytest.fixture
+def dummy_file_operations_service(http_client):
+    """Fixture for DummyFileOperationsService."""
+    return DummyFileOperationsService(http_client=http_client)
+
+
+@pytest.fixture
+def async_dummy_file_operations_service(async_http_client):
+    """Fixture for DummyAsyncFileOperationsService."""
+    return DummyAsyncFileOperationsService(http_client=async_http_client)
+
+
 @pytest.fixture
 def media_service(http_client):
+    """Fixture for MediaService."""
     return MediaService(http_client=http_client, endpoint_params={"product_id": "PRD-001"})
 
 
 @pytest.fixture
 def async_media_service(async_http_client):
+    """Fixture for AsyncMediaService."""
     return AsyncMediaService(
         http_client=async_http_client, endpoint_params={"product_id": "PRD-001"}
     )
 
 
 @pytest.fixture
-def icon_service(http_client):
-    return DummyIconService(http_client=http_client)
+def update_file_service(http_client):
+    return DummyUpdateFileService(http_client=http_client)
 
 
 @pytest.fixture
-def async_icon_service(async_http_client):
-    return AsyncDummyIconService(http_client=async_http_client)
+def async_update_file_service(async_http_client):
+    return DummyAsyncUpdateFileService(http_client=async_http_client)
 
 
-class DummyIconService(
-    CreateWithIconMixin[DummyModel],
-    UpdateWithIconMixin[DummyModel],
-    Service[DummyModel],
-):
-    _endpoint = "/public/v1/dummy/icon/"
-    _model_class = DummyModel
-    _collection_key = "data"
-
-    def create(
-        self,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return super().create(
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-    def update(
-        self,
-        resource_id: str,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-
-class AsyncDummyIconService(
-    AsyncCreateWithIconMixin[DummyModel],
-    AsyncUpdateWithIconMixin[DummyModel],
-    AsyncService[DummyModel],
-):
-    _endpoint = "/public/v1/dummy/icon/"
-    _model_class = DummyModel
-    _collection_key = "data"
-
-    async def create(
-        self,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return await super().create(
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-    async def update(
-        self,
-        resource_id: str,
-        resource_data: dict,
-        icon: FileTypes,
-        icon_key: str = "icon",
-        data_key: str = "data",
-    ) -> DummyModel:
-        return await super().update(
-            resource_id=resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            icon_key=icon_key,
-            data_key=data_key,
-        )
-
-
-async def test_async_create_mixin(async_dummy_service):  # noqa: WPS210
+async def test_async_create_mixin(async_dummy_service):
+    """Test creating a resource asynchronously."""
     resource_data = {"name": "Test Resource", "status": "active"}
     new_resource_data = {"id": "new-resource-id", "name": "Test Resource", "status": "active"}
     create_response = httpx.Response(httpx.codes.OK, json=new_resource_data)
@@ -147,7 +123,8 @@ async def test_async_create_mixin(async_dummy_service):  # noqa: WPS210
     assert json.loads(request.content.decode()) == resource_data
 
 
-async def test_async_delete_mixin(async_dummy_service):  # noqa: WPS210
+async def test_async_delete_mixin(async_dummy_service):
+    """Test deleting a resource asynchronously."""
     delete_response = httpx.Response(httpx.codes.NO_CONTENT, json=None)
     with respx.mock:
         mock_route = respx.delete("https://api.example.com/api/v1/test/RES-123").mock(
@@ -159,7 +136,8 @@ async def test_async_delete_mixin(async_dummy_service):  # noqa: WPS210
     assert mock_route.call_count == 1
 
 
-async def test_async_update_resource(async_dummy_service):  # noqa: WPS210
+async def test_async_update_resource(async_dummy_service):
+    """Test updating a resource asynchronously."""
     resource_data = {"name": "Test Resource", "status": "active"}
     update_response = httpx.Response(httpx.codes.OK, json=resource_data)
     with respx.mock:
@@ -174,7 +152,8 @@ async def test_async_update_resource(async_dummy_service):  # noqa: WPS210
     assert json.loads(request.content.decode()) == resource_data
 
 
-def test_sync_create_mixin(dummy_service):  # noqa: WPS210
+def test_sync_create_mixin(dummy_service):
+    """Test creating a resource synchronously."""
     resource_data = {"name": "Test Resource", "status": "active"}
     new_resource_data = {"id": "new-resource-id", "name": "Test Resource", "status": "active"}
     create_response = httpx.Response(httpx.codes.OK, json=new_resource_data)
@@ -194,6 +173,7 @@ def test_sync_create_mixin(dummy_service):  # noqa: WPS210
 
 
 def test_sync_delete_mixin(dummy_service):
+    """Test deleting a resource synchronously."""
     delete_response = httpx.Response(httpx.codes.NO_CONTENT, json=None)
     with respx.mock:
         mock_route = respx.delete("https://api.example.com/api/v1/test/RES-123").mock(
@@ -206,6 +186,7 @@ def test_sync_delete_mixin(dummy_service):
 
 
 def test_sync_update_resource(dummy_service):
+    """Test updating a resource synchronously."""
     resource_data = {"name": "Test Resource", "status": "active"}
     update_response = httpx.Response(httpx.codes.OK, json=resource_data)
     with respx.mock:
@@ -221,6 +202,7 @@ def test_sync_update_resource(dummy_service):
 
 
 async def test_async_file_create_with_data(async_media_service):
+    """Test creating a file resource asynchronously with additional data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -251,6 +233,7 @@ async def test_async_file_create_with_data(async_media_service):
 
 
 async def test_async_file_create_no_data(async_media_service):
+    """Test creating a file resource asynchronously without additional data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -275,9 +258,9 @@ async def test_async_file_create_no_data(async_media_service):
     assert new_media.to_dict() == media_data
 
 
-async def test_async_file_download(async_media_service):  # noqa: WPS218
+async def test_async_file_download_request_and_headers(async_media_service):
+    """Test request/response and headers for async file download."""
     media_content = b"Image file content or binary data"
-
     with respx.mock:
         mock_resource = respx.get(
             "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
@@ -285,9 +268,7 @@ async def test_async_file_download(async_media_service):  # noqa: WPS218
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                headers={
-                    "content-type": "application/json",
-                },
+                headers={"content-type": "application/json"},
                 json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
             )
         )
@@ -304,20 +285,52 @@ async def test_async_file_download(async_media_service):  # noqa: WPS218
                 content=media_content,
             )
         )
+        # Act
+        await async_media_service.download("MED-456")
 
+    assert mock_resource.call_count == 1
+    request = mock_download.calls[0].request
+    accept_header = (b"Accept", b"image/jpg")
+    assert accept_header in request.headers.raw
+    assert mock_download.call_count == 1
+
+
+async def test_async_file_download_content_and_metadata(async_media_service):
+    """Test file content and metadata for async file download."""
+    media_content = b"Image file content or binary data"
+    with respx.mock:
+        respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "application/json"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "application/json"},
+                json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
+            )
+        )
+        respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/jpg"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={
+                    "content-type": "image/jpg",
+                    "content-disposition": 'form-data; name="file"; filename="product_image.jpg"',
+                },
+                content=media_content,
+            )
+        )
         result = await async_media_service.download("MED-456")
 
-        assert mock_resource.call_count == 1
-        request = mock_download.calls[0].request
-        accept_header = (b"Accept", b"image/jpg")
-        assert accept_header in request.headers.raw
-        assert mock_download.call_count == 1
-        assert result.file_contents == media_content
-        assert result.content_type == "image/jpg"
-        assert result.filename == "product_image.jpg"
+    assert result.file_contents == media_content
+    assert result.content_type == "image/jpg"
+    assert result.filename == "product_image.jpg"
 
 
-def test_sync_file_download(media_service):  # noqa: WPS218
+def test_sync_file_download_request_and_headers(media_service):
+    """Test request/response and headers for sync file download."""
     media_content = b"Image file content or binary data"
     with respx.mock:
         mock_resource = respx.get(
@@ -326,13 +339,49 @@ def test_sync_file_download(media_service):  # noqa: WPS218
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                headers={
-                    "content-type": "application/json",
-                },
+                headers={"content-type": "application/json"},
                 json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
             )
         )
         mock_download = respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "image/jpg"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={
+                    "content-type": "image/jpg",
+                    "content-disposition": 'form-data; name="file"; filename="product_image.jpg"',
+                },
+                content=media_content,
+            )
+        )
+        media_service.download("MED-456")
+    assert mock_resource.call_count == 1
+
+    result = mock_download.calls[0].request
+
+    # Assert
+    accept_header = (b"Accept", b"image/jpg")
+    assert accept_header in result.headers.raw
+    assert mock_download.call_count == 1
+
+
+def test_sync_file_download_content_and_metadata(media_service):
+    """Test file content and metadata for sync file download."""
+    media_content = b"Image file content or binary data"
+    with respx.mock:
+        respx.get(
+            "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
+            headers={"Accept": "application/json"},
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "application/json"},
+                json={"id": "MED-456", "name": "Product image", "content_type": "image/jpg"},
+            )
+        )
+        respx.get(
             "https://api.example.com/public/v1/catalog/products/PRD-001/media/MED-456",
             headers={"Accept": "image/jpg"},
         ).mock(
@@ -348,17 +397,13 @@ def test_sync_file_download(media_service):  # noqa: WPS218
 
         result = media_service.download("MED-456")
 
-        assert mock_resource.call_count == 1
-        request = mock_download.calls[0].request
-        accept_header = (b"Accept", b"image/jpg")
-        assert accept_header in request.headers.raw
-        assert mock_download.call_count == 1
-        assert result.file_contents == media_content
-        assert result.content_type == "image/jpg"
-        assert result.filename == "product_image.jpg"
+    assert result.file_contents == media_content
+    assert result.content_type == "image/jpg"
+    assert result.filename == "product_image.jpg"
 
 
 def test_sync_file_create_with_data(media_service):
+    """Test creating a file resource synchronously with additional data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -389,6 +434,7 @@ def test_sync_file_create_with_data(media_service):
 
 
 def test_sync_file_create_no_data(media_service):
+    """Test creating a file resource synchronously without additional data."""
     media_data = {"id": "MED-133"}
     with respx.mock:
         mock_route = respx.post(
@@ -420,6 +466,7 @@ def test_sync_file_create_no_data(media_service):
     ],
 )
 def test_sync_get_mixin(dummy_service, select_value):
+    """Test getting a resource synchronously with different select parameter formats."""
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
         mock_route = respx.get(
@@ -435,6 +482,7 @@ def test_sync_get_mixin(dummy_service, select_value):
 
 
 async def test_async_get(async_dummy_service):
+    """Test getting a resource asynchronously with a list select parameter."""
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
         mock_route = respx.get(
@@ -450,6 +498,7 @@ async def test_async_get(async_dummy_service):
 
 
 async def test_async_get_select_str(async_dummy_service):
+    """Test getting a resource asynchronously with a string select parameter."""
     resource_data = {"id": "RES-123", "name": "Test Resource"}
     with respx.mock:
         mock_route = respx.get(
@@ -475,6 +524,7 @@ def test_queryable_mixin_order_by(dummy_service):
 
 
 def test_queryable_mixin_order_by_exception(dummy_service):
+    """Test that setting order_by multiple times raises an exception."""
     ordered_service = dummy_service.order_by("created")
 
     with pytest.raises(
@@ -494,6 +544,7 @@ def test_queryable_mixin_filter(dummy_service, filter_status_active):
 
 
 def test_queryable_mixin_filters(dummy_service):
+    """Test applying multiple filters to a queryable service."""
     filter1 = RQLQuery(status="active")
     filter2 = RQLQuery(name="test")
 
@@ -514,6 +565,7 @@ def test_queryable_mixin_select(dummy_service):
 
 
 def test_queryable_mixin_select_exception(dummy_service):
+    """Test that setting select fields multiple times raises an exception."""
     selected_service = dummy_service.select("id", "name")
 
     with pytest.raises(
@@ -534,6 +586,7 @@ def test_queryable_mixin_method_chaining(dummy_service, filter_status_active):
 
 
 def test_col_mx_fetch_one_success(dummy_service, single_result_response):
+    """Test fetching a single resource successfully."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_result_response
@@ -550,6 +603,7 @@ def test_col_mx_fetch_one_success(dummy_service, single_result_response):
 
 
 def test_col_mx_fetch_one_no_results(dummy_service, no_results_response):
+    """Test fetching a single resource when no results are returned."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=no_results_response)
 
@@ -558,6 +612,7 @@ def test_col_mx_fetch_one_no_results(dummy_service, no_results_response):
 
 
 def test_col_mx_fetch_one_multiple_results(dummy_service, multiple_results_response):
+    """Test fetching a single resource when multiple results are returned."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=multiple_results_response
@@ -568,6 +623,7 @@ def test_col_mx_fetch_one_multiple_results(dummy_service, multiple_results_respo
 
 
 def test_col_mx_fetch_one_with_filters(dummy_service, single_result_response, filter_status_active):
+    """Test fetching a single resource with filters applied."""
     filtered_collection = (
         dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
@@ -590,6 +646,7 @@ def test_col_mx_fetch_one_with_filters(dummy_service, single_result_response, fi
 
 
 def test_col_mx_fetch_page_with_filter(dummy_service, list_response, filter_status_active):
+    """Test fetching a page of resources with filters applied."""
     custom_collection = (
         dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
@@ -617,6 +674,7 @@ def test_col_mx_fetch_page_with_filter(dummy_service, list_response, filter_stat
 
 
 def test_col_mx_iterate_single_page(dummy_service, single_page_response):
+    """Test iterating over a single page of resources."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_page_response
@@ -635,6 +693,7 @@ def test_col_mx_iterate_single_page(dummy_service, single_page_response):
 def test_col_mx_iterate_multiple_pages(
     dummy_service, multi_page_response_page1, multi_page_response_page2
 ):
+    """Test iterating over multiple pages of resources."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 0}).mock(
             return_value=multi_page_response_page1
@@ -653,6 +712,7 @@ def test_col_mx_iterate_multiple_pages(
 
 
 def test_col_mx_iterate_empty_results(dummy_service, empty_response):
+    """Test iterating over an empty set of resources."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=empty_response
@@ -665,6 +725,7 @@ def test_col_mx_iterate_empty_results(dummy_service, empty_response):
 
 
 def test_col_mx_iterate_no_meta(dummy_service, no_meta_response):
+    """Test iterating over resources when no metadata is provided."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=no_meta_response
@@ -679,6 +740,7 @@ def test_col_mx_iterate_no_meta(dummy_service, no_meta_response):
 
 
 def test_col_mx_iterate_with_filters(dummy_service, filter_status_active):
+    """Test iterating over resources with filters applied."""
     filtered_collection = (
         dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
@@ -711,6 +773,7 @@ def test_col_mx_iterate_with_filters(dummy_service, filter_status_active):
 
 
 def test_col_mx_iterate_lazy_evaluation(dummy_service):
+    """Test lazy evaluation of iterating over resources."""
     response = httpx.Response(
         httpx.codes.OK,
         json={
@@ -736,6 +799,7 @@ def test_col_mx_iterate_lazy_evaluation(dummy_service):
 
 
 def test_col_mx_iterate_handles_api_errors(dummy_service):
+    """Test that API errors are handled during iteration over resources."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=httpx.Response(
@@ -749,6 +813,7 @@ def test_col_mx_iterate_handles_api_errors(dummy_service):
 
 
 async def test_async_col_mx_fetch_one_success(async_dummy_service, single_result_response):
+    """Test fetching a single resource successfully."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_result_response
@@ -765,6 +830,7 @@ async def test_async_col_mx_fetch_one_success(async_dummy_service, single_result
 
 
 async def test_async_col_mx_fetch_one_no_results(async_dummy_service, no_results_response):
+    """Test fetching a single resource when no results are returned."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=no_results_response)
 
@@ -775,6 +841,7 @@ async def test_async_col_mx_fetch_one_no_results(async_dummy_service, no_results
 async def test_async_col_mx_fetch_one_multiple_results(
     async_dummy_service, multiple_results_response
 ):
+    """Test fetching a single resource when multiple results are returned."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=multiple_results_response
@@ -787,6 +854,7 @@ async def test_async_col_mx_fetch_one_multiple_results(
 async def test_async_col_mx_fetch_one_with_filters(
     async_dummy_service, single_result_response, filter_status_active
 ):
+    """Test fetching a single resource with filters applied."""
     filtered_collection = (
         async_dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
@@ -810,6 +878,7 @@ async def test_async_col_mx_fetch_one_with_filters(
 async def test_async_col_mx_fetch_page_with_filter(
     async_dummy_service, list_response, filter_status_active
 ) -> None:
+    """Test fetching a page of resources with filters applied."""
     custom_collection = (
         async_dummy_service.filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
@@ -837,6 +906,7 @@ async def test_async_col_mx_fetch_page_with_filter(
 
 
 async def test_async_col_mx_iterate_single_page(async_dummy_service, single_page_response):
+    """Test iterating over a single page of resources."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=single_page_response
@@ -855,6 +925,7 @@ async def test_async_col_mx_iterate_single_page(async_dummy_service, single_page
 async def test_async_col_mx_iterate_multiple_pages(
     async_dummy_service, multi_page_response_page1, multi_page_response_page2
 ):
+    """Test iterating over multiple pages of resources."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 0}).mock(
             return_value=multi_page_response_page1
@@ -873,6 +944,7 @@ async def test_async_col_mx_iterate_multiple_pages(
 
 
 async def test_async_col_mx_iterate_empty_results(async_dummy_service, empty_response):
+    """Test iterating over an empty set of resources."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=empty_response
@@ -885,6 +957,7 @@ async def test_async_col_mx_iterate_empty_results(async_dummy_service, empty_res
 
 
 async def test_async_col_mx_iterate_no_meta(async_dummy_service, no_meta_response):
+    """Test iterating over resources when no metadata is provided."""
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
             return_value=no_meta_response
@@ -899,6 +972,7 @@ async def test_async_col_mx_iterate_no_meta(async_dummy_service, no_meta_respons
 
 
 async def test_async_col_mx_iterate_with_filters(async_dummy_service, filter_status_active):
+    """Test iterating over resources with filters applied."""
     filtered_collection = (
         async_dummy_service.filter(filter_status_active).select("id", "name").order_by("created")
     )
@@ -931,6 +1005,7 @@ async def test_async_col_mx_iterate_with_filters(async_dummy_service, filter_sta
 
 
 async def test_async_col_mx_iterate_lazy_evaluation(async_dummy_service):
+    """Test lazy evaluation of iterating over resources."""
     response = httpx.Response(
         httpx.codes.OK,
         json={
@@ -949,15 +1024,14 @@ async def test_async_col_mx_iterate_lazy_evaluation(async_dummy_service):
 
         result = async_dummy_service.iterate()
 
-        # No requests should be made until we start iterating
         assert mock_route.call_count == 0
-        # Get first item to trigger the first request
         first_resource = await anext(result)
         assert first_resource.id == "ID-1"
         assert mock_route.call_count == 1
 
 
 async def test_async_col_mx_iterate_handles_api_errors(async_dummy_service):
+    """Test that API errors are handled during iteration over resources."""
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(
             return_value=httpx.Response(
@@ -978,10 +1052,8 @@ async def test_async_col_mx_iterate_handles_api_errors(async_dummy_service):
     ],
 )
 def test_modifieable_resource_mixin(method_name):
-    class Service(ModifiableResourceMixin[DummyModel]):  # noqa: WPS431
-        """Dummy service class for testing required methods."""
-
-    result = Service()
+    """Test that ModifiableResourceMixin has the required methods."""
+    result = _ModifiableResourceService()
 
     assert hasattr(result, method_name), f"ManagedResourceMixin should have {method_name} method"
     assert callable(getattr(result, method_name)), f"{method_name} should be callable"
@@ -995,11 +1067,9 @@ def test_modifieable_resource_mixin(method_name):
         "get",
     ],
 )
-def test_async_modifiable_resource_mixin(async_dummy_service, method_name):
-    class Service(AsyncModifiableResourceMixin[DummyModel]):  # noqa: WPS431
-        """Dummy service class for testing required methods."""
-
-    result = Service()
+def test_async_modifiable_resource_mixin(method_name):
+    """Test that AsyncModifiableResourceMixin has the required methods."""
+    result = _AsyncModifiableResourceService()
 
     assert hasattr(result, method_name), (
         f"AsyncManagedResourceMixin should have {method_name} method"
@@ -1017,10 +1087,8 @@ def test_async_modifiable_resource_mixin(async_dummy_service, method_name):
     ],
 )
 def test_managed_resource_mixin(method_name):
-    class ManagedService(ManagedResourceMixin[DummyModel]):  # noqa: WPS431
-        """Dummy service class for testing required methods."""
-
-    result = ManagedService()
+    """Test that ManagedResourceMixin has the required methods."""
+    result = _ManagedService()
 
     assert hasattr(result, method_name), f"ManagedResourceMixin should have {method_name} method"
     assert callable(getattr(result, method_name)), f"{method_name} should be callable"
@@ -1035,11 +1103,9 @@ def test_managed_resource_mixin(method_name):
         "get",
     ],
 )
-def test_async_managed_resource_mixin(async_dummy_service, method_name):
-    class AsyncManagedService(AsyncManagedResourceMixin[DummyModel]):  # noqa: WPS431
-        """Dummy service class for testing required methods."""
-
-    result = AsyncManagedService()
+def test_async_managed_resource_mixin(method_name):
+    """Test that AsyncManagedResourceMixin has the required methods."""
+    result = _AsyncManagedService()
 
     assert hasattr(result, method_name), (
         f"AsyncManagedResourceMixin should have {method_name} method"
@@ -1047,183 +1113,167 @@ def test_async_managed_resource_mixin(async_dummy_service, method_name):
     assert callable(getattr(result, method_name)), f"{method_name} should be callable"
 
 
-def test_sync_create_with_icon_with_data(icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-    icon_key = "icon"
+class _ModifiableResourceService(ModifiableResourceMixin[DummyModel]):
+    """Dummy service class for testing required methods."""
+
+
+class _AsyncModifiableResourceService(AsyncModifiableResourceMixin[DummyModel]):
+    """Dummy service class for testing required methods."""
+
+
+class _ManagedService(ManagedResourceMixin[DummyModel]):
+    """Dummy service class for testing required methods."""
+
+
+class _AsyncManagedService(AsyncManagedResourceMixin[DummyModel]):
+    """Dummy service class for testing required methods."""
+
+
+def test_sync_file_create_with_resource_data(dummy_file_operations_service):
+    """Test creating a file with resource data."""
+    file_data = {"id": "FILE-123"}
     with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json=resource_data,
+                json=file_data,
             )
         )
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        resource_data = {"name": "Test Document"}
 
-        result = icon_service.create(
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
+        result = dummy_file_operations_service.create(resource_data=resource_data, files=files)
+
+        request = mock_route.calls[0].request
+    assert b'name="_attachment_data"' in request.content
+    assert b'"name":"Test Document"' in request.content
+    assert result.to_dict() == file_data
+
+
+async def test_async_file_create_with_resource_data(async_dummy_file_operations_service):
+    """Test creating a file with resource data."""
+    file_data = {"id": "FILE-123"}
+    with respx.mock:
+        mock_route = respx.post("https://api.example.com/public/v1/dummy/file-ops/").mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=file_data,
+            )
         )
-
-    request = mock_route.calls[0].request
-    assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"id": "OBJ-0000-0001", "name": "Icon Object"}\r\n' in request.content
-    )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert "multipart/form-data" in request.headers["Content-Type"]
-    assert result.to_dict() == resource_data
+        files = {"file": ("document.pdf", io.BytesIO(b"PDF content"), "application/pdf")}
+        resource_data = {"name": "Test Document"}
+        result = await async_dummy_file_operations_service.create(
+            resource_data=resource_data, files=files
+        )
+        request = mock_route.calls[0].request
+    assert b'name="_attachment_data"' in request.content
+    assert b'"name":"Test Document"' in request.content
+    assert result.to_dict() == file_data
 
 
-def test_sync_update_with_icon_with_data(icon_service):
-    resource_id = "OBJ-0000-0001"
+def test_sync_update_file(update_file_service):  # noqa: WPS210
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    file_tuple = ("icon.png", io.BytesIO(b"PNG DATA"), "image/png")
     resource_data = {"name": "Updated Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
-    icon_key = "icon"
     with respx.mock:
-        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json={"id": resource_id, "name": "Updated Icon Object"},
+                json=response_expected_data,
             )
         )
 
-        result = icon_service.update(
-            resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
-        )
+        result = update_file_service.update(resource_id, resource_data, file=file_tuple)
 
     request = mock_route.calls[0].request
+    assert mock_route.call_count == 1
     assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"name": "Updated Icon Object"}\r\n' in request.content
-    )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b'Content-Disposition: form-data; name="file"; filename="icon.png"\r\n'
         b"Content-Type: image/png\r\n\r\n"
-        b"Updated icon content\r\n" in request.content
+        b"PNG DATA\r\n" in request.content
     )
     assert "multipart/form-data" in request.headers["Content-Type"]
-    assert result.to_dict() == {
-        "id": resource_id,
-        "name": "Updated Icon Object",
-    }
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
 
 
-async def test_async_create_with_icon_no_data(async_icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
-    with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                json=resource_data,
-            )
-        )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-
-        result = await async_icon_service.create(resource_data=None, icon=icon)
-
-    request = mock_route.calls[0].request
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert result.to_dict() == resource_data
-
-
-def test_sync_create_with_icon_no_data(icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
-    with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                json=resource_data,
-            )
-        )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-
-        result = icon_service.create(resource_data=None, icon=icon)
-
-    request = mock_route.calls[0].request
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert result.to_dict() == resource_data
-
-
-async def test_async_create_with_icon_with_data(async_icon_service):
-    resource_data = {"id": "OBJ-0000-0001", "name": "Icon Object"}
-    with respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/dummy/icon/").mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                json=resource_data,
-            )
-        )
-        icon = ("icon.png", io.BytesIO(b"Icon content"), "image/png")
-
-        result = await async_icon_service.create(resource_data=None, icon=icon)
-
-    request = mock_route.calls[0].request
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
-        b"Content-Type: image/png\r\n\r\n"
-        b"Icon content\r\n" in request.content
-    )
-    assert result.to_dict() == resource_data
-
-
-async def test_async_update_with_icon_with_data(async_icon_service):
-    resource_id = "OBJ-0000-0001"
+def test_update_file_no_file(update_file_service):  # noqa: WPS210
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
     resource_data = {"name": "Updated Icon Object"}
-    resource_key = "icon_data"
-    icon = ("icon.png", io.BytesIO(b"Updated icon content"), "image/png")
-    icon_key = "icon"
-
     with respx.mock:
-        mock_route = respx.put(f"https://api.example.com/public/v1/dummy/icon/{resource_id}").mock(
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
-                json={"id": resource_id, "name": "Updated Icon Object"},
+                json=response_expected_data,
             )
         )
 
-        result = await async_icon_service.update(
-            resource_id,
-            resource_data=resource_data,
-            icon=icon,
-            data_key=resource_key,
-            icon_key=icon_key,
-        )
+        result = update_file_service.update(resource_id, resource_data)
 
     request = mock_route.calls[0].request
+    assert mock_route.call_count == 1
+    assert b'Content-Disposition: form-data; name="file"' not in request.content
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
+
+
+async def test_async_update_file(async_update_file_service):  # noqa: WPS210
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    file_tuple = ("icon.png", io.BytesIO(b"PNG DATA"), "image/png")
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        # Act
+        result = await async_update_file_service.update(resource_id, resource_data, file=file_tuple)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
     assert (
-        b'Content-Disposition: form-data; name="icon_data"\r\n'
-        b"Content-Type: application/json\r\n\r\n"
-        b'{"name": "Updated Icon Object"}\r\n' in request.content
-    )
-    assert (
-        b'Content-Disposition: form-data; name="icon"; filename="icon.png"\r\n'
+        b'Content-Disposition: form-data; name="file"; filename="icon.png"\r\n'
         b"Content-Type: image/png\r\n\r\n"
-        b"Updated icon content\r\n" in request.content
+        b"PNG DATA\r\n" in request.content
     )
     assert "multipart/form-data" in request.headers["Content-Type"]
-    assert result.to_dict() == {
-        "id": resource_id,
-        "name": "Updated Icon Object",
-    }
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
+
+
+async def test_async_update_file_no_file(async_update_file_service):  # noqa: WPS210
+    resource_id = "ICON-1234"
+    response_expected_data = {"id": resource_id, "name": "Updated Icon Object"}
+    resource_data = {"name": "Updated Icon Object"}
+
+    with respx.mock:
+        mock_route = respx.put(
+            f"https://api.example.com/public/v1/dummy/update-file/{resource_id}"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                json=response_expected_data,
+            )
+        )
+        # Act
+        result = await async_update_file_service.update(resource_id, resource_data)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+
+    assert b'Content-Disposition: form-data; name="file"' not in request.content
+    assert "multipart/form-data" in request.headers["Content-Type"]
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)

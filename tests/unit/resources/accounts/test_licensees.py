@@ -47,7 +47,7 @@ def test_create_licensee(licensees_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.CREATED, json=licensee_data)
         )
 
-        result = licensees_service.create(licensee_data, logo=logo_file)
+        result = licensees_service.create(licensee_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -68,7 +68,7 @@ def test_update_licensees(licensees_service, tmp_path):  # noqa: WPS210
             return_value=httpx.Response(httpx.codes.OK, json={"id": licensee_id, **licensee_data})
         )
 
-        result = licensees_service.update(licensee_id, licensee_data, logo=logo_file)
+        result = licensees_service.update(licensee_id, licensee_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -89,7 +89,7 @@ async def test_async_create_licensees(async_licensees_service, tmp_path):  # noq
             return_value=httpx.Response(httpx.codes.CREATED, json=licensee_data)
         )
 
-        licensee = await async_licensees_service.create(licensee_data, logo=logo_file)
+        licensee = await async_licensees_service.create(licensee_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1
@@ -110,7 +110,7 @@ async def test_async_update_licensees(async_licensees_service, tmp_path):  # noq
             return_value=httpx.Response(httpx.codes.OK, json={"id": licensee_id, **licensee_data})
         )
 
-        licensee = await async_licensees_service.update(licensee_id, licensee_data, logo=logo_file)
+        licensee = await async_licensees_service.update(licensee_id, licensee_data, file=logo_file)
 
     request = mock_route.calls[0].request
     assert mock_route.call_count == 1

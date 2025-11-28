@@ -1,8 +1,9 @@
 from mpt_api_client.http.mixins import (
+    AsyncCreateFileMixin,
     AsyncDownloadFileMixin,
+    CreateFileMixin,
     DownloadFileMixin,
 )
-from mpt_api_client.http.types import FileTypes
 from mpt_api_client.models import ResourceData
 
 
@@ -81,70 +82,12 @@ class AsyncPublishableMixin[Model]:
         )
 
 
-class AsyncCreateFileMixin[Model]:
-    """Create file mixin."""
-
-    async def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:
-        """Create document.
-
-        Creates a document resource by specifying a `file` or an `url`.
-
-        Args:
-            resource_data: Resource data.
-            file: File to upload.
-
-        Returns:
-            Created resource.
-        """
-        files = {}
-        if file:
-            files[self._upload_file_key] = file  # type: ignore[attr-defined]
-        response = await self.http_client.request(  # type: ignore[attr-defined]
-            "post",
-            self.path,  # type: ignore[attr-defined]
-            json=resource_data,
-            files=files,
-            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
-            force_multipart=True,
-        )
-        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
-
-
 class AsyncDocumentMixin[Model](
     AsyncCreateFileMixin[Model],
     AsyncDownloadFileMixin[Model],
     AsyncPublishableMixin[Model],
 ):
     """Async document mixin."""
-
-
-class CreateFileMixin[Model]:
-    """Create file mixin."""
-
-    def create(self, resource_data: ResourceData, file: FileTypes | None = None) -> Model:
-        """Create document.
-
-        Creates a document resource by specifying a `file` or an `url`.
-
-        Args:
-            resource_data: Resource data.
-            file: File to upload.
-
-        Returns:
-            Created resource.
-        """
-        files = {}
-        if file:
-            files[self._upload_file_key] = file  # type: ignore[attr-defined]
-        response = self.http_client.request(  # type: ignore[attr-defined]
-            "post",
-            self.path,  # type: ignore[attr-defined]
-            json=resource_data,
-            files=files,
-            json_file_key=self._upload_data_key,  # type: ignore[attr-defined]
-            force_multipart=True,
-        )
-        return self._model_class.from_response(response)  # type: ignore[attr-defined, no-any-return]
 
 
 class DocumentMixin[Model](

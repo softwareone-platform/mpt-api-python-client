@@ -8,12 +8,13 @@ pytestmark = [pytest.mark.flaky]
 
 @pytest.fixture
 def created_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon):
+    """Fixture to create and yield a buyer for testing."""
     new_buyer_request_data = buyer_factory(
         name="E2E Created Buyer",
         account_id=buyer_account_id,
     )
 
-    new_buyer = mpt_ops.accounts.buyers.create(new_buyer_request_data, logo=account_icon)
+    new_buyer = mpt_ops.accounts.buyers.create(new_buyer_request_data, file=account_icon)
 
     yield new_buyer
 
@@ -30,6 +31,7 @@ def test_get_buyer_by_id(mpt_ops, buyer_id):
 
 
 def test_list_buyers(mpt_ops):
+    """Test listing buyers with a limit."""
     limit = 10
 
     result = mpt_ops.accounts.buyers.fetch_page(limit=limit)
@@ -38,11 +40,13 @@ def test_list_buyers(mpt_ops):
 
 
 def test_get_buyer_by_id_not_found(mpt_ops, invalid_buyer_id):
+    """Test fetching a buyer by an invalid ID raises a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.buyers.get(invalid_buyer_id)
 
 
 def test_filter_buyers(mpt_ops, buyer_id):
+    """Test filtering buyers using RQL synchronously."""
     select_fields = ["-address"]
     filtered_buyers = (
         mpt_ops.accounts.buyers.filter(RQLQuery(id=buyer_id))
@@ -66,14 +70,16 @@ def test_delete_buyer(mpt_ops, created_buyer):
 
 
 def test_delete_buyer_not_found(mpt_ops, invalid_buyer_id):
+    """Test deleting a non-existent buyer raises a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.buyers.delete(invalid_buyer_id)
 
 
 def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, created_buyer):
+    """Test updating a buyer synchronously."""
     updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
 
-    result = mpt_ops.accounts.buyers.update(created_buyer.id, updated_buyer_data, logo=account_icon)
+    result = mpt_ops.accounts.buyers.update(created_buyer.id, updated_buyer_data, file=account_icon)
 
     assert result is not None
 
@@ -81,10 +87,11 @@ def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, cr
 def test_update_buyer_not_found(
     mpt_ops, buyer_factory, buyer_account_id, account_icon, invalid_buyer_id
 ):
+    """Test updating a non-existent buyer raises a 404 error."""
     updated_buyer_data = buyer_factory(name="Nonexistent Buyer", account_id=buyer_account_id)
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
-        mpt_ops.accounts.buyers.update(invalid_buyer_id, updated_buyer_data, logo=account_icon)
+        mpt_ops.accounts.buyers.update(invalid_buyer_id, updated_buyer_data, file=account_icon)
 
 
 def test_buyer_disable(mpt_ops, created_buyer):
@@ -94,11 +101,13 @@ def test_buyer_disable(mpt_ops, created_buyer):
 
 
 def test_buyer_disable_not_found(mpt_ops, invalid_buyer_id):
+    """Test disabling a non-existent buyer raises a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.buyers.disable(invalid_buyer_id)
 
 
 def test_buyer_enable(mpt_ops, created_buyer):
+    """Test enabling a buyer synchronously."""
     mpt_ops.accounts.buyers.disable(created_buyer.id)
 
     result = mpt_ops.accounts.buyers.enable(created_buyer.id)
@@ -107,5 +116,6 @@ def test_buyer_enable(mpt_ops, created_buyer):
 
 
 def test_buyer_enable_not_found(mpt_ops, invalid_buyer_id):
+    """Test enabling a non-existent buyer raises a 404 error."""
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.buyers.enable(invalid_buyer_id)

@@ -1,8 +1,5 @@
 from mpt_api_client.models import ResourceData
 
-# TODO: Consider reorganizing functions in mixins to reduce duplication and differences amongst
-#       different domains
-
 
 class ActivatableMixin[Model]:
     """Activatable mixin for activating, enabling, disabling and deactivating resources."""
