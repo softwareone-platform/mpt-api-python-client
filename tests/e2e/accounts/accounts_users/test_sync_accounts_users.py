@@ -12,37 +12,6 @@ def users(mpt_vendor, account_id):
 
 
 @pytest.fixture
-def created_account_user(mpt_vendor, account_user_factory, account_id):
-    """Fixture to create and teardown an account user."""
-    ret_account_user = None
-
-    def _created_account_user(
-        first_name: str = "E2E Created",
-        last_name: str = "Account User",
-    ):
-        """Create an account user with the given first and last name."""
-        nonlocal ret_account_user  # noqa: WPS420
-        account_user_data = account_user_factory(
-            first_name=first_name,
-            last_name=last_name,
-        )
-        users_obj = mpt_vendor.accounts.accounts.users(account_id=account_id)
-        ret_account_user = users_obj.create(account_user_data)
-        return ret_account_user
-
-    yield _created_account_user
-
-    if ret_account_user:
-        users_obj = mpt_vendor.accounts.accounts.users(account_id=account_id)
-        try:
-            users_obj.delete(ret_account_user.id)
-        except MPTAPIError:
-            print(  # noqa: WPS421
-                f"TEARDOWN - Unable to delete account user {ret_account_user.id}",
-            )
-
-
-@pytest.fixture
 def created_user_group(mpt_ops, user_group_factory):
     """Fixture to create and teardown a user group."""
     new_user_group_request_data = user_group_factory()
