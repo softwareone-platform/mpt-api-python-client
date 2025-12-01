@@ -17,12 +17,14 @@ def created_category(mpt_ops, category_data):
         print(f"TEARDOWN - Unable to delete category {category.id}: {error.title}")  # noqa: WPS421
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_create_category(created_category, category_data):
     assert created_category.name == category_data["name"]  # act
 
     assert created_category.description == category_data["description"]
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_get_category(mpt_client, created_category):
     service = mpt_client.notifications.categories
 
@@ -32,6 +34,7 @@ def test_get_category(mpt_client, created_category):
     assert result.name == created_category.name
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_update_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     update_data = {
@@ -45,6 +48,7 @@ def test_update_category(mpt_ops, created_category):
     assert result.description == "Updated description"
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_list_categories(mpt_client, created_category):
     service = mpt_client.notifications.categories
 
@@ -53,6 +57,7 @@ def test_list_categories(mpt_client, created_category):
     assert any(category.id == created_category.id for category in result)
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_filter_categories(mpt_client, created_category):
     service = mpt_client.notifications.categories
 
@@ -62,6 +67,7 @@ def test_filter_categories(mpt_client, created_category):
     assert result[0].id == created_category.id
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_publish_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for testing"}
@@ -73,6 +79,7 @@ def test_publish_category(mpt_ops, created_category):
     assert result.id == created_category.id
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_unpublish_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for testing"}
@@ -89,6 +96,7 @@ def test_category_not_found(mpt_client, invalid_category_id):
         service.get(invalid_category_id)
 
 
+@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_delete_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
 
