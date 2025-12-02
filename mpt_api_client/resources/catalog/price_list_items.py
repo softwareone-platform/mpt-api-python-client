@@ -1,9 +1,11 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncManagedResourceMixin,
+    AsyncGetMixin,
+    AsyncUpdateMixin,
     CollectionMixin,
-    ManagedResourceMixin,
+    GetMixin,
+    UpdateMixin,
 )
 from mpt_api_client.models import Model
 
@@ -21,7 +23,8 @@ class PriceListItemsServiceConfig:
 
 
 class PriceListItemsService(
-    ManagedResourceMixin[PriceListItem],
+    GetMixin[PriceListItem],
+    UpdateMixin[PriceListItem],
     CollectionMixin[PriceListItem],
     Service[PriceListItem],
     PriceListItemsServiceConfig,
@@ -30,7 +33,8 @@ class PriceListItemsService(
 
 
 class AsyncPriceListItemsService(
-    AsyncManagedResourceMixin[PriceListItem],
+    AsyncGetMixin[PriceListItem],
+    AsyncUpdateMixin[PriceListItem],
     AsyncCollectionMixin[PriceListItem],
     AsyncService[PriceListItem],
     PriceListItemsServiceConfig,
