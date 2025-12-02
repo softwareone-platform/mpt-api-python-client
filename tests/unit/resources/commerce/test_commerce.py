@@ -3,6 +3,7 @@ import pytest
 from mpt_api_client.http import AsyncHTTPClient
 from mpt_api_client.resources.commerce import AsyncCommerce, Commerce
 from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
+from mpt_api_client.resources.commerce.assets import AssetsService, AsyncAssetsService
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, OrdersService
 from mpt_api_client.resources.commerce.subscriptions import (
     AsyncSubscriptionsService,
@@ -40,6 +41,7 @@ def test_async_commerce_init(async_http_client: AsyncHTTPClient):
         ("agreements", AgreementsService),
         ("orders", OrdersService),
         ("subscriptions", SubscriptionsService),
+        ("assets", AssetsService),
     ],
 )
 def test_commerce_properties(http_client, attr_name, expected):
@@ -56,6 +58,7 @@ def test_commerce_properties(http_client, attr_name, expected):
         ("agreements", AsyncAgreementsService),
         ("orders", AsyncOrdersService),
         ("subscriptions", AsyncSubscriptionsService),
+        ("assets", AsyncAssetsService),
     ],
 )
 def test_async_commerce_properties(http_client, attr_name, expected):
