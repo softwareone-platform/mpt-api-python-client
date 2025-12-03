@@ -33,7 +33,7 @@ def test_async_http_initialization(mocker):
             "Authorization": "Bearer test-token",
             "Accept": "application/json",
         },
-        timeout=5.0,
+        timeout=10.0,
         transport=mocker.ANY,
     )
 
@@ -53,7 +53,7 @@ def test_async_env_initialization(monkeypatch, mocker):
             "Authorization": f"Bearer {API_TOKEN}",
             "Accept": "application/json",
         },
-        timeout=5.0,
+        timeout=10.0,
         transport=mocker.ANY,
     )
 
