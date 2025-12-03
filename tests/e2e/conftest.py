@@ -116,3 +116,28 @@ def logo_fd():
 @pytest.fixture
 def user_id(e2e_config):
     return e2e_config["accounts.user.id"]
+
+
+@pytest.fixture
+def account_id(e2e_config):
+    return e2e_config["accounts.account.id"]
+
+
+@pytest.fixture
+def seller_id(e2e_config):
+    return e2e_config["accounts.seller.id"]
+
+
+@pytest.fixture
+def buyer_id(e2e_config):
+    return e2e_config["accounts.buyer.id"]
+
+
+@pytest.fixture
+def licensee_id(e2e_config):
+    return e2e_config["accounts.licensee.id"]
+
+
+@pytest.fixture
+def authorization_id(e2e_config):
+    return e2e_config["commerce.authorization.id"]

@@ -44,6 +44,18 @@ class AgreementsService(
         response = self._resource_do_request(agreement_id, action="template")
         return response.text
 
+    def render(self, agreement_id: str) -> str:
+        """Renders the template for the given Agreement id.
+
+        Args:
+            agreement_id: Agreement ID.
+
+        Returns:
+            Rendered Agreement.
+        """
+        response = self._resource_do_request(agreement_id, action="render")
+        return response.text
+
     def attachments(self, agreement_id: str) -> AgreementsAttachmentService:
         """Get the attachments service for the given Agreement id.
 
@@ -77,6 +89,18 @@ class AsyncAgreementsService(
             Agreement template.
         """
         response = await self._resource_do_request(agreement_id, action="template")
+        return response.text
+
+    async def render(self, agreement_id: str) -> str:
+        """Renders the template for the given Agreement id.
+
+        Args:
+            agreement_id: Agreement ID.
+
+        Returns:
+            Rendered Agreement.
+        """
+        response = await self._resource_do_request(agreement_id, action="render")
         return response.text
 
     def attachments(self, agreement_id: str) -> AsyncAgreementsAttachmentService:
