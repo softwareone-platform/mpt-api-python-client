@@ -3,11 +3,11 @@ from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncDeleteMixin,
     AsyncGetMixin,
-    AsyncUpdateMixin,
+    AsyncUpdateFileMixin,
     CollectionMixin,
     DeleteMixin,
     GetMixin,
-    UpdateMixin,
+    UpdateFileMixin,
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
@@ -27,10 +27,12 @@ class UsersServiceConfig:
     _endpoint = "/public/v1/accounts/users"
     _model_class = User
     _collection_key = "data"
+    _upload_file_key = "icon"
+    _upload_data_key = "user"
 
 
 class UsersService(
-    UpdateMixin[User],
+    UpdateFileMixin[User],
     DeleteMixin,
     BlockableMixin[User],
     GetMixin[User],
@@ -71,7 +73,7 @@ class UsersService(
 
 
 class AsyncUsersService(
-    AsyncUpdateMixin[User],
+    AsyncUpdateFileMixin[User],
     AsyncDeleteMixin,
     AsyncBlockableMixin[User],
     AsyncGetMixin[User],
