@@ -22,7 +22,7 @@ def test_http_initialization(mocker):
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": "Bearer test-token",
         },
-        timeout=5.0,
+        timeout=10.0,
         transport=mocker.ANY,
     )
 
@@ -41,7 +41,7 @@ def test_env_initialization(monkeypatch, mocker):
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {API_TOKEN}",
         },
-        timeout=5.0,
+        timeout=10.0,
         transport=mocker.ANY,
     )
 
