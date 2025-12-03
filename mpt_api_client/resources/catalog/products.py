@@ -28,6 +28,10 @@ from mpt_api_client.resources.catalog.products_item_groups import (
     AsyncItemGroupsService,
     ItemGroupsService,
 )
+from mpt_api_client.resources.catalog.products_items import (
+    AsyncProductItemService,
+    ProductItemService,
+)
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
@@ -71,6 +75,12 @@ class ProductsService(
     ProductsServiceConfig,
 ):
     """Products service."""
+
+    def items(self, product_id: str) -> ProductItemService:  # noqa: WPS110
+        """Return product items service."""
+        return ProductItemService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
 
     def item_groups(self, product_id: str) -> ItemGroupsService:
         """Return item_groups service."""
@@ -128,6 +138,12 @@ class AsyncProductsService(
     ProductsServiceConfig,
 ):
     """Products service."""
+
+    def items(self, product_id: str) -> AsyncProductItemService:  # noqa: WPS110
+        """Return product items service."""
+        return AsyncProductItemService(
+            http_client=self.http_client, endpoint_params={"product_id": product_id}
+        )
 
     def item_groups(self, product_id: str) -> AsyncItemGroupsService:
         """Return item_groups service."""

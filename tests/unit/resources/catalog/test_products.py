@@ -15,6 +15,10 @@ from mpt_api_client.resources.catalog.products_item_groups import (
     AsyncItemGroupsService,
     ItemGroupsService,
 )
+from mpt_api_client.resources.catalog.products_items import (
+    AsyncProductItemService,
+    ProductItemService,
+)
 from mpt_api_client.resources.catalog.products_media import (
     AsyncMediaService,
     MediaService,
@@ -66,6 +70,7 @@ def test_async_mixins_present(async_products_service, method):
 @pytest.mark.parametrize(
     ("service_method", "expected_service_class"),
     [
+        ("items", ProductItemService),
         ("item_groups", ItemGroupsService),
         ("parameter_groups", ParameterGroupsService),
         ("media", MediaService),
@@ -85,6 +90,7 @@ def test_property_services(products_service, service_method, expected_service_cl
 @pytest.mark.parametrize(
     ("service_method", "expected_service_class"),
     [
+        ("items", AsyncProductItemService),
         ("item_groups", AsyncItemGroupsService),
         ("parameter_groups", AsyncParameterGroupsService),
         ("media", AsyncMediaService),
