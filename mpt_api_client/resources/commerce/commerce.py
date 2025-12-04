@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
+from mpt_api_client.resources.commerce.assets import AssetsService, AsyncAssetsService
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, OrdersService
 from mpt_api_client.resources.commerce.subscriptions import (
     AsyncSubscriptionsService,
@@ -28,6 +29,11 @@ class Commerce:
         """Subscription service."""
         return SubscriptionsService(http_client=self.http_client)
 
+    @property
+    def assets(self) -> AssetsService:
+        """Asset service."""
+        return AssetsService(http_client=self.http_client)
+
 
 class AsyncCommerce:
     """Commerce MPT API Module."""
@@ -49,3 +55,8 @@ class AsyncCommerce:
     def subscriptions(self) -> AsyncSubscriptionsService:
         """Subscription service."""
         return AsyncSubscriptionsService(http_client=self.http_client)
+
+    @property
+    def assets(self) -> AsyncAssetsService:
+        """Asset service."""
+        return AsyncAssetsService(http_client=self.http_client)
