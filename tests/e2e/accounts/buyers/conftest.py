@@ -7,11 +7,6 @@ def invalid_buyer_id():
 
 
 @pytest.fixture
-def buyer_account_id(e2e_config):
-    return e2e_config["accounts.buyer.account.id"]
-
-
-@pytest.fixture
 def buyer_factory(buyer_account_id):
     def _buyer(
         name="E2E Created Buyer",
