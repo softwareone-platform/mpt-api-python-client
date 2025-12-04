@@ -109,8 +109,8 @@ def uuid_str():
 
 @pytest.fixture
 def logo_fd():
-    file_path = pathlib.Path(__file__).parent / "logo.png"
-    return pathlib.Path.open(file_path, "rb")
+    file_path = pathlib.Path("tests/data/logo.png").resolve()
+    return file_path.open("rb")
 
 
 @pytest.fixture

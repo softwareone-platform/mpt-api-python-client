@@ -34,6 +34,7 @@ dev = [
     "ipython==9.*",
     "mypy==1.15.*",
     "pre-commit==4.2.*",
+    "pyfakefs==5.10.*",
     "pytest==8.3.*",
     "pytest-asyncio==1.2.*",
     "pytest-cov==6.1.*",
@@ -114,7 +115,7 @@ per-file-ignores = [
   "mpt_api_client/http/mixins.py: WPS202 WPS204 WPS235",
   "mpt_api_client/resources/*: WPS215",
   "mpt_api_client/models/model.py: WPS215 WPS110",
-  "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235",
+  "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235 WPS453",
   "mpt_api_client/resources/billing/*.py: WPS202 WPS204 WPS214 WPS215",
   "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/mixins.py: WPS110 WPS202 WPS214 WPS215 WPS235",
@@ -130,7 +131,8 @@ per-file-ignores = [
   "tests/e2e/accounts/*.py: WPS430 WPS202",
   "tests/e2e/catalog/*.py: WPS202 WPS421",
   "tests/e2e/catalog/items/*.py: WPS110 WPS202",
-  "tests/*: WPS432 WPS202"
+  "tests/*: WPS432 WPS202",
+  "seed/accounts/*.py: WPS453",
 ]
 
 [tool.ruff]

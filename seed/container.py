@@ -57,5 +57,13 @@ def wire_container() -> None:
             "seed.catalog.item_group",
             "seed.catalog.product_parameters",
             "seed.catalog.product_parameters_group",
+            "seed.accounts",
+            "seed.accounts.accounts",
+            "seed.accounts.api_tokens",
+            "seed.accounts.buyer",
+            "seed.accounts.licensee",
+            "seed.accounts.module",
+            "seed.accounts.seller",
+            "seed.accounts.user_group",
         ]
     )

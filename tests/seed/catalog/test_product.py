@@ -1,6 +1,3 @@
-import io
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
 from mpt_api_client.resources.catalog.products import AsyncProductsService, Product
@@ -20,11 +17,11 @@ def product():
 
 
 @pytest.fixture
-def products_service():
-    return AsyncMock(spec=AsyncProductsService)
+def products_service(mocker):
+    return mocker.Mock(spec=AsyncProductsService)
 
 
-async def test_get_product(context: Context, vendor_client, product, products_service) -> None:
+async def test_get_product(context: Context, vendor_client, product, products_service):
     context["catalog.product.id"] = product.id
     products_service.get.return_value = product
     vendor_client.catalog.products = products_service
@@ -35,81 +32,71 @@ async def test_get_product(context: Context, vendor_client, product, products_se
     assert context.get_resource("catalog.product", product.id) == product
 
 
-async def test_get_product_without_id(context: Context) -> None:
+async def test_get_product_without_id(context: Context):
     result = await get_product(context=context)
 
     assert result is None
 
 
-async def test_get_or_create_product_create_new(
-    context: Context, vendor_client, products_service, product
-) -> None:
+async def test_get_or_create_product_create_new(  # noqa: WPS211
+    context: Context, vendor_client, products_service, product, fs, mocker
+):
     products_service.create.return_value = product
     vendor_client.catalog.products = products_service
-    fake_icon_bytes = io.BytesIO(b"fake image")
-
-    with (
-        patch("seed.catalog.product.get_product", return_value=None),
-        patch("seed.catalog.product.icon", new=MagicMock()),
-        patch("pathlib.Path.open", return_value=fake_icon_bytes),
-    ):
-        result = await init_product(context, mpt_vendor=vendor_client)
-
-        assert result == product
-        products_service.create.assert_called_once()
+    fs.create_file(
+        "/mpt_api_client/seed/catalog/FIL-9920-4780-9379.png", contents=b"fake_icon_bytes"
+    )
+    mock_get_product = mocker.patch(
+        "seed.catalog.product.get_product", new_callable=mocker.AsyncMock
+    )
+    mock_get_product.return_value = None
+    result = await init_product(context=context, mpt_vendor=vendor_client)
+    assert result == product
+    products_service.create.assert_called_once()
 
 
 async def test_review_product_draft_status(
-    context, products_service, vendor_client, product
-) -> None:
+    context, products_service, vendor_client, product, mocker
+):
     product.status = "Draft"
     products_service.review.return_value = product
     vendor_client.catalog.products = products_service
-    with (
-        patch("seed.catalog.product.get_product", return_value=product),
-    ):
-        result = await review_product(context, mpt_vendor=vendor_client)
-
-        assert result == product
-        products_service.review.assert_called_once()
+    mocker.patch("seed.catalog.product.get_product", return_value=product)
+    result = await review_product(context, mpt_vendor=vendor_client)
+    assert result == product
+    products_service.review.assert_called_once()
 
 
-async def test_review_product_non_draft_status(product) -> None:
+async def test_review_product_non_draft_status(product, mocker):
     product.status = "Published"
-    with patch("seed.catalog.product.get_product", return_value=product):
-        result = await review_product()
+    mocker.patch("seed.catalog.product.get_product", return_value=product)
+    result = await review_product()
+    assert result == product
 
-        assert result == product
 
-
-async def test_publish_product_reviewing_status(context, operations_client, product) -> None:
+async def test_publish_product_reviewing_status(context, operations_client, product, mocker):
     product.status = "Reviewing"
-    operations_client.catalog.products.publish = AsyncMock(return_value=product)
-    with (
-        patch("seed.catalog.product.get_product", return_value=product),
-    ):
-        result = await publish_product(context, mpt_operations=operations_client)
-
-        assert result == product
-        operations_client.catalog.products.publish.assert_called_once()
+    operations_client.catalog.products.publish = mocker.AsyncMock(return_value=product)
+    mocker.patch("seed.catalog.product.get_product", return_value=product)
+    result = await publish_product(context, mpt_operations=operations_client)
+    assert result == product
+    operations_client.catalog.products.publish.assert_called_once()
 
 
-async def test_publish_product_non_reviewing_status(product) -> None:
+async def test_publish_product_non_reviewing_status(product, mocker):
     product.status = "Draft"
-    with patch("seed.catalog.product.get_product", return_value=product):
-        result = await publish_product()
+    mocker.patch("seed.catalog.product.get_product", return_value=product)
+    result = await publish_product()
+    assert result == product
 
-        assert result == product
 
-
-async def test_seed_product_sequence() -> None:
-    with (
-        patch("seed.catalog.product.init_product", new_callable=AsyncMock) as mock_create,
-        patch("seed.catalog.product.review_product", new_callable=AsyncMock) as mock_review,
-        patch("seed.catalog.product.publish_product", new_callable=AsyncMock) as mock_publish,
-    ):
-        await seed_product()  # act
-
-        mock_create.assert_called_once()
-        mock_review.assert_called_once()
-        mock_publish.assert_called_once()
+async def test_seed_product_sequence(mocker):
+    mock_create = mocker.patch("seed.catalog.product.init_product", new_callable=mocker.AsyncMock)
+    mock_review = mocker.patch("seed.catalog.product.review_product", new_callable=mocker.AsyncMock)
+    mock_publish = mocker.patch(
+        "seed.catalog.product.publish_product", new_callable=mocker.AsyncMock
+    )
+    await seed_product()  # act
+    mock_create.assert_called_once()
+    mock_review.assert_called_once()
+    mock_publish.assert_called_once()

@@ -17,7 +17,7 @@ def seller_factory(currencies):
             "name": name,
             "address": {
                 "addressLine1": "123 Main St",
-                "city": "Anytown",
+                "city": "Los Angeles",
                 "state": "CA",
                 "postCode": "12345",
                 "country": "US",

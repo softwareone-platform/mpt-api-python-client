@@ -1,5 +1,4 @@
 import pathlib
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -8,10 +7,10 @@ from seed.seed_api import seed_api
 
 
 @pytest.fixture
-def mock_context():
-    context = MagicMock(spec=Context)
-    context.load = MagicMock()
-    context.save = MagicMock()
+def mock_context(mocker):
+    context = mocker.Mock(spec=Context)
+    context.load = mocker.Mock()
+    context.save = mocker.Mock()
     return context
 
 
@@ -20,20 +19,19 @@ def context_file_path(tmp_path):
     return tmp_path / "context.json"
 
 
-async def test_seed_api_success(mock_context):
-    with (
-        patch("seed.seed_api.seed_catalog", new_callable=AsyncMock) as mock_seed_catalog,
-        patch("seed.seed_api.seed_commerce", new_callable=AsyncMock) as mock_seed_commerce,
-        patch("seed.seed_api.context_file") as mock_context_file,
-        patch("seed.seed_api.load_context") as load,
-        patch("seed.seed_api.save_context") as save,
-    ):
-        mock_seed_catalog.return_value = None
-        mock_context_file.return_value = pathlib.Path("test_context.json")
+async def test_seed_api_success(mock_context, mocker):
+    mock_seed_catalog = mocker.patch("seed.seed_api.seed_catalog", new_callable=mocker.AsyncMock)
+    mock_seed_accounts = mocker.patch("seed.seed_api.seed_accounts", new_callable=mocker.AsyncMock)
+    mock_context_file = mocker.patch("seed.seed_api.context_file")
+    load = mocker.patch("seed.seed_api.load_context")
+    save = mocker.patch("seed.seed_api.save_context")
 
-        await seed_api(context=mock_context)
+    mock_seed_catalog.return_value = None
+    mock_context_file.return_value = pathlib.Path("test_context.json")
 
-        load.assert_called_once()
-        mock_seed_catalog.assert_called_once()
-        mock_seed_commerce.assert_called_once()
-        save.assert_called_once()
+    await seed_api(context=mock_context)
+
+    load.assert_called_once()
+    mock_seed_catalog.assert_called_once()
+    mock_seed_accounts.assert_called_once()
+    save.assert_called_once()
