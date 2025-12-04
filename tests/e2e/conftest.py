@@ -134,6 +134,11 @@ def buyer_id(e2e_config):
 
 
 @pytest.fixture
+def buyer_account_id(e2e_config):
+    return e2e_config["accounts.buyer.account.id"]
+
+
+@pytest.fixture
 def licensee_id(e2e_config):
     return e2e_config["accounts.licensee.id"]
 
