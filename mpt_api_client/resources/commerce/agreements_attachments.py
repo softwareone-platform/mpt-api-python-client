@@ -1,13 +1,17 @@
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import (
+from mpt_api_client.http.mixins import (  # noqa: WPS235
     AsyncCollectionMixin,
+    AsyncCreateFileMixin,
     AsyncDeleteMixin,
-    AsyncFilesOperationsMixin,
+    AsyncDownloadFileMixin,
     AsyncGetMixin,
+    AsyncUpdateMixin,
     CollectionMixin,
+    CreateFileMixin,
     DeleteMixin,
-    FilesOperationsMixin,
+    DownloadFileMixin,
     GetMixin,
+    UpdateMixin,
 )
 from mpt_api_client.models import Model
 
@@ -22,10 +26,14 @@ class AgreementsAttachmentServiceConfig:
     _endpoint = "/public/v1/commerce/agreements/{agreement_id}/attachments"
     _model_class = AgreementAttachment
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "attachment"
 
 
 class AgreementsAttachmentService(
-    FilesOperationsMixin[AgreementAttachment],
+    CreateFileMixin[AgreementAttachment],
+    UpdateMixin[AgreementAttachment],
+    DownloadFileMixin[AgreementAttachment],
     DeleteMixin,
     GetMixin[AgreementAttachment],
     CollectionMixin[AgreementAttachment],
@@ -36,7 +44,9 @@ class AgreementsAttachmentService(
 
 
 class AsyncAgreementsAttachmentService(
-    AsyncFilesOperationsMixin[AgreementAttachment],
+    AsyncCreateFileMixin[AgreementAttachment],
+    AsyncUpdateMixin[AgreementAttachment],
+    AsyncDownloadFileMixin[AgreementAttachment],
     AsyncDeleteMixin,
     AsyncGetMixin[AgreementAttachment],
     AsyncCollectionMixin[AgreementAttachment],

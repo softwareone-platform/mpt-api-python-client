@@ -32,14 +32,14 @@ def test_async_endpoint(async_attachment_service) -> None:
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "download"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate", "download"])
 def test_methods_present(attachment_service, method: str) -> None:
     result = hasattr(attachment_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "download"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate", "download"])
 def test_async_methods_present(async_attachment_service, method: str) -> None:
     result = hasattr(async_attachment_service, method)
 
