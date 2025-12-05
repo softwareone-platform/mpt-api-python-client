@@ -105,6 +105,30 @@ class OrdersService(  # noqa: WPS215 WPS214
         response = self._resource_do_request(resource_id, "GET", "template")
         return response.text
 
+    def render(self, resource_id: str) -> str:
+        """Render the order template for the given order ID.
+
+        Args:
+            resource_id: Order resource ID
+
+        Returns:
+            Rendered order as HTML.
+        """
+        response = self._resource_do_request(resource_id, "GET", "render")
+        return response.text
+
+    def quote(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
+        """Quote the order.
+
+        Args:
+            resource_id: Order resource ID
+            resource_data: Order data will be updated
+
+        Returns:
+            Quoted order resource.
+        """
+        return self._resource_action(resource_id, "POST", "quote", json=resource_data)
+
     def subscriptions(self, order_id: str) -> OrderSubscriptionsService:
         """Get the subscription service for the given Order id.
 
@@ -222,6 +246,30 @@ class AsyncOrdersService(  # noqa: WPS215 WPS214
         """
         response = await self._resource_do_request(resource_id, "GET", "template")
         return response.text
+
+    async def render(self, resource_id: str) -> str:
+        """Render the order template for the given order ID.
+
+        Args:
+            resource_id: Order resource ID
+
+        Returns:
+            Rendered order as HTML.
+        """
+        response = await self._resource_do_request(resource_id, "GET", "render")
+        return response.text
+
+    async def quote(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
+        """Quote the order.
+
+        Args:
+            resource_id: Order resource ID
+            resource_data: Order data will be updated
+
+        Returns:
+            Quoted order resource.
+        """
+        return await self._resource_action(resource_id, "POST", "quote", json=resource_data)
 
     def subscriptions(self, order_id: str) -> AsyncOrderSubscriptionsService:
         """Get the subscription service for the given Order id.

@@ -32,6 +32,7 @@
   "commerce.product.id": "PRD-1767-7355",
   "commerce.product.item.id": "ITM-1767-7355-0001",
   "commerce.product.listing.id": "LST-5489-0806",
-  "commerce.product.template.id": "TPL-1767-7355-0003",
+  "commerce.product.template.id": "TPL-1767-7355-0002",
+  "commerce.user.id": "USR-4303-2348",
   "notifications.message.id": "MSG-0000-6215-1019-0139"
 }
