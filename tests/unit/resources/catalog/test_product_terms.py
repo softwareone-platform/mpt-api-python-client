@@ -37,7 +37,7 @@ def test_async_endpoint(async_term_service: AsyncTermService) -> None:
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "delete", "update", "review", "publish", "unpublish"]
+    "method", ["get", "create", "delete", "update", "review", "publish", "unpublish", "iterate"]
 )
 def test_methods_present(term_service: TermService, method: str) -> None:
     result = hasattr(term_service, method)
@@ -46,7 +46,7 @@ def test_methods_present(term_service: TermService, method: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "delete", "update", "review", "publish", "unpublish"]
+    "method", ["get", "create", "delete", "update", "review", "publish", "unpublish", "iterate"]
 )
 def test_async_methods_present(async_term_service: AsyncTermService, method: str) -> None:
     result = hasattr(async_term_service, method)

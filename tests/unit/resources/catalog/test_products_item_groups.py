@@ -30,14 +30,14 @@ def test_async_endpoint(async_item_groups_service):
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
+@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "iterate"])
 def test_methods_present(item_groups_service, method):
     result = hasattr(item_groups_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "update"])
+@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "iterate"])
 def test_async_methods_present(async_item_groups_service, method):
     result = hasattr(async_item_groups_service, method)
 
