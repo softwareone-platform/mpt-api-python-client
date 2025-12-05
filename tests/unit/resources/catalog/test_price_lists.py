@@ -20,14 +20,14 @@ def async_price_lists_service(http_client):
     return AsyncPriceListsService(http_client=http_client)
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate"])
 def test_mixins_present(price_lists_service, method):
     result = hasattr(price_lists_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate"])
 def test_async_mixins_present(async_price_lists_service, method):
     result = hasattr(async_price_lists_service, method)
 

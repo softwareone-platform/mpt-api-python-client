@@ -14,7 +14,17 @@ def async_items_service(async_http_client):
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
+    "method",
+    [
+        "get",
+        "create",
+        "update",
+        "delete",
+        "review",
+        "publish",
+        "unpublish",
+        "iterate",
+    ],
 )
 def test_mixins_present(items_service, method):
     result = hasattr(items_service, method)
@@ -23,7 +33,17 @@ def test_mixins_present(items_service, method):
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "update", "delete", "review", "publish", "unpublish"]
+    "method",
+    [
+        "get",
+        "create",
+        "update",
+        "delete",
+        "review",
+        "publish",
+        "unpublish",
+        "iterate",
+    ],
 )
 def test_async_mixins_present(async_items_service, method):
     result = hasattr(async_items_service, method)

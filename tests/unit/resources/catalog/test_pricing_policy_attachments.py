@@ -40,14 +40,14 @@ def test_async_endpoint(async_pricing_policy_attachments_service) -> None:
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "download"])
+@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "download", "iterate"])
 def test_methods_present(pricing_policy_attachments_service, method: str) -> None:
     result = hasattr(pricing_policy_attachments_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "download"])
+@pytest.mark.parametrize("method", ["get", "create", "delete", "update", "download", "iterate"])
 def test_async_methods_present(async_pricing_policy_attachments_service, method: str) -> None:
     result = hasattr(async_pricing_policy_attachments_service, method)
 
