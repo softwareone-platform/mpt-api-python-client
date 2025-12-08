@@ -2,12 +2,12 @@ import logging
 import os
 import pathlib
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.licensees import Licensee
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_CLIENT
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ icon = pathlib.Path("seed/data/logo.png").resolve()
 
 @inject
 async def get_licensee(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_client: AsyncMPTClient = DEFAULT_MPT_CLIENT,
+    context: Context = Provide[Container.context],
+    mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
 ) -> Licensee | None:
     """Get licensee from context or fetch from API."""
     licensee_id = context.get_string("accounts.licensee.id")
@@ -37,7 +37,7 @@ async def get_licensee(
 
 @inject
 def build_licensee_data(  # noqa: WPS238
-    context: Context = DEFAULT_CONTEXT,
+    context: Context = Provide[Container.context],
 ) -> dict[str, object]:
     """Get licensee data dictionary for creation."""
     account_id = os.getenv("CLIENT_ACCOUNT_ID")
@@ -76,8 +76,8 @@ def build_licensee_data(  # noqa: WPS238
 
 @inject
 async def init_licensee(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_client: AsyncMPTClient = DEFAULT_MPT_CLIENT,
+    context: Context = Provide[Container.context],
+    mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
 ) -> Licensee:
     """Get or create licensee."""
     licensee = await get_licensee(context=context, mpt_client=mpt_client)

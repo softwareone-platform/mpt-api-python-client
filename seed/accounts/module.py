@@ -1,20 +1,20 @@
 import logging
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.modules import Module
 from mpt_api_client.rql.query_builder import RQLQuery
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def get_module(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Module | None:
     """Get module from context or fetch from API."""
     module_id = context.get_string("accounts.module.id")
@@ -34,8 +34,8 @@ async def get_module(
 
 @inject
 async def refresh_module(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Module | None:
     """Refresh module in context (always fetch)."""
     module = await get_module(context=context, mpt_operations=mpt_operations)

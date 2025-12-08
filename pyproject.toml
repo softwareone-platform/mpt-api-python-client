@@ -131,8 +131,11 @@ per-file-ignores = [
   "tests/e2e/accounts/*.py: WPS430 WPS202",
   "tests/e2e/catalog/*.py: WPS202 WPS421",
   "tests/e2e/catalog/items/*.py: WPS110 WPS202",
+  "tests/seed/catalog/test_product.py: WPS202 WPS204 WPS219",
   "tests/*: WPS432 WPS202",
-  "seed/accounts/*.py: WPS453",
+  "seed/*: WPS404",
+  "seed/accounts/*.py: WPS204 WPS404 WPS453",
+  "seed/catalog/product.py: WPS202 WPS204 WPS217 WPS201 WPS213 WPS404"
 ]
 
 [tool.ruff]

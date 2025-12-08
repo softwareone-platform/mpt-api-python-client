@@ -44,26 +44,4 @@ container.config.mpt_api_token_operations.from_env("MPT_API_TOKEN_OPERATIONS")
 
 def wire_container() -> None:
     """Wire the dependency injection container."""
-    container.wire(
-        modules=[
-            "seed",
-            "seed.context",
-            "seed.defaults",
-            "seed.seed_api",
-            "seed.catalog",
-            "seed.catalog.catalog",
-            "seed.catalog.product",
-            "seed.catalog.item",
-            "seed.catalog.item_group",
-            "seed.catalog.product_parameters",
-            "seed.catalog.product_parameters_group",
-            "seed.accounts",
-            "seed.accounts.accounts",
-            "seed.accounts.api_tokens",
-            "seed.accounts.buyer",
-            "seed.accounts.licensee",
-            "seed.accounts.module",
-            "seed.accounts.seller",
-            "seed.accounts.user_group",
-        ]
-    )
+    container.wire(packages=["seed"])

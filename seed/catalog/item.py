@@ -1,24 +1,20 @@
 import logging
 from typing import Any
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.catalog.items import Item
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import (
-    DEFAULT_CONTEXT,
-    DEFAULT_MPT_OPERATIONS,
-    DEFAULT_MPT_VENDOR,
-)
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def refresh_item(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
     """Refresh item in context (always fetch)."""
     item_id = context.get_string("catalog.item.id")
@@ -32,8 +28,8 @@ async def refresh_item(
 
 @inject
 async def get_item(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
     """Get item from context or fetch from API if not cached."""
     item_id = context.get_string("catalog.item.id")
@@ -53,7 +49,7 @@ async def get_item(
 
 
 @inject
-def build_item(context: Context = DEFAULT_CONTEXT) -> dict[str, Any]:
+def build_item(context: Context = Provide[Container.context]) -> dict[str, Any]:
     """Build item data dictionary for creation."""
     product_id = context.get("catalog.product.id")
     item_group_id = context.get("catalog.item_group.id")
@@ -78,8 +74,8 @@ def build_item(context: Context = DEFAULT_CONTEXT) -> dict[str, Any]:
 
 @inject
 async def create_item(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item:
     """Create item and cache in context."""
     item_data = build_item(context=context)
@@ -91,8 +87,8 @@ async def create_item(
 
 @inject
 async def review_item(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
     """Review item if in draft status and cache result."""
     logger.debug("Reviewing catalog.item ...")
@@ -106,8 +102,8 @@ async def review_item(
 
 @inject
 async def publish_item(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Item | None:
     """Publish item if in reviewing status and cache result."""
     logger.debug("Publishing catalog.item ...")
@@ -121,9 +117,9 @@ async def publish_item(
 
 @inject
 async def seed_items(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> None:
     """Seed catalog items (create/review/publish)."""
     logger.debug("Seeding catalog.item ...")

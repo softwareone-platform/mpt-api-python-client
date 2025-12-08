@@ -2,20 +2,20 @@
 import logging
 import os
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.user_groups import UserGroup
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def get_user_group(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> UserGroup | None:
     """Get user group from context or fetch from API."""
     user_group_id = context.get_string("accounts.user_group.id")
@@ -35,7 +35,7 @@ async def get_user_group(
 
 @inject
 def build_user_group_data(
-    context: Context = DEFAULT_CONTEXT,
+    context: Context = Provide[Container.context],
 ) -> dict[str, object]:
     """Get user group data dictionary for creation."""
     account_id = os.getenv("CLIENT_ACCOUNT_ID")
@@ -54,8 +54,8 @@ def build_user_group_data(
 
 @inject
 async def init_user_group(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> UserGroup | None:
     """Get or create user group."""
     user_group = await get_user_group(context=context, mpt_operations=mpt_operations)

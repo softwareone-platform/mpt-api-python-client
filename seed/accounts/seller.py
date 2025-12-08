@@ -2,20 +2,20 @@
 import logging
 import uuid
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.sellers import Seller
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def get_seller(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Seller | None:
     """Get seller from context or fetch from API."""
     seller_id = context.get_string("accounts.seller.id")
@@ -54,8 +54,8 @@ def build_seller_data(external_id: str | None = None) -> dict[str, object]:
 
 @inject
 async def init_seller(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Seller | None:
     """Get or create seller. Returns Seller if successful, None otherwise."""
     seller = await get_seller(context=context, mpt_operations=mpt_operations)

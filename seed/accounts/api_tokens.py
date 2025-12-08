@@ -1,20 +1,20 @@
 import logging
 import os
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.api_tokens import ApiToken
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS
 
 logger = logging.getLogger(__name__)
 
 
 @inject
 async def get_api_token(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_ops: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_ops: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> ApiToken | None:
     """Get API token from context or fetch from API."""
     api_token_id = context.get_string("accounts.api_token.id")
@@ -34,7 +34,7 @@ async def get_api_token(
 
 @inject
 def build_api_token_data(
-    context: Context = DEFAULT_CONTEXT,
+    context: Context = Provide[Container.context],
 ) -> dict[str, object]:
     """Get API token data dictionary for creation."""
     account_id = os.getenv("CLIENT_ACCOUNT_ID")
@@ -50,8 +50,8 @@ def build_api_token_data(
 
 @inject
 async def init_api_token(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_ops: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_ops: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> ApiToken:
     """Get or create API token."""
     api_token = await get_api_token(context=context, mpt_ops=mpt_ops)
