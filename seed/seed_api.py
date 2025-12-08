@@ -1,13 +1,12 @@
-import asyncio
 import logging
 import pathlib
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from seed.accounts.accounts import seed_accounts
 from seed.catalog.catalog import seed_catalog
+from seed.container import Container
 from seed.context import Context, load_context, save_context
-from seed.defaults import DEFAULT_CONTEXT
 
 logger = logging.getLogger(__name__)
 
@@ -15,18 +14,12 @@ context_file: pathlib.Path = pathlib.Path(__file__).parent / "context.json"
 
 
 @inject
-async def seed_api(context: Context = DEFAULT_CONTEXT) -> None:
+async def seed_api(context: Context = Provide[Container.context]) -> None:
     """Seed API."""
-    tasks: list[asyncio.Task[object]] = []
-
     load_context(context_file, context)
-
-    catalog_task = asyncio.create_task(seed_catalog())
-    accounts_task = asyncio.create_task(seed_accounts())
-    tasks.extend([catalog_task, accounts_task])
-
-    try:
-        await asyncio.gather(*tasks)
+    try:  # noqa: WPS229
+        await seed_accounts()
+        await seed_catalog()
     except Exception:
         logger.exception("Exception occurred during seeding.")
     finally:

@@ -1,110 +1,234 @@
 import logging
-import pathlib
+import uuid
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
+from mpt_api_client.resources.catalog.items import Item
+from mpt_api_client.resources.catalog.product_term_variants import TermVariant
+from mpt_api_client.resources.catalog.product_terms import Term
 from mpt_api_client.resources.catalog.products import Product
+from mpt_api_client.resources.catalog.products_documents import Document
+from mpt_api_client.resources.catalog.products_item_groups import ItemGroup
+from mpt_api_client.resources.catalog.products_parameter_groups import ParameterGroup
+from mpt_api_client.resources.catalog.products_parameters import Parameter
+from mpt_api_client.resources.catalog.products_templates import Template
+from mpt_api_client.resources.catalog.units_of_measure import UnitOfMeasure
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS, DEFAULT_MPT_VENDOR
-
-icon = pathlib.Path(__file__).parent / "FIL-9920-4780-9379.png"
+from seed.helper import init_resource, require_context_id
+from seed.static.static import ICON, PDF
 
 logger = logging.getLogger(__name__)
 
-namespace = "catalog.product"
-
 
 @inject
-async def get_product(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
-) -> Product | None:
-    """Get product from context or fetch from API."""
-    product_id = context.get_string(f"{namespace}.id")
-    logger.debug("Getting product: %s", product_id)
-    result: Product | None = None
-    if product_id:
-        try:
-            maybe = context.get_resource(namespace, product_id)
-        except ValueError:
-            maybe = None
-        if isinstance(maybe, Product):
-            result = maybe
-        else:
-            logger.debug("Refreshing product: %s", product_id)
-            refreshed = await mpt_vendor.catalog.products.get(product_id)
-            if isinstance(refreshed, Product):
-                context.set_resource(namespace, refreshed)
-                context[f"{namespace}.id"] = refreshed.id
-                result = refreshed
-    return result
-
-
-@inject
-async def init_product(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
+async def create_product(
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Product:
-    """Get or create product."""
-    product = await get_product(context=context, mpt_vendor=mpt_vendor)
-    if product is None:
-        logger.debug("Creating product ...")
-        with open(str(icon), "rb") as icon_file:  # noqa: PTH123
-            created = await mpt_vendor.catalog.products.create(
-                {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_file
-            )
-        if isinstance(created, Product):
-            context.set_resource(namespace, created)
-            context[f"{namespace}.id"] = created.id
-            logger.info("Product created: %s", created.id)
-            return created
-        logger.warning("Product creation failed")
-        raise ValueError("Product creation failed")
-    logger.info("Product found: %s", product.id)
-    return product
-
-
-@inject
-async def review_product(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_vendor: AsyncMPTClient = DEFAULT_MPT_VENDOR,
-) -> Product | None:
-    """Review product if in draft status."""
-    product = await get_product(context=context, mpt_vendor=mpt_vendor)
-    if not isinstance(product, Product) or product.status != "Draft":
-        return product
-    logger.debug("Reviewing product: %s", product.id)
-    reviewed = await mpt_vendor.catalog.products.review(product.id)
-    if isinstance(reviewed, Product):
-        context.set_resource(namespace, reviewed)
-        return reviewed
-    logger.warning("Product review failed")
-    return None
-
-
-@inject
-async def publish_product(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
-) -> Product | None:
-    """Publish product if in reviewing status."""
-    product = await get_product()
-    if not isinstance(product, Product) or product.status != "Reviewing":
-        return product
-    logger.debug("Publishing product: %s", product.id)
-    published = await mpt_operations.catalog.products.publish(product.id)
-    if isinstance(published, Product):
-        context.set_resource(namespace, published)
-        return published
-    logger.warning("Product publish failed")
-    return None
+    """Creates a product."""
+    logger.debug("Creating product ...")
+    with ICON.open("rb") as icon_fd:
+        return await mpt_vendor.catalog.products.create(
+            {"name": "E2E Seeded", "website": "https://www.example.com"}, file=icon_fd
+        )
 
 
 async def seed_product() -> None:
     """Seed product data."""
     logger.debug("Seeding catalog.product ...")
-    await init_product()
-    await review_product()
-    await publish_product()
+    await init_resource("catalog.product.id", create_product)
+    await init_resource("catalog.unit.id", create_unit_of_measure)
+    await init_resource("catalog.product.item_group.id", create_item_group)
+    await init_resource("catalog.product.item.id", create_product_item)
+    await init_resource("catalog.product.document.id", create_document)
+    await init_resource("catalog.product.parameter_group.id", create_parameter_group)
+    await init_resource("catalog.product.parameter.id", create_parameter)
+    await init_resource("catalog.product.template.id", create_template)
+    await init_resource("catalog.product.terms.id", create_terms)
+    await init_resource("catalog.product.terms.variant.id", create_terms_variant)
     logger.debug("Seeded catalog.product completed.")
+
+
+@inject
+async def create_terms_variant(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> TermVariant:
+    """Creates a product terms variant."""
+    term_variant_data = {
+        "name": "E2E seeding",
+        "description": "Test variant description",
+        "languageCode": "en-gb",
+        "type": "File",
+        "assetUrl": "",
+    }
+    product_id = require_context_id(context, "catalog.product.id", "creating product terms variant")
+    terms_id = require_context_id(
+        context, "catalog.product.terms.id", "creating product terms variant"
+    )
+    with PDF.open("rb") as pdf_fd:
+        return (
+            await mpt_vendor.catalog.products.terms(product_id)
+            .variants(terms_id)
+            .create(term_variant_data, file=pdf_fd)
+        )
+
+
+@inject
+async def create_template(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> Template:
+    """Creates a product template."""
+    template_data = {
+        "name": "E2E Seeding",
+        "description": "A template for testing",
+        "content": "template content",
+        "type": "OrderProcessing",
+    }
+    product_id = require_context_id(context, "catalog.product.id", "creating product template")
+    return await mpt_vendor.catalog.products.templates(product_id).create(template_data)
+
+
+@inject
+async def create_terms(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> Term:
+    """Creates a product terms."""
+    product_id = require_context_id(context, "catalog.product.id", "creating product terms")
+    return await mpt_vendor.catalog.products.terms(product_id).create({
+        "name": "E2E seeded",
+        "description": "E2E seeded",
+    })
+
+
+@inject
+async def create_parameter_group(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> ParameterGroup:
+    """Creates a product parameter group."""
+    product_id = require_context_id(
+        context, "catalog.product.id", "creating product parameter group"
+    )
+    return await mpt_vendor.catalog.products.parameter_groups(product_id).create({
+        "name": "E2E Seeded",
+        "label": "E2E Seeded",
+        "displayOrder": 100,
+    })
+
+
+@inject
+async def create_parameter(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> Parameter:
+    """Creates a product parameter."""
+    parameter_group_id = require_context_id(
+        context, "catalog.product.parameter_group.id", "creating product parameter"
+    )
+    parameter_data = {
+        "constraints": {"hidden": False, "readonly": False, "required": False},
+        "description": "E2E seeded",
+        "displayOrder": 100,
+        "name": "E2E seeded",
+        "phase": "Order",
+        "scope": "Order",
+        "type": "SingleLineText",
+        "context": "Purchase",
+        "options": {
+            "hintText": "e2e seeded",
+            "defaultValue": "default value",
+            "placeholderText": "Place holder text",
+        },
+        "group": {"id": parameter_group_id},
+    }
+    product_id = require_context_id(context, "catalog.product.id", "creating product parameter")
+    return await mpt_vendor.catalog.products.parameters(product_id).create(parameter_data)
+
+
+@inject
+async def create_document(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> Document:
+    """Creates a product document."""
+    product_id = require_context_id(context, "catalog.product.id", "creating product document")
+    document_data = {
+        "name": "E2E Seeded",
+        "description": "E2E Seeded",
+        "language": "en-gb",
+        "url": "",
+        "documenttype": "File",
+    }
+    with PDF.open("rb") as pdf_fd:
+        return await mpt_vendor.catalog.products.documents(product_id).create(
+            document_data, file=pdf_fd
+        )
+
+
+@inject
+async def create_item_group(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> ItemGroup:
+    """Creates a product item group."""
+    product_id = require_context_id(context, "catalog.product.id", "creating product item group")
+    item_group_data = {
+        "product": {"id": product_id},
+        "name": "E2E Seeded",
+        "label": "E2E Seeded",
+        "description": "E2E Seeded",
+        "displayOrder": 100,
+        "default": False,
+        "multiple": True,
+        "required": True,
+    }
+
+    return await mpt_vendor.catalog.products.item_groups(product_id).create(item_group_data)
+
+
+@inject
+async def create_unit_of_measure(
+    operations: AsyncMPTClient = Provide[Container.mpt_operations],
+) -> UnitOfMeasure:
+    """Creates a new unit of measure in the vendor's catalog."""
+    short_uuid = uuid.uuid4().hex[:8]
+    return await operations.catalog.units_of_measure.create({
+        "name": f"e2e seeded {short_uuid}",
+        "description": "e2e seeded",
+    })
+
+
+@inject
+async def create_product_item(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+) -> Item:
+    """Creates a product item."""
+    short_uuid = uuid.uuid4().hex[:8]
+
+    unit_id = require_context_id(context, "catalog.unit.id", "creating product item")
+    item_group_id = require_context_id(
+        context, "catalog.product.item_group.id", "creating product item"
+    )
+    product_id = require_context_id(context, "catalog.product.id", "creating product item")
+
+    product_item_data = {
+        "name": "e2e - please delete",
+        "description": "e2e - please delete",
+        "unit": {
+            "id": unit_id,
+        },
+        "group": {
+            "id": item_group_id,
+        },
+        "product": {
+            "id": product_id,
+        },
+        "terms": {"model": "quantity", "period": "1m", "commitment": "1m"},
+        "externalIds": {"vendor": f"e2e-delete-{short_uuid}"},
+    }
+    return await mpt_vendor.catalog.items.create(product_item_data)
