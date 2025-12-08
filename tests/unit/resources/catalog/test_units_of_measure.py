@@ -16,14 +16,14 @@ def async_units_of_measure_service(async_http_client):
     return AsyncUnitsOfMeasureService(http_client=async_http_client)
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate"])
 def test_mixins_present(units_of_measure_service, method):
     result = hasattr(units_of_measure_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate"])
 def test_async_mixins_present(async_units_of_measure_service, method):
     result = hasattr(async_units_of_measure_service, method)
 

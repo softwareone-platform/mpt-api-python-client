@@ -31,7 +31,8 @@ def test_async_endpoint(async_document_service) -> None:
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
+    "method",
+    ["get", "create", "delete", "update", "download", "review", "publish", "unpublish", "iterate"],
 )
 def test_methods_present(document_service, method: str) -> None:
     result = hasattr(document_service, method)
@@ -40,7 +41,8 @@ def test_methods_present(document_service, method: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "method", ["get", "create", "delete", "update", "download", "review", "publish", "unpublish"]
+    "method",
+    ["get", "create", "delete", "update", "download", "review", "publish", "unpublish", "iterate"],
 )
 def test_async_methods_present(async_document_service, method: str) -> None:
     result = hasattr(async_document_service, method)

@@ -144,7 +144,7 @@ def test_async_property_services(
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "activate", "disable"],
+    ["get", "create", "update", "delete", "activate", "disable", "iterate"],
 )
 def test_mixins_present(pricing_policies_service, method):
     result = hasattr(pricing_policies_service, method)
@@ -154,7 +154,7 @@ def test_mixins_present(pricing_policies_service, method):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "activate", "disable"],
+    ["get", "create", "update", "delete", "activate", "disable", "iterate"],
 )
 def test_async_mixins_present(async_pricing_policies_service, method):
     result = hasattr(async_pricing_policies_service, method)
