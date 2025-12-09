@@ -107,7 +107,7 @@ def rql_encode(op: str, value: Any) -> str:
     if op not in constants.LIST and isinstance(value, QueryValue):
         return query_value_str(value)
     if op in constants.LIST and isinstance(value, list | tuple | set):
-        return ",".join(value)
+        return ",".join(str(el) for el in value)
 
     raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
