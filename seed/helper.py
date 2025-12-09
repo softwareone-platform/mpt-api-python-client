@@ -79,6 +79,6 @@ async def init_resource(
     id_value = context.get_string(namespace)
     if not id_value:
         resource = await resource_factory()
-        id_value = resource.id
+        id_value = resource if isinstance(resource, str) else resource.id
         context[namespace] = id_value
     return id_value

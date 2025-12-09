@@ -1,5 +1,4 @@
 import logging
-import os
 
 from dependency_injector.wiring import Provide, inject
 
@@ -7,30 +6,10 @@ from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.licensees import Licensee
 from seed.container import Container
 from seed.context import Context
+from seed.helper import init_resource, require_context_id
 from seed.static.static import ICON
 
 logger = logging.getLogger(__name__)
-
-
-@inject
-async def get_licensee(
-    context: Context = Provide[Container.context],
-    mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
-) -> Licensee | None:
-    """Get licensee from context or fetch from API."""
-    licensee_id = context.get_string("accounts.licensee.id")
-    if not licensee_id:
-        return None
-    try:
-        licensee = context.get_resource("accounts.licensee", licensee_id)
-    except ValueError:
-        licensee = None
-    if not isinstance(licensee, Licensee):
-        licensee = await mpt_client.accounts.licensees.get(licensee_id)
-        context.set_resource("accounts.licensee", licensee)
-        context["accounts.licensee.id"] = licensee.id
-        return licensee
-    return licensee
 
 
 @inject
@@ -38,19 +17,13 @@ def build_licensee_data(  # noqa: WPS238
     context: Context = Provide[Container.context],
 ) -> dict[str, object]:
     """Get licensee data dictionary for creation."""
-    account_id = os.getenv("CLIENT_ACCOUNT_ID")
-    if not account_id:
-        raise ValueError("CLIENT_ACCOUNT_ID environment variable is required")
-    seller_id = context.get_string("accounts.seller.id")
-    if not seller_id:
-        raise ValueError("Seller ID is required in context")
-    buyer_id = context.get_string("accounts.buyer.id")
-    if not buyer_id:
-        raise ValueError("Buyer ID is required in context")
-    group = context.get_resource("accounts.user_group")
-    if group is None:
-        raise ValueError("User group is required in context")
+    account_id = require_context_id(context, "accounts.client_account.id", "creating licensee")
+    seller_id = require_context_id(context, "accounts.seller.id", "creating licensee")
+    buyer_id = require_context_id(context, "accounts.buyer.id", "creating licensee")
+    group_id = require_context_id(context, "accounts.user_group.id", "creating licensee")
+
     licensee_type = "Client"
+
     return {
         "name": "E2E Seeded Licensee",
         "address": {
@@ -65,7 +38,7 @@ def build_licensee_data(  # noqa: WPS238
         "buyer": {"id": buyer_id},
         "account": {"id": account_id},
         "eligibility": {"client": True, "partner": False},
-        "groups": [{"id": group.id}],
+        "groups": [{"id": group_id}],
         "type": licensee_type,
         "status": "Enabled",
         "defaultLanguage": "en-US",
@@ -73,31 +46,19 @@ def build_licensee_data(  # noqa: WPS238
 
 
 @inject
-async def init_licensee(
+async def create_licensee(
     context: Context = Provide[Container.context],
     mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
 ) -> Licensee:
-    """Get or create licensee."""
-    licensee = await get_licensee(context=context, mpt_client=mpt_client)
-    if licensee is None:
-        licensee_data = build_licensee_data(context=context)
-        logger.debug("Creating licensee ...")
-        with ICON.open("rb") as icon_file:
-            created = await mpt_client.accounts.licensees.create(licensee_data, file=icon_file)
-        if isinstance(created, Licensee):
-            context.set_resource("accounts.licensee", created)
-            context["accounts.licensee.id"] = created.id
-            logger.info("Licensee created: %s", created.id)
-            return created
-        logger.warning("Licensee creation failed")  # type: ignore[unreachable]
-        raise ValueError("Licensee creation failed")
-    logger.info("Licensee found: %s", licensee.id)
-    return licensee
+    """Creates a licensee."""
+    licensee_data = build_licensee_data(context=context)
+    logger.debug("Creating licensee ...")
+    with ICON.open("rb") as icon_fd:
+        return await mpt_client.accounts.licensees.create(licensee_data, file=icon_fd)
 
 
-@inject
 async def seed_licensee() -> None:
     """Seed licensee."""
     logger.debug("Seeding licensee ...")
-    await init_licensee()
+    await init_resource("accounts.licensee.id", create_licensee)
     logger.info("Seeding licensee completed.")

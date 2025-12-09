@@ -7,10 +7,10 @@ def invalid_buyer_id():
 
 
 @pytest.fixture
-def buyer_factory(buyer_account_id):
+def buyer_factory(client_account_id):
     def _buyer(
         name="E2E Created Buyer",
-        account_id: str = buyer_account_id,
+        account_id: str = client_account_id,
     ):
         return {
             "name": name,

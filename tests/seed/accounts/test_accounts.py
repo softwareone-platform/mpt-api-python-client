@@ -2,6 +2,9 @@ from seed.accounts.accounts import seed_accounts
 
 
 async def test_seed_accounts(mocker):  # noqa: WPS210
+    mock_seed_account_ids = mocker.patch(
+        "seed.accounts.accounts.seed_account_ids", new_callable=mocker.AsyncMock
+    )
     mock_seed_seller = mocker.patch(
         "seed.accounts.accounts.seed_seller", new_callable=mocker.AsyncMock
     )
@@ -22,6 +25,7 @@ async def test_seed_accounts(mocker):  # noqa: WPS210
     )
     await seed_accounts()  # act
     mocks = [
+        mock_seed_account_ids,
         mock_seed_seller,
         mock_seed_buyer,
         mock_seed_module,

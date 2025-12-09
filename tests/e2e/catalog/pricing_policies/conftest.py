@@ -4,11 +4,11 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-def pricing_policy_data(buyer_account_id, product_id):
+def pricing_policy_data(client_account_id, product_id):
     return {
         "name": "e2e - pricing policy please delete",
         "description": "Test pricing policy description",
-        "client": {"id": buyer_account_id},
+        "client": {"id": client_account_id},
         "product": {"id": product_id},
         "eligibility": {"client": True, "partner": False},
         "margin": "0.20",

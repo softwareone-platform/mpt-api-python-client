@@ -7,11 +7,11 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon):
+def created_buyer(mpt_ops, buyer_factory, client_account_id, account_icon):
     """Fixture to create and yield a buyer for testing."""
     new_buyer_request_data = buyer_factory(
         name="E2E Created Buyer",
-        account_id=buyer_account_id,
+        account_id=client_account_id,
     )
 
     new_buyer = mpt_ops.accounts.buyers.create(new_buyer_request_data, file=account_icon)
@@ -75,9 +75,9 @@ def test_delete_buyer_not_found(mpt_ops, invalid_buyer_id):
         mpt_ops.accounts.buyers.delete(invalid_buyer_id)
 
 
-def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, created_buyer):
+def test_update_buyer(mpt_ops, buyer_factory, client_account_id, account_icon, created_buyer):
     """Test updating a buyer synchronously."""
-    updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=buyer_account_id)
+    updated_buyer_data = buyer_factory(name="E2E Updated Buyer", account_id=client_account_id)
 
     result = mpt_ops.accounts.buyers.update(created_buyer.id, updated_buyer_data, file=account_icon)
 
@@ -85,10 +85,10 @@ def test_update_buyer(mpt_ops, buyer_factory, buyer_account_id, account_icon, cr
 
 
 def test_update_buyer_not_found(
-    mpt_ops, buyer_factory, buyer_account_id, account_icon, invalid_buyer_id
+    mpt_ops, buyer_factory, client_account_id, account_icon, invalid_buyer_id
 ):
     """Test updating a non-existent buyer raises a 404 error."""
-    updated_buyer_data = buyer_factory(name="Nonexistent Buyer", account_id=buyer_account_id)
+    updated_buyer_data = buyer_factory(name="Nonexistent Buyer", account_id=client_account_id)
 
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
         mpt_ops.accounts.buyers.update(invalid_buyer_id, updated_buyer_data, file=account_icon)

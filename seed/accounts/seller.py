@@ -6,30 +6,9 @@ from dependency_injector.wiring import Provide, inject
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.sellers import Seller
 from seed.container import Container
-from seed.context import Context
+from seed.helper import init_resource
 
 logger = logging.getLogger(__name__)
-
-
-@inject
-async def get_seller(
-    context: Context = Provide[Container.context],
-    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
-) -> Seller | None:
-    """Get seller from context or fetch from API."""
-    seller_id = context.get_string("accounts.seller.id")
-    if not seller_id:
-        return None
-    try:
-        seller = context.get_resource("accounts.seller", seller_id)
-    except ValueError:
-        seller = None
-    if not isinstance(seller, Seller):
-        seller = await mpt_operations.accounts.sellers.get(seller_id)
-        context.set_resource("accounts.seller", seller)
-        context["accounts.seller.id"] = seller.id
-        return seller
-    return seller
 
 
 def build_seller_data(external_id: str | None = None) -> dict[str, object]:
@@ -51,29 +30,16 @@ def build_seller_data(external_id: str | None = None) -> dict[str, object]:
 
 
 @inject
-async def init_seller(
-    context: Context = Provide[Container.context],
+async def create_seller(
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
-) -> Seller | None:
-    """Get or create seller. Returns Seller if successful, None otherwise."""
-    seller = await get_seller()
-    if seller is None:
-        logger.debug("Creating seller ...")
-        seller_data = build_seller_data()
-        created = await mpt_operations.accounts.sellers.create(seller_data)
-        if isinstance(created, Seller):
-            context.set_resource("accounts.seller", created)
-            context["accounts.seller.id"] = created.id
-            logger.info("Seller created: %s", created.id)
-            return created
-        logger.warning("Seller creation failed")  # type: ignore[unreachable]
-        return None
-    logger.info("Seller already exists: %s", seller.id)
-    return seller
+) -> Seller:
+    """Creates a seller."""
+    seller_data = build_seller_data()
+    return await mpt_operations.accounts.sellers.create(seller_data)
 
 
 async def seed_seller() -> None:
     """Seed seller."""
     logger.debug("Seeding seller ...")
-    await init_seller()
+    await init_resource("accounts.seller.id", create_seller)
     logger.debug("Seeding seller completed.")

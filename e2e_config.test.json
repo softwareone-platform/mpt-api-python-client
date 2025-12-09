@@ -1,9 +1,8 @@
 {
   "accounts.account.id": "ACC-9042-0088",
   "accounts.api_token.id": "TKN-8857-1729",
-  "accounts.buyer.account.id": "ACC-1086-6867",
+  "accounts.client_account.id": "ACC-1086-6867",
   "accounts.buyer.id": "BUY-1591-2112",
-  "accounts.licensee.account.id": "ACC-1086-6867",
   "accounts.licensee.group.id": "UGR-2757-7226",
   "accounts.licensee.id": "LCE-5758-4071-6507",
   "accounts.module.id": "MOD-1756",
