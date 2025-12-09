@@ -7,10 +7,12 @@ from mpt_api_client.http.mixins import (
     AsyncCreateMixin,
     AsyncDeleteMixin,
     AsyncGetMixin,
+    AsyncUpdateMixin,
     CollectionMixin,
     CreateMixin,
     DeleteMixin,
     GetMixin,
+    UpdateMixin,
 )
 from mpt_api_client.models import Model, ResourceData
 
@@ -29,6 +31,7 @@ class SubscriptionsServiceConfig:
 
 class SubscriptionsService(  # noqa: WPS215
     CreateMixin[Subscription],
+    UpdateMixin[Subscription],
     DeleteMixin,
     GetMixin[Subscription],
     CollectionMixin[Subscription],
@@ -49,7 +52,9 @@ class SubscriptionsService(  # noqa: WPS215
         response = self._resource_do_request(resource_id, "GET", "render")
         return response.text
 
-    def terminate(self, resource_id: str, resource_data: ResourceData) -> Subscription:
+    def terminate(
+        self, resource_id: str, resource_data: ResourceData | None = None
+    ) -> Subscription:
         """Terminate subscription.
 
         Args:
@@ -64,6 +69,7 @@ class SubscriptionsService(  # noqa: WPS215
 
 class AsyncSubscriptionsService(  # noqa: WPS215
     AsyncCreateMixin[Subscription],
+    AsyncUpdateMixin[Subscription],
     AsyncDeleteMixin,
     AsyncGetMixin[Subscription],
     AsyncCollectionMixin[Subscription],
@@ -84,7 +90,9 @@ class AsyncSubscriptionsService(  # noqa: WPS215
         response = await self._resource_do_request(resource_id, "GET", "render")
         return response.text
 
-    async def terminate(self, resource_id: str, resource_data: ResourceData) -> Subscription:
+    async def terminate(
+        self, resource_id: str, resource_data: ResourceData | None = None
+    ) -> Subscription:
         """Terminate subscription.
 
         Args:
