@@ -34,5 +34,8 @@
   "commerce.product.listing.id": "LST-5489-0806",
   "commerce.product.template.id": "TPL-1767-7355-0002",
   "commerce.user.id": "USR-4303-2348",
+  "commerce.subscription.agreement.id": "AGR-2473-3299-1721",
+  "commerce.subscription.id": "SUB-3678-1831-2188",
+  "commerce.subscription.product.item.id": "ITM-1767-7355-0001",
   "notifications.message.id": "MSG-0000-6215-1019-0139"
 }

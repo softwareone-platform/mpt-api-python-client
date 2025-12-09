@@ -5,14 +5,15 @@ from mpt_api_client.http import (
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncCreateMixin,
-    AsyncDeleteMixin,
     AsyncGetMixin,
+    AsyncUpdateMixin,
     CollectionMixin,
     CreateMixin,
-    DeleteMixin,
     GetMixin,
+    UpdateMixin,
 )
-from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.models import Model
+from mpt_api_client.resources.commerce.mixins import AsyncTerminateMixin, TerminateMixin
 
 
 class Subscription(Model):
@@ -29,9 +30,10 @@ class SubscriptionsServiceConfig:
 
 class SubscriptionsService(  # noqa: WPS215
     CreateMixin[Subscription],
-    DeleteMixin,
+    UpdateMixin[Subscription],
     GetMixin[Subscription],
     CollectionMixin[Subscription],
+    TerminateMixin[Subscription],
     Service[Subscription],
     SubscriptionsServiceConfig,
 ):
@@ -49,24 +51,13 @@ class SubscriptionsService(  # noqa: WPS215
         response = self._resource_do_request(resource_id, "GET", "render")
         return response.text
 
-    def terminate(self, resource_id: str, resource_data: ResourceData) -> Subscription:
-        """Terminate subscription.
-
-        Args:
-            resource_id: Order resource ID
-            resource_data: Order resource data
-
-        Returns:
-            Subscription template text in markdown format.
-        """
-        return self._resource_action(resource_id, "POST", "terminate", json=resource_data)
-
 
 class AsyncSubscriptionsService(  # noqa: WPS215
     AsyncCreateMixin[Subscription],
-    AsyncDeleteMixin,
+    AsyncUpdateMixin[Subscription],
     AsyncGetMixin[Subscription],
     AsyncCollectionMixin[Subscription],
+    AsyncTerminateMixin[Subscription],
     AsyncService[Subscription],
     SubscriptionsServiceConfig,
 ):
@@ -83,15 +74,3 @@ class AsyncSubscriptionsService(  # noqa: WPS215
         """
         response = await self._resource_do_request(resource_id, "GET", "render")
         return response.text
-
-    async def terminate(self, resource_id: str, resource_data: ResourceData) -> Subscription:
-        """Terminate subscription.
-
-        Args:
-            resource_id: Order resource ID
-            resource_data: Order resource data
-
-        Returns:
-            Subscription template text in markdown format.
-        """
-        return await self._resource_action(resource_id, "POST", "terminate", json=resource_data)
