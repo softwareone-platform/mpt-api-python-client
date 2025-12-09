@@ -39,3 +39,13 @@ def subscription_item_id(e2e_config):
 @pytest.fixture
 def subscription_agreement_id(e2e_config):
     return e2e_config["commerce.subscription.agreement.id"]
+
+
+@pytest.fixture
+def asset_item_id(e2e_config):
+    return e2e_config["commerce.assets.product.item.id"]
+
+
+@pytest.fixture
+def asset_agreement_id(e2e_config):
+    return e2e_config["commerce.assets.agreement.id"]
