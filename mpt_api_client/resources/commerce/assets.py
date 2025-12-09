@@ -49,7 +49,7 @@ class AssetService(
         response = self._resource_do_request(asset_id, "POST", "terminate", json=resource_data)
         return self._model_class.from_response(response)
 
-    def render(self, asset_id: str) -> AssetTemplate:
+    def render(self, asset_id: str) -> str:
         """Renders the template for the given Asset id.
 
         Args:
@@ -60,7 +60,7 @@ class AssetService(
         """
         response = self._resource_do_request(asset_id, action="render")
 
-        return AssetTemplate.from_response(response)
+        return response.text
 
 
 class AsyncAssetService(
@@ -86,15 +86,15 @@ class AsyncAssetService(
 
         return self._model_class.from_response(response)
 
-    async def render(self, asset_id: str) -> AssetTemplate:
+    async def render(self, asset_id: str) -> str:
         """Renders the template for the given Asset id.
 
         Args:
             asset_id: Asset ID.
 
         Returns:
-            Render asset template json.
+            Render asset template string.
         """
         response = await self._resource_do_request(asset_id, action="render")
 
-        return AssetTemplate.from_response(response)
+        return response.text
