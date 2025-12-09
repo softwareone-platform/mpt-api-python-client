@@ -10,7 +10,11 @@ from seed.helper import init_resource, require_context_id
 
 
 async def seed_authorization() -> None:
-    """Seed authorization."""
+    """
+    Ensure the catalog authorization resource is seeded.
+    
+    Creates the authorization resource if it does not exist and stores its identifier under the context key "catalog.authorization.id".
+    """
     await init_resource("catalog.authorization.id", create_authorization)
 
 
@@ -18,7 +22,12 @@ async def create_authorization(
     operations: AsyncMPTClient = Provide[Container.mpt_operations],
     context: Context = Provide[Container.context],
 ) -> Authorization:
-    """Creates an authorization."""
+    """
+    Create an authorization in the catalog using required IDs from the provided context.
+    
+    Returns:
+        Authorization: The created Authorization object returned by the catalog service.
+    """
     product_id = require_context_id(context, "catalog.product.id", "Create authorization")
     seller_id = require_context_id(context, "accounts.seller.id", "Create authorization")
     account_id = require_context_id(context, "accounts.account.id", "Create authorization")

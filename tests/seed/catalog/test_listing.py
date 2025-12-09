@@ -6,6 +6,17 @@ from seed.context import Context
 
 @pytest.fixture
 def context_with_data() -> Context:
+    """
+    Create a Context pre-populated with product, seller, authorization, account, and price list IDs for tests.
+    
+    Returns:
+        Context: A Context containing the following keys set to test IDs:
+            - "catalog.product.id": "prod-123"
+            - "accounts.seller.id": "seller-456"
+            - "catalog.authorization.id": "auth-789"
+            - "accounts.account.id": "acct-321"
+            - "catalog.price_list.id": "pl-654"
+    """
     ctx = Context()
     ctx["catalog.product.id"] = "prod-123"
     ctx["accounts.seller.id"] = "seller-456"

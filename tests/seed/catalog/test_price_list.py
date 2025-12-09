@@ -6,6 +6,12 @@ from seed.context import Context
 
 @pytest.fixture
 def context_with_product():
+    """
+    Create a Context pre-populated with a product identifier for tests.
+    
+    Returns:
+        Context: A Context instance with "catalog.product.id" set to "prod-123".
+    """
     ctx = Context()
     ctx["catalog.product.id"] = "prod-123"
     return ctx

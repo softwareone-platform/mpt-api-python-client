@@ -14,6 +14,19 @@ class ResourceRequiredError(Exception):
     """Raised when a resource is required but not found."""
 
     def __init__(self, context: Context, key: str, action: str):
+        """
+        Initialize the ResourceRequiredError with the context, missing key, and the action that required it.
+        
+        Parameters:
+            context (Context): The context instance where the resource was expected.
+            key (str): The context key identifying the missing resource.
+            action (str): Description of the action that required the resource; used in the exception message.
+        
+        Attributes:
+            context (Context): Same as the `context` parameter.
+            key (str): Same as the `key` parameter.
+            action (str): Same as the `action` parameter.
+        """
         super().__init__(f"Missing required resource '{key}' before {action}.")
         self.context = context
         self.key = key

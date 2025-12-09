@@ -19,7 +19,14 @@ async def get_licensee(
     context: Context = Provide[Container.context],
     mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
 ) -> Licensee | None:
-    """Get licensee from context or fetch from API."""
+    """
+    Retrieve the current licensee from the context or fetch it from the MPT API and cache it in the context.
+    
+    If a licensee is not present in the context but a licensee id exists, the function fetches the licensee from the MPT API, stores the licensee as the context resource "accounts.licensee", and updates "accounts.licensee.id" in the context.
+    
+    Returns:
+        Licensee | None: `Licensee` instance if found, `None` if no licensee id is present.
+    """
     licensee_id = context.get_string("accounts.licensee.id")
     if not licensee_id:
         return None
@@ -39,7 +46,20 @@ async def get_licensee(
 def build_licensee_data(  # noqa: WPS238
     context: Context = Provide[Container.context],
 ) -> dict[str, object]:
-    """Get licensee data dictionary for creation."""
+    """
+    Constructs a licensee payload dictionary used to create a licensee.
+    
+    Parameters:
+        context (Context): Context used to read required values: `accounts.seller.id`, `accounts.buyer.id`, and the `accounts.user_group` resource.
+    
+    Returns:
+        dict[str, object]: A dictionary containing licensee fields required by the API (name, address, seller, buyer, account, eligibility, groups, type, status, and defaultLanguage).
+    
+    Raises:
+        ValueError: If the environment variable `CLIENT_ACCOUNT_ID` is not set.
+        ValueError: If `accounts.seller.id` or `accounts.buyer.id` is missing from the context.
+        ValueError: If the `accounts.user_group` resource is missing from the context.
+    """
     account_id = os.getenv("CLIENT_ACCOUNT_ID")
     if not account_id:
         raise ValueError("CLIENT_ACCOUNT_ID environment variable is required")
@@ -79,7 +99,17 @@ async def init_licensee(
     context: Context = Provide[Container.context],
     mpt_client: AsyncMPTClient = Provide[Container.mpt_client],
 ) -> Licensee:
-    """Get or create licensee."""
+    """
+    Ensure a licensee exists for the current context, creating one if none is present.
+    
+    If no licensee is found in the provided context, attempts to create one using the MPT client and the prepared licensee data, then stores the created licensee in the context.
+    
+    Returns:
+    	The Licensee instance associated with the context.
+    
+    Raises:
+    	ValueError: If licensee creation fails.
+    """
     licensee = await get_licensee(context=context, mpt_client=mpt_client)
     if licensee is None:
         licensee_data = build_licensee_data(context=context)

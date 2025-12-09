@@ -23,6 +23,12 @@ def product():
 
 @pytest.fixture
 def context_with_product():
+    """
+    Create a Context with its catalog.product.id set to "prod-123".
+    
+    Returns:
+        Context: A context pre-populated with catalog.product.id == "prod-123".
+    """
     context = Context()
     context["catalog.product.id"] = "prod-123"
     return context

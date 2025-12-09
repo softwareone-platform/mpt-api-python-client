@@ -17,7 +17,14 @@ async def get_seller(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Seller | None:
-    """Get seller from context or fetch from API."""
+    """
+    Retrieve the Seller stored in the provided context or fetch it from the API and cache it in context.
+    
+    If the context does not contain a seller id ("accounts.seller.id"), returns `None`. If a seller id exists but the context has no matching Seller resource, fetches the Seller using the provided MPT client, stores the Seller in the context under "accounts.seller" and updates "accounts.seller.id" with the Seller's id before returning it.
+    
+    Returns:
+        Seller | None: The Seller retrieved from context or API, or `None` if no seller id is present.
+    """
     seller_id = context.get_string("accounts.seller.id")
     if not seller_id:
         return None
@@ -57,7 +64,14 @@ async def init_seller(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Seller | None:
-    """Get or create seller. Returns Seller if successful, None otherwise."""
+    """
+    Ensure a seller exists in the provided context by retrieving it or creating a new one.
+    
+    If no seller is found in context, a seller will be created via the MPT API. On successful creation the function sets the created Seller in the context under "accounts.seller" and its id under "accounts.seller.id".
+    
+    Returns:
+        `Seller` if the seller was retrieved or created, `None` otherwise.
+    """
     seller = await get_seller(context=context, mpt_operations=mpt_operations)
     if seller is None:
         logger.debug("Creating seller ...")

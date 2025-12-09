@@ -8,7 +8,14 @@ from seed.helper import init_resource, require_context_id
 
 
 async def seed_listing(context: Context = Provide[Container.context]) -> None:
-    """Seed listing."""
+    """
+    Ensure a catalog listing exists in the seed context.
+    
+    Calls the initialization helper to create or retrieve the listing identified by the key "catalog.listing.id" and stores its id in the provided context.
+    
+    Parameters:
+        context (Context): Dependency-injected context used to read and persist seeded resource ids.
+    """
     await init_resource("catalog.listing.id", create_listing, context)
 
 
@@ -16,7 +23,14 @@ async def create_listing(  # noqa: WPS210
     operations: AsyncMPTClient = Provide[Container.mpt_operations],
     context: Context = Provide[Container.context],
 ) -> Listing:
-    """Creates a listing."""
+    """
+    Create a catalog listing using IDs taken from the provided context.
+    
+    Requires the following context IDs: "catalog.product.id", "accounts.seller.id", "catalog.authorization.id", "accounts.account.id", and "catalog.price_list.id". Builds a listing payload with those IDs and default metadata, then submits it to the operations client's listings create endpoint.
+    
+    Returns:
+        The created Listing object.
+    """
     product_id = require_context_id(context, "catalog.product.id", "Create listing")
     seller_id = require_context_id(context, "accounts.seller.id", "Create listing")
     authorization_id = require_context_id(context, "catalog.authorization.id", "Create listing")

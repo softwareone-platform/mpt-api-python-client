@@ -19,7 +19,14 @@ async def get_buyer(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Buyer | None:
-    """Get buyer from context or fetch from API."""
+    """
+    Retrieve the buyer identified by "accounts.buyer.id" from the context or fetch it from the API and cache it.
+    
+    If the context does not contain "accounts.buyer.id", returns `None`. If the id exists but no valid Buyer instance is cached, fetches the buyer from the API, stores it in the context under "accounts.buyer", updates "accounts.buyer.id" with the fetched buyer's id, and returns the Buyer.
+    
+    Returns:
+        Buyer or `None` if "accounts.buyer.id" is not set in the context.
+    """
     buyer_id = context.get_string("accounts.buyer.id")
     if not buyer_id:
         return None
@@ -37,7 +44,21 @@ async def get_buyer(
 
 @inject
 def build_buyer_data(context: Context = Provide[Container.context]) -> dict[str, object]:
-    """Build buyer data dictionary for creation."""
+    """
+    Builds the payload dictionary used to create a buyer in the MPT API.
+    
+    Reads CLIENT_ACCOUNT_ID from the environment and `accounts.seller.id` from the provided context to populate required account and seller references.
+    
+    Parameters:
+    	context (Context): Application context used to read `accounts.seller.id`.
+    
+    Returns:
+    	dict[str, object]: Buyer data payload including name, account, sellers, contact, and address.
+    
+    Raises:
+    	ValueError: If CLIENT_ACCOUNT_ID environment variable is missing.
+    	ValueError: If `accounts.seller.id` is not found in the context.
+    """
     buyer_account_id = os.getenv("CLIENT_ACCOUNT_ID")
     if not buyer_account_id:
         raise ValueError("CLIENT_ACCOUNT_ID environment variable is required")
@@ -68,7 +89,15 @@ async def init_buyer(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Buyer:
-    """Get or create buyer."""
+    """
+    Ensure a Buyer exists in the provided context, creating one via the API if none is present.
+    
+    Returns:
+        Buyer: The existing or newly created Buyer instance.
+    
+    Raises:
+        ValueError: If buyer creation via the API fails.
+    """
     buyer = await get_buyer(context=context, mpt_operations=mpt_operations)
     if buyer is None:
         buyer_data = build_buyer_data(context=context)

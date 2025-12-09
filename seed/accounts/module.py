@@ -16,7 +16,14 @@ async def get_module(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Module | None:
-    """Get module from context or fetch from API."""
+    """
+    Retrieve the Module stored in the context or fetch it from the API if not cached.
+    
+    If the context does not contain "accounts.module.id", returns None. When a cached resource is absent or not a Module, the function fetches the module from the API and stores it in the context.
+    
+    Returns:
+        Module if found or fetched, `None` if "accounts.module.id" is not set.
+    """
     module_id = context.get_string("accounts.module.id")
     if not module_id:
         return None
@@ -37,7 +44,14 @@ async def refresh_module(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Module | None:
-    """Refresh module in context (always fetch)."""
+    """
+    Ensure the context contains a current "Access Management" Module by fetching it if missing.
+    
+    If the context has no module, query the API for modules named "Access Management". Cache the first found Module in the context under "accounts.module" and store its id at "accounts.module.id". Logs a warning and returns None if no suitable Module is found.
+    
+    Returns:
+        Module if available, None otherwise.
+    """
     module = await get_module(context=context, mpt_operations=mpt_operations)
     if module is None:
         filtered_modules = mpt_operations.accounts.modules.filter(

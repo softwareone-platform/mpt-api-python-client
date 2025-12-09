@@ -16,7 +16,14 @@ async def refresh_item(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
-    """Refresh item in context (always fetch)."""
+    """
+    Fetch the catalog item from the vendor API and store it in the context.
+    
+    If the context does not contain a catalog item id under "catalog.item.id", no fetch is performed and the function returns `None`. When an item is fetched, its id is written back to "catalog.item.id" and the item resource is cached under "catalog.item" in the context.
+    
+    Returns:
+        Item | None: The fetched `Item` cached in the context, or `None` if no item id was present.
+    """
     item_id = context.get_string("catalog.item.id")
     if not item_id:
         return None
@@ -31,7 +38,12 @@ async def get_item(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
-    """Get item from context or fetch from API if not cached."""
+    """
+    Retrieve the catalog item from the context cache or fetch it from the API and cache it if not present or invalid.
+    
+    Returns:
+        Item if found in context or successfully fetched and cached, `None` if the context does not contain a catalog item id.
+    """
     item_id = context.get_string("catalog.item.id")
     if not item_id:
         return None
@@ -50,7 +62,17 @@ async def get_item(
 
 @inject
 def build_item(context: Context = Provide[Container.context]) -> dict[str, Any]:
-    """Build item data dictionary for creation."""
+    """
+    Builds a payload dictionary for creating a catalog item.
+    
+    Reads "catalog.product.id" and "catalog.item_group.id" from the provided context to populate the product and group references used in the payload.
+    
+    Parameters:
+        context (Context): Context used to retrieve "catalog.product.id" and "catalog.item_group.id".
+    
+    Returns:
+        dict[str, Any]: A dictionary suitable as a create-item request payload containing product and group references, parameters, name, description, unit, terms, quantityNotApplicable flag, and externalIds.
+    """
     product_id = context.get("catalog.product.id")
     item_group_id = context.get("catalog.item_group.id")
     return {
@@ -77,7 +99,14 @@ async def create_item(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item:
-    """Create item and cache in context."""
+    """
+    Create a catalog item from context data and cache it in the context.
+    
+    Builds the item payload from values stored in the context, creates the item via the vendor API, stores the new item's id and resource in the context, and returns the created item.
+    
+    Returns:
+        The created Item.
+    """
     item_data = build_item(context=context)
     catalog_item = await mpt_vendor.catalog.items.create(item_data)
     context["catalog.item.id"] = catalog_item.id
@@ -90,7 +119,12 @@ async def review_item(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item | None:
-    """Review item if in draft status and cache result."""
+    """
+    Review the cached catalog item if its status is `Draft` and cache the updated item.
+    
+    Returns:
+        The cached or updated `Item`, or `None` if no catalog item is present.
+    """
     logger.debug("Reviewing catalog.item ...")
     catalog_item = context.get_resource("catalog.item")
     if catalog_item.status != "Draft":
@@ -105,7 +139,12 @@ async def publish_item(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Item | None:
-    """Publish item if in reviewing status and cache result."""
+    """
+    Publish the catalog item when its status is Reviewing and update the context cache.
+    
+    Returns:
+        The published Item if a publish occurred, the unchanged cached Item if it was not in Reviewing status, or `None` if no catalog item existed in the context.
+    """
     logger.debug("Publishing catalog.item ...")
     catalog_item = context.get_resource("catalog.item")
     if catalog_item.status != "Reviewing":

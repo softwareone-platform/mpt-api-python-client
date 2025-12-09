@@ -29,20 +29,23 @@ class Context(collections.UserDict[str, Any]):
         return resource
 
     def set_resource(self, namespace: str, resource: Model) -> None:  # noqa: WPS615
-        """Save resource to context."""
+        """
+        Save a Model instance into the context under a namespaced key.
+        
+        Parameters:
+            namespace (str): Namespace prefix used to build the storage key.
+            resource (Model): Resource to store; its `id` attribute is used to form the key.
+        """
         self[f"{namespace}[{resource.id}]"] = resource
 
 
 def load_context(json_file: pathlib.Path, context: Context) -> None:
-    """Load context from JSON file.
-
-    Args:
-        json_file: JSON file path.
-        context: Context instance.
-
-    Returns:
-        Context instance.
-
+    """
+    Load JSON data from a file and update the given Context in place.
+    
+    Parameters:
+        json_file (pathlib.Path): Path to the JSON file to read (UTF-8).
+        context (Context): Context instance to be updated with the loaded data.
     """
     with json_file.open("r", encoding="utf-8") as fd:
         existing_data = json.load(fd)
@@ -51,11 +54,12 @@ def load_context(json_file: pathlib.Path, context: Context) -> None:
 
 
 def save_context(context: Context, json_file: pathlib.Path) -> None:
-    """Save context to JSON file.
-
-    Args:
-        json_file: JSON file path.
-        context: Context instance.
+    """
+    Write the context's data to the given JSON file using UTF-8 encoding.
+    
+    Parameters:
+        context (Context): Context whose data will be serialized.
+        json_file (pathlib.Path): Path to the output JSON file.
     """
     with json_file.open("w", encoding="utf-8") as fd:
         json.dump(context.data, fd, indent=4, default=str)

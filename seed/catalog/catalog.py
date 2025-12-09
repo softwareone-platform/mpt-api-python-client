@@ -9,7 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 async def seed_catalog() -> None:
-    """Seed catalog data including products, item groups, and parameters."""
+    """
+    Seed catalog data in a defined sequence.
+    
+    Seeds products first, then authorization data, then price lists, and finally listings to ensure dependent catalog data is created in order.
+    """
     logger.debug("Seeding catalog ...")
     await seed_product()
     await seed_authorization()

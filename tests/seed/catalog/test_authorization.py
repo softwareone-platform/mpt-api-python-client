@@ -6,6 +6,15 @@ from seed.context import Context
 
 @pytest.fixture
 def context_with_data() -> Context:
+    """
+    Create a Context populated with sample catalog/product and account identifiers.
+    
+    Returns:
+        ctx (Context): A Context containing:
+            - "catalog.product.id": "prod-123"
+            - "accounts.seller.id": "seller-456"
+            - "accounts.account.id": "acct-321"
+    """
     ctx = Context()
     ctx["catalog.product.id"] = "prod-123"
     ctx["accounts.seller.id"] = "seller-456"

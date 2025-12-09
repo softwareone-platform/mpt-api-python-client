@@ -17,7 +17,12 @@ async def get_user_group(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> UserGroup | None:
-    """Get user group from context or fetch from API."""
+    """
+    Retrieve a UserGroup from the context or fetch it from the API when not present in the context.
+    
+    Returns:
+        The retrieved `UserGroup` if available (from context or fetched), `None` if no user group ID is set in the context.
+    """
     user_group_id = context.get_string("accounts.user_group.id")
     if not user_group_id:
         return None
@@ -37,7 +42,21 @@ async def get_user_group(
 def build_user_group_data(
     context: Context = Provide[Container.context],
 ) -> dict[str, object]:
-    """Get user group data dictionary for creation."""
+    """
+    Builds the payload dictionary used to create a UserGroup.
+    
+    Returns:
+        dict: Payload with keys:
+            - name: display name for the user group
+            - account: dict containing the account `id` from the CLIENT_ACCOUNT_ID environment variable
+            - buyers: currently `None`
+            - logo: string (empty by default)
+            - description: textual description
+            - modules: list containing a dict with the module `id` read from context ("accounts.module.id")
+    
+    Raises:
+        ValueError: If the CLIENT_ACCOUNT_ID environment variable is not set.
+    """
     account_id = os.getenv("CLIENT_ACCOUNT_ID")
     if not account_id:
         raise ValueError("CLIENT_ACCOUNT_ID environment variable is required")
@@ -57,7 +76,14 @@ async def init_user_group(
     context: Context = Provide[Container.context],
     mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> UserGroup | None:
-    """Get or create user group."""
+    """
+    Ensure a UserGroup exists for the current context, creating and storing one if it does not.
+    
+    If an existing UserGroup is present in the context it is returned unchanged. When creation succeeds the new UserGroup is saved in the context under "accounts.user_group" and "accounts.user_group.id".
+    
+    Returns:
+        UserGroup | None: The retrieved or newly created `UserGroup`, or `None` if creation failed or no group could be obtained.
+    """
     user_group = await get_user_group(context=context, mpt_operations=mpt_operations)
     if user_group is not None:
         logger.info("User group already exists: %s", user_group.id)

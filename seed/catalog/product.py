@@ -26,7 +26,12 @@ logger = logging.getLogger(__name__)
 async def create_product(
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Product:
-    """Creates a product."""
+    """
+    Create a product in the vendor catalog.
+    
+    Returns:
+        Product: The created product object.
+    """
     logger.debug("Creating product ...")
     with ICON.open("rb") as icon_fd:
         return await mpt_vendor.catalog.products.create(
@@ -56,7 +61,11 @@ async def create_terms_variant(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> TermVariant:
-    """Creates a product terms variant."""
+    """
+    Create a product terms variant.
+    
+    @returns The created TermVariant object.
+    """
     term_variant_data = {
         "name": "E2E seeding",
         "description": "Test variant description",
@@ -80,7 +89,12 @@ async def create_template(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Template:
-    """Creates a product template."""
+    """
+    Create a template for the product referenced in the provided context.
+    
+    Returns:
+        Template: The created template object.
+    """
     template_data = {
         "name": "E2E Seeding",
         "description": "A template for testing",
@@ -95,7 +109,14 @@ async def create_terms(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Term:
-    """Creates a product terms."""
+    """
+    Create product terms for the product referenced by `catalog.product.id` in the provided context.
+    
+    Uses the product id stored at `catalog.product.id` in the context to create a terms resource with a default name and description.
+    
+    Returns:
+        Term: The created product terms object.
+    """
     product_id = require_context_id(context, "catalog.product.id", "creating product terms")
     return await mpt_vendor.catalog.products.terms(product_id).create({
         "name": "E2E seeded",
@@ -107,7 +128,12 @@ async def create_parameter_group(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> ParameterGroup:
-    """Creates a product parameter group."""
+    """
+    Create a parameter group for the product referenced in the provided context.
+    
+    Returns:
+        ParameterGroup: The created parameter group object.
+    """
     product_id = require_context_id(
         context, "catalog.product.id", "creating product parameter group"
     )
@@ -122,7 +148,14 @@ async def create_parameter(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Parameter:
-    """Creates a product parameter."""
+    """
+    Create a product parameter associated with the parameter group referenced in the context.
+    
+    Creates a parameter resource for the product whose id is stored in the context and associates it with the parameter group id from the context.
+    
+    Returns:
+    	Parameter: The created product parameter object.
+    """
     parameter_group_id = require_context_id(
         context, "catalog.product.parameter_group.id", "creating product parameter"
     )
@@ -150,7 +183,14 @@ async def create_document(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Document:
-    """Creates a product document."""
+    """
+    Create a document resource for the product referenced in the seeding context.
+    
+    Requires the context key "catalog.product.id" to identify the target product.
+    
+    Returns:
+        Document: The created product document.
+    """
     product_id = require_context_id(context, "catalog.product.id", "creating product document")
     document_data = {
         "name": "E2E Seeded",
@@ -169,7 +209,14 @@ async def create_item_group(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> ItemGroup:
-    """Creates a product item group."""
+    """
+    Create a product item group in the vendor catalog using the product id from context.
+    
+    Requires the product id at context key "catalog.product.id". Creates an item group with predefined name, label, description, display order, and flags (default: False, multiple: True, required: True).
+    
+    Returns:
+        ItemGroup: The created item group.
+    """
     product_id = require_context_id(context, "catalog.product.id", "creating product item group")
     item_group_data = {
         "product": {"id": product_id},
@@ -188,7 +235,12 @@ async def create_item_group(
 async def create_unit_of_measure(
     operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> UnitOfMeasure:
-    """Creates a new unit of measure in the vendor's catalog."""
+    """
+    Create a unit of measure in the vendor catalog.
+    
+    Returns:
+        UnitOfMeasure: The created unit of measure.
+    """
     short_uuid = uuid.uuid4().hex[:8]
     return await operations.catalog.units_of_measure.create({
         "name": f"e2e seeded {short_uuid}",
@@ -200,7 +252,14 @@ async def create_product_item(
     context: Context = Provide[Container.context],
     mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
 ) -> Item:
-    """Creates a product item."""
+    """
+    Create a product item in the vendor catalog linked to the product, unit, and item group stored in context.
+    
+    The created item uses a short random suffix in its vendor external ID and default placeholder name/description suitable for end-to-end testing. It also sets basic terms (quantity, 1 month period and commitment).
+    
+    Returns:
+        Item: The created catalog item.
+    """
     short_uuid = uuid.uuid4().hex[:8]
 
     unit_id = require_context_id(context, "catalog.unit.id", "creating product item")
