@@ -33,7 +33,7 @@ class Context(collections.UserDict[str, Any]):
         self[f"{namespace}[{resource.id}]"] = resource
 
 
-def load_context(json_file: pathlib.Path, context: Context | None = None) -> Context:
+def load_context(json_file: pathlib.Path, context: Context) -> None:
     """Load context from JSON file.
 
     Args:
@@ -44,12 +44,10 @@ def load_context(json_file: pathlib.Path, context: Context | None = None) -> Con
         Context instance.
 
     """
-    context = context or Context()
     with json_file.open("r", encoding="utf-8") as fd:
         existing_data = json.load(fd)
     context.update(existing_data)
     logger.info("Context loaded: %s", context.items())
-    return context
 
 
 def save_context(context: Context, json_file: pathlib.Path) -> None:

@@ -65,9 +65,9 @@ class ProductsServiceConfig:
 
 
 class ProductsService(
-    CreateFileMixin[Model],
-    UpdateFileMixin[Model],
-    PublishableMixin[Model],
+    CreateFileMixin[Product],
+    UpdateFileMixin[Product],
+    PublishableMixin[Product],
     GetMixin[Product],
     DeleteMixin,
     CollectionMixin[Product],
@@ -128,9 +128,9 @@ class ProductsService(
 
 
 class AsyncProductsService(
-    AsyncCreateFileMixin[Model],
-    AsyncUpdateFileMixin[Model],
-    AsyncPublishableMixin[Model],
+    AsyncCreateFileMixin[Product],
+    AsyncUpdateFileMixin[Product],
+    AsyncPublishableMixin[Product],
     AsyncGetMixin[Product],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Product],

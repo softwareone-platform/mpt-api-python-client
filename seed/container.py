@@ -9,7 +9,6 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    # Client factories
     mpt_client = providers.Factory(
         AsyncMPTClient.from_config,
         api_token=config.mpt_api_token_client,
@@ -28,14 +27,11 @@ class Container(containers.DeclarativeContainer):
         base_url=config.mpt_api_base_url,
     )
 
-    # Context provider - stores application context as a singleton
     context: providers.Singleton[Context] = providers.Singleton(Context)
 
 
-# Create container instance
 container = Container()
 
-# Configure from environment variables
 container.config.mpt_api_base_url.from_env("MPT_API_BASE_URL")
 container.config.mpt_api_token_client.from_env("MPT_API_TOKEN_CLIENT")
 container.config.mpt_api_token_vendor.from_env("MPT_API_TOKEN_VENDOR")
@@ -44,26 +40,4 @@ container.config.mpt_api_token_operations.from_env("MPT_API_TOKEN_OPERATIONS")
 
 def wire_container() -> None:
     """Wire the dependency injection container."""
-    container.wire(
-        modules=[
-            "seed",
-            "seed.context",
-            "seed.defaults",
-            "seed.seed_api",
-            "seed.catalog",
-            "seed.catalog.catalog",
-            "seed.catalog.product",
-            "seed.catalog.item",
-            "seed.catalog.item_group",
-            "seed.catalog.product_parameters",
-            "seed.catalog.product_parameters_group",
-            "seed.accounts",
-            "seed.accounts.accounts",
-            "seed.accounts.api_tokens",
-            "seed.accounts.buyer",
-            "seed.accounts.licensee",
-            "seed.accounts.module",
-            "seed.accounts.seller",
-            "seed.accounts.user_group",
-        ]
-    )
+    container.wire(packages=["seed"])

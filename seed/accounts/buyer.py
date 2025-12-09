@@ -1,23 +1,21 @@
 import logging
 import os
-import pathlib
 
-from dependency_injector.wiring import inject
+from dependency_injector.wiring import Provide, inject
 
 from mpt_api_client import AsyncMPTClient
 from mpt_api_client.resources.accounts.buyers import Buyer
+from seed.container import Container
 from seed.context import Context
-from seed.defaults import DEFAULT_CONTEXT, DEFAULT_MPT_OPERATIONS
+from seed.static.static import ICON
 
 logger = logging.getLogger(__name__)
-
-icon = pathlib.Path("seed/data/logo.png").resolve()
 
 
 @inject
 async def get_buyer(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Buyer | None:
     """Get buyer from context or fetch from API."""
     buyer_id = context.get_string("accounts.buyer.id")
@@ -36,7 +34,7 @@ async def get_buyer(
 
 
 @inject
-def build_buyer_data(context: Context = DEFAULT_CONTEXT) -> dict[str, object]:
+def build_buyer_data(context: Context = Provide[Container.context]) -> dict[str, object]:
     """Build buyer data dictionary for creation."""
     buyer_account_id = os.getenv("CLIENT_ACCOUNT_ID")
     if not buyer_account_id:
@@ -65,16 +63,16 @@ def build_buyer_data(context: Context = DEFAULT_CONTEXT) -> dict[str, object]:
 
 @inject
 async def init_buyer(
-    context: Context = DEFAULT_CONTEXT,
-    mpt_operations: AsyncMPTClient = DEFAULT_MPT_OPERATIONS,
+    context: Context = Provide[Container.context],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
 ) -> Buyer:
     """Get or create buyer."""
     buyer = await get_buyer(context=context, mpt_operations=mpt_operations)
     if buyer is None:
         buyer_data = build_buyer_data(context=context)
         logger.debug("Creating buyer ...")
-        with open(str(icon), "rb") as icon_file:  # noqa: PTH123
-            created = await mpt_operations.accounts.buyers.create(buyer_data, file=icon_file)
+        with ICON.open("rb") as icon_fd:
+            created = await mpt_operations.accounts.buyers.create(buyer_data, file=icon_fd)
         if isinstance(created, Buyer):
             context.set_resource("accounts.buyer", created)
             context["accounts.buyer.id"] = created.id
