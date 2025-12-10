@@ -78,7 +78,7 @@ async def init_buyer(
             context["accounts.buyer.id"] = created.id
             logger.info("Buyer created: %s", created.id)
             return created
-        logger.warning("Buyer creation failed")
+        logger.warning("Buyer creation failed")  # type: ignore[unreachable]
         raise ValueError("Buyer creation failed")
     logger.info("Buyer found: %s", buyer.id)
     return buyer

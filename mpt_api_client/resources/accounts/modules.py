@@ -27,6 +27,6 @@ class ModulesService(
 
 
 class AsyncModulesService(
-    AsyncGetMixin[Module], AsyncCollectionMixin[Model], AsyncService[Module], ModulesServiceConfig
+    AsyncGetMixin[Module], AsyncCollectionMixin[Module], AsyncService[Module], ModulesServiceConfig
 ):
     """Asynchronous Modules Service."""

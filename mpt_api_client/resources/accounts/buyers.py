@@ -38,11 +38,11 @@ class BuyersServiceConfig:
 
 
 class BuyersService(
-    CreateFileMixin[Model],
-    UpdateFileMixin[Model],
-    ActivatableMixin[Model],
-    EnablableMixin[Model],
-    ValidateMixin[Model],
+    CreateFileMixin[Buyer],
+    UpdateFileMixin[Buyer],
+    ActivatableMixin[Buyer],
+    EnablableMixin[Buyer],
+    ValidateMixin[Buyer],
     GetMixin[Buyer],
     DeleteMixin,
     CollectionMixin[Buyer],
@@ -71,11 +71,11 @@ class BuyersService(
 
 
 class AsyncBuyersService(
-    AsyncCreateFileMixin[Model],
-    AsyncUpdateFileMixin[Model],
-    AsyncActivatableMixin[Model],
-    AsyncEnablableMixin[Model],
-    AsyncValidateMixin[Model],
+    AsyncCreateFileMixin[Buyer],
+    AsyncUpdateFileMixin[Buyer],
+    AsyncActivatableMixin[Buyer],
+    AsyncEnablableMixin[Buyer],
+    AsyncValidateMixin[Buyer],
     AsyncGetMixin[Buyer],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Buyer],

@@ -50,7 +50,7 @@ async def refresh_module(
                 context["accounts.module.id"] = first_module.id
                 context.set_resource("accounts.module", first_module)
                 return first_module
-            logger.warning("First module is not a Module instance.")
+            logger.warning("First module is not a Module instance.")  # type: ignore[unreachable]
             return None
         logger.warning("Module 'Access Management' not found.")
         return None
