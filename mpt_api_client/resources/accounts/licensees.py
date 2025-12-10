@@ -33,9 +33,9 @@ class LicenseesServiceConfig:
 
 
 class LicenseesService(
-    CreateFileMixin[Model],
-    UpdateFileMixin[Model],
-    EnablableMixin[Model],
+    CreateFileMixin[Licensee],
+    UpdateFileMixin[Licensee],
+    EnablableMixin[Licensee],
     GetMixin[Licensee],
     DeleteMixin,
     CollectionMixin[Licensee],
@@ -46,9 +46,9 @@ class LicenseesService(
 
 
 class AsyncLicenseesService(
-    AsyncCreateFileMixin[Model],
-    AsyncUpdateFileMixin[Model],
-    AsyncEnablableMixin[Model],
+    AsyncCreateFileMixin[Licensee],
+    AsyncUpdateFileMixin[Licensee],
+    AsyncEnablableMixin[Licensee],
     AsyncGetMixin[Licensee],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Licensee],

@@ -89,7 +89,7 @@ async def init_licensee(
             context["accounts.licensee.id"] = created.id
             logger.info("Licensee created: %s", created.id)
             return created
-        logger.warning("Licensee creation failed")
+        logger.warning("Licensee creation failed")  # type: ignore[unreachable]
         raise ValueError("Licensee creation failed")
     logger.info("Licensee found: %s", licensee.id)
     return licensee

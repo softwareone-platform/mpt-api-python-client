@@ -39,11 +39,11 @@ class AccountsServiceConfig:
 
 
 class AccountsService(
-    CreateFileMixin[Model],
-    UpdateFileMixin[Model],
-    ActivatableMixin[Model],
-    EnablableMixin[Model],
-    ValidateMixin[Model],
+    CreateFileMixin[Account],
+    UpdateFileMixin[Account],
+    ActivatableMixin[Account],
+    EnablableMixin[Account],
+    ValidateMixin[Account],
     GetMixin[Account],
     CollectionMixin[Account],
     Service[Account],
@@ -59,11 +59,11 @@ class AccountsService(
 
 
 class AsyncAccountsService(
-    AsyncCreateFileMixin[Model],
-    AsyncUpdateFileMixin[Model],
-    AsyncActivatableMixin[Model],
-    AsyncEnablableMixin[Model],
-    AsyncValidateMixin[Model],
+    AsyncCreateFileMixin[Account],
+    AsyncUpdateFileMixin[Account],
+    AsyncActivatableMixin[Account],
+    AsyncEnablableMixin[Account],
+    AsyncValidateMixin[Account],
     AsyncGetMixin[Account],
     AsyncCollectionMixin[Account],
     AsyncService[Account],
