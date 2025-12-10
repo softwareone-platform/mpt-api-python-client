@@ -9,6 +9,10 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.resources.commerce.orders_asset import (
+    AsyncOrdersAssetService,
+    OrdersAssetService,
+)
 from mpt_api_client.resources.commerce.orders_subscription import (
     AsyncOrderSubscriptionsService,
     OrderSubscriptionsService,
@@ -115,6 +119,20 @@ class OrdersService(  # noqa: WPS215 WPS214
             endpoint_params={"order_id": order_id},
         )
 
+    def assets(self, order_id: str) -> OrdersAssetService:
+        """Get the asset service for the given Order id.
+
+        Args:
+            order_id: Order ID.
+
+        Returns:
+            Order Asset service.
+        """
+        return OrdersAssetService(
+            http_client=self.http_client,
+            endpoint_params={"order_id": order_id},
+        )
+
 
 class AsyncOrdersService(  # noqa: WPS215 WPS214
     AsyncManagedResourceMixin[Order],
@@ -215,6 +233,20 @@ class AsyncOrdersService(  # noqa: WPS215 WPS214
             Order Subscription service.
         """
         return AsyncOrderSubscriptionsService(
+            http_client=self.http_client,
+            endpoint_params={"order_id": order_id},
+        )
+
+    def assets(self, order_id: str) -> AsyncOrdersAssetService:
+        """Get the asset service for the given Order id.
+
+        Args:
+            order_id: Order ID.
+
+        Returns:
+            Order Asset service.
+        """
+        return AsyncOrdersAssetService(
             http_client=self.http_client,
             endpoint_params={"order_id": order_id},
         )
