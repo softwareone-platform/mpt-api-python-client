@@ -32,9 +32,9 @@ async def test_create_authorization(mocker, operations_client, context_with_data
 async def test_seed_authorization(mocker):
     init_resource = mocker.patch(
         "seed.catalog.authorization.init_resource",
-        new_callable=mocker.AsyncMock,
+        autospec=True,
     )
 
     await seed_authorization()
 
-    init_resource.assert_called_once_with("catalog.authorization.id", create_authorization)
+    init_resource.assert_awaited_once_with("catalog.authorization.id", create_authorization)

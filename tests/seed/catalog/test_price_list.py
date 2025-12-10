@@ -26,8 +26,7 @@ async def test_create_price_list(mocker, operations_client, context_with_product
 async def test_seed_price_list_create(mocker):
     init_resource = mocker.patch(
         "seed.catalog.price_list.init_resource",
-        new_callable=mocker.AsyncMock,
-        return_value=mocker.Mock(id="pl-999"),
+        autospec=True,
     )
 
     await seed_price_list()
