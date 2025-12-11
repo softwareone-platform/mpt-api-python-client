@@ -12,6 +12,7 @@ from seed.catalog.product import (  # noqa: WPS235
     create_terms,
     create_terms_variant,
     create_unit_of_measure,
+    publish_product,
 )
 from seed.context import Context
 
@@ -26,6 +27,22 @@ def context_with_product():
     context = Context()
     context["catalog.product.id"] = "prod-123"
     return context
+
+
+async def test_publish_product(mocker, vendor_client, operations_client, context_with_product):
+    product_draft = Product({"id": "prod-123", "status": "Draft"})
+    product_pending = Product({"id": "prod-123", "status": "Pending"})
+    product_published = Product({"id": "prod-123", "status": "Published"})
+
+    vendor_client.catalog.products.get = mocker.AsyncMock(return_value=product_draft)
+    vendor_client.catalog.products.review = mocker.AsyncMock(return_value=product_pending)
+    operations_client.catalog.products.publish = mocker.AsyncMock(return_value=product_published)
+
+    await publish_product(context_with_product, vendor_client, operations_client)
+
+    vendor_client.catalog.products.get.assert_called_once_with("prod-123")
+    vendor_client.catalog.products.review.assert_called_once_with("prod-123")
+    operations_client.catalog.products.publish.assert_called_once_with("prod-123")
 
 
 async def test_create_product(mocker, context: Context, vendor_client, product):
