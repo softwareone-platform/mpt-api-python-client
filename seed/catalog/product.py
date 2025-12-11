@@ -38,6 +38,7 @@ async def seed_product() -> None:
     """Seed product data."""
     logger.debug("Seeding catalog.product ...")
     await init_resource("catalog.product.id", create_product)
+    await publish_product()
     await init_resource("catalog.unit.id", create_unit_of_measure)
     await init_resource("catalog.product.item_group.id", create_item_group)
     await init_resource("catalog.product.item.id", create_product_item)
@@ -48,6 +49,23 @@ async def seed_product() -> None:
     await init_resource("catalog.product.terms.id", create_terms)
     await init_resource("catalog.product.terms.variant.id", create_terms_variant)
     logger.debug("Seeded catalog.product completed.")
+
+
+@inject
+async def publish_product(
+    context: Context = Provide[Container.context],
+    mpt_vendor: AsyncMPTClient = Provide[Container.mpt_vendor],
+    mpt_operations: AsyncMPTClient = Provide[Container.mpt_operations],
+) -> None:
+    """Publish product."""
+    product_id = require_context_id(context, "catalog.product.id", "publish product")
+    product = await mpt_vendor.catalog.products.get(product_id)
+    if product.status == "Draft":
+        product = await mpt_vendor.catalog.products.review(product_id)
+    if product.status in {"Pending", "Unpublished"}:
+        product = await mpt_operations.catalog.products.publish(product_id)
+    if product.status != "Published":
+        raise RuntimeError(f"Product {product_id} is not published")
 
 
 @inject

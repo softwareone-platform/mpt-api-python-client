@@ -20,6 +20,7 @@ async def seed_api(context: Context = Provide[Container.context]) -> None:
     try:  # noqa: WPS229
         await seed_accounts()
         await seed_catalog()
+        logger.info("Seeding completed successfully.")
     except Exception:
         logger.exception("Exception occurred during seeding.")
     finally:
