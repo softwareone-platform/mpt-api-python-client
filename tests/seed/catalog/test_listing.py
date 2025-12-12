@@ -34,8 +34,7 @@ async def test_create_listing(mocker, operations_client, context_with_data):  # 
 async def test_seed_listing(mocker, context_with_data):
     init_resource = mocker.patch(
         "seed.catalog.listing.init_resource",
-        new_callable=mocker.AsyncMock,
-        return_value=mocker.Mock(id="lst-999"),
+        autospec=True,
     )
 
     await seed_listing()
