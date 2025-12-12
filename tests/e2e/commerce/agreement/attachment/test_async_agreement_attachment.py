@@ -52,7 +52,7 @@ async def test_filter_agreement_attachments(agreement_attachments, agreement_att
     assert len(result) == 1
 
 
-def test_create_agreement_attachment(created_agreement_attachment):
+def test_create_order_agreement_attachment(created_agreement_attachment):
     result = created_agreement_attachment
 
     assert result is not None

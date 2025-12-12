@@ -15,7 +15,7 @@ async def test_async_template(async_http_client):
     with respx.mock:
         respx.get("https://api.example.com/public/v1/commerce/agreements/AGR-123/template").mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": "text/markdown"},
                 content=template_content,
             )
@@ -33,7 +33,7 @@ def test_template(http_client):
             "https://api.example.com/public/v1/commerce/agreements/AGR-123/template"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": "text/markdown"},
                 content="# Order Template\n\nThis is a markdown template.",
             )
@@ -54,7 +54,7 @@ def test_render(http_client):
             "https://api.example.com/public/v1/commerce/agreements/AGR-123/render"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": "text/html"},
                 content=rendered_content,
             )
@@ -75,7 +75,7 @@ async def test_async_render(async_http_client):
             "https://api.example.com/public/v1/commerce/agreements/AGR-123/render"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": "text/html"},
                 content=rendered_content,
             )

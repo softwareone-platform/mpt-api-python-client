@@ -21,7 +21,7 @@ async def test_async_render(async_assets_service):
     with respx.mock:
         respx.get("https://api.example.com/public/v1/commerce/assets/ASSET-123/render").mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": APPLICATION_JSON},
                 json=render_response,
             )
@@ -39,7 +39,7 @@ def test_render(assets_service):
             "https://api.example.com/public/v1/commerce/assets/ASSET-123/render"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": APPLICATION_JSON},
                 json=render_response,
             )
@@ -59,7 +59,7 @@ def test_terminate(assets_service):
             "https://api.example.com/public/v1/commerce/assets/ASSET-123/terminate"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": APPLICATION_JSON},
                 json=response_data,
             )
@@ -79,7 +79,7 @@ async def test_async_terminate(async_assets_service):
             "https://api.example.com/public/v1/commerce/assets/ASSET-123/terminate"
         ).mock(
             return_value=httpx.Response(
-                status_code=200,
+                status_code=httpx.codes.OK,
                 headers={"content-type": APPLICATION_JSON},
                 json=response_data,
             )
