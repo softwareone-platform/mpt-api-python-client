@@ -2,10 +2,14 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncCreateFileMixin,
+    AsyncDisableMixin,
+    AsyncEnableMixin,
     AsyncGetMixin,
     AsyncUpdateFileMixin,
     CollectionMixin,
     CreateFileMixin,
+    DisableMixin,
+    EnableMixin,
     GetMixin,
     UpdateFileMixin,
 )
@@ -17,9 +21,7 @@ from mpt_api_client.resources.accounts.accounts_users import (
 from mpt_api_client.resources.accounts.mixins import (
     ActivatableMixin,
     AsyncActivatableMixin,
-    AsyncEnablableMixin,
     AsyncValidateMixin,
-    EnablableMixin,
     ValidateMixin,
 )
 
@@ -42,7 +44,8 @@ class AccountsService(
     CreateFileMixin[Account],
     UpdateFileMixin[Account],
     ActivatableMixin[Account],
-    EnablableMixin[Account],
+    EnableMixin[Account],
+    DisableMixin[Account],
     ValidateMixin[Account],
     GetMixin[Account],
     CollectionMixin[Account],
@@ -62,7 +65,8 @@ class AsyncAccountsService(
     AsyncCreateFileMixin[Account],
     AsyncUpdateFileMixin[Account],
     AsyncActivatableMixin[Account],
-    AsyncEnablableMixin[Account],
+    AsyncEnableMixin[Account],
+    AsyncDisableMixin[Account],
     AsyncValidateMixin[Account],
     AsyncGetMixin[Account],
     AsyncCollectionMixin[Account],

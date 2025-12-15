@@ -27,32 +27,6 @@ class ActivatableMixin[Model]:
         )
 
 
-class EnablableMixin[Model]:
-    """Enablable mixin for enabling and disabling resources."""
-
-    def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Enable a resource.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "enable", json=resource_data
-        )
-
-    def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Disable a resource.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "disable", json=resource_data
-        )
-
-
 class ValidateMixin[Model]:
     """Validate mixin adds the ability to validate a resource."""
 
@@ -156,32 +130,6 @@ class AsyncActivatableMixin[Model]:
         """
         return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
             resource_id, "POST", "deactivate", json=resource_data
-        )
-
-
-class AsyncEnablableMixin[Model]:
-    """Asynchronous Enablable mixin for enabling and disabling resources."""
-
-    async def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Enable a resource.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "enable", json=resource_data
-        )
-
-    async def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Disable a resource.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "disable", json=resource_data
         )
 
 

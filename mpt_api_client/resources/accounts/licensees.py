@@ -3,19 +3,19 @@ from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncCreateFileMixin,
     AsyncDeleteMixin,
+    AsyncDisableMixin,
+    AsyncEnableMixin,
     AsyncGetMixin,
     AsyncUpdateFileMixin,
     CollectionMixin,
     CreateFileMixin,
     DeleteMixin,
+    DisableMixin,
+    EnableMixin,
     GetMixin,
     UpdateFileMixin,
 )
 from mpt_api_client.models import Model
-from mpt_api_client.resources.accounts.mixins import (
-    AsyncEnablableMixin,
-    EnablableMixin,
-)
 
 
 class Licensee(Model):
@@ -35,7 +35,8 @@ class LicenseesServiceConfig:
 class LicenseesService(
     CreateFileMixin[Licensee],
     UpdateFileMixin[Licensee],
-    EnablableMixin[Licensee],
+    EnableMixin[Licensee],
+    DisableMixin[Licensee],
     GetMixin[Licensee],
     DeleteMixin,
     CollectionMixin[Licensee],
@@ -48,7 +49,8 @@ class LicenseesService(
 class AsyncLicenseesService(
     AsyncCreateFileMixin[Licensee],
     AsyncUpdateFileMixin[Licensee],
-    AsyncEnablableMixin[Licensee],
+    AsyncEnableMixin[Licensee],
+    AsyncDisableMixin[Licensee],
     AsyncGetMixin[Licensee],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Licensee],
