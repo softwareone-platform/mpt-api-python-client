@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
@@ -5,6 +7,7 @@ from mpt_api_client.http.mixins import (
     CollectionMixin,
     ManagedResourceMixin,
 )
+from mpt_api_client.http.types import FileTypes
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.journal_attachments import (
     AsyncJournalAttachmentsService,
@@ -17,10 +20,6 @@ from mpt_api_client.resources.billing.journal_charges import (
 from mpt_api_client.resources.billing.journal_sellers import (
     AsyncJournalSellersService,
     JournalSellersService,
-)
-from mpt_api_client.resources.billing.journal_upload import (
-    AsyncJournalUploadService,
-    JournalUploadService,
 )
 from mpt_api_client.resources.billing.mixins import AsyncRegeneratableMixin, RegeneratableMixin
 
@@ -35,6 +34,8 @@ class JournalsServiceConfig:
     _endpoint = "/public/v1/billing/journals"
     _model_class = Journal
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "id"
 
 
 class JournalsService(
@@ -45,6 +46,35 @@ class JournalsService(
     JournalsServiceConfig,
 ):
     """Journals service."""
+
+    def upload(self, journal_id: str, file: FileTypes | None = None) -> Journal:  # noqa: WPS110
+        """Upload journal file.
+
+        Args:
+            journal_id: Journal ID.
+            file: journal file.
+
+        Returns:
+            Journal: Created resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
+            files[self._upload_data_key] = journal_id  # UNUSED type: ignore
+
+        path = urljoin(f"{self.path}/", f"{journal_id}/upload")
+
+        response = self.http_client.request(  # UNUSED type: ignore[attr-defined]
+            "post",
+            path,  # UNUSED type: ignore[attr-defined]
+            files=files,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(
+            response
+        )  # UNUSED type: ignore[attr-defined, no-any-return]
 
     def attachments(self, journal_id: str) -> JournalAttachmentsService:
         """Return journal attachments service."""
@@ -65,12 +95,6 @@ class JournalsService(
             http_client=self.http_client, endpoint_params={"journal_id": journal_id}
         )
 
-    def upload(self, journal_id: str) -> JournalUploadService:
-        """Return journal upload service."""
-        return JournalUploadService(
-            http_client=self.http_client, endpoint_params={"journal_id": journal_id}
-        )
-
 
 class AsyncJournalsService(
     AsyncRegeneratableMixin[Journal],
@@ -80,6 +104,35 @@ class AsyncJournalsService(
     JournalsServiceConfig,
 ):
     """Async Journals service."""
+
+    async def upload(self, journal_id: str, file: FileTypes | None = None) -> Journal:  # noqa: WPS110
+        """Upload journal file.
+
+        Args:
+            journal_id: Journal ID.
+            file: journal file.
+
+        Returns:
+            Journal: Created resource.
+        """
+        files = {}
+
+        if file:
+            files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
+            files[self._upload_data_key] = journal_id  # UNUSED type: ignore
+
+        path = urljoin(f"{self.path}/", f"{journal_id}/upload")
+
+        response = await self.http_client.request(  # UNUSED type: ignore[attr-defined]
+            "post",
+            path,  # UNUSED type: ignore[attr-defined]
+            files=files,
+            force_multipart=True,
+        )
+
+        return self._model_class.from_response(
+            response
+        )  # UNUSED type: ignore[attr-defined, no-any-return]
 
     def attachments(self, journal_id: str) -> AsyncJournalAttachmentsService:
         """Return journal attachments service."""
@@ -97,11 +150,5 @@ class AsyncJournalsService(
     def charges(self, journal_id: str) -> AsyncJournalChargesService:
         """Return journal charges service."""
         return AsyncJournalChargesService(
-            http_client=self.http_client, endpoint_params={"journal_id": journal_id}
-        )
-
-    def upload(self, journal_id: str) -> AsyncJournalUploadService:
-        """Return journal upload service."""
-        return AsyncJournalUploadService(
             http_client=self.http_client, endpoint_params={"journal_id": journal_id}
         )
