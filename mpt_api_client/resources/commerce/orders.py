@@ -9,6 +9,12 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.resources.commerce.mixins import (
+    AsyncRenderMixin,
+    AsyncTemplateMixin,
+    RenderMixin,
+    TemplateMixin,
+)
 from mpt_api_client.resources.commerce.orders_asset import (
     AsyncOrdersAssetService,
     OrdersAssetService,
@@ -32,6 +38,8 @@ class OrdersServiceConfig:
 
 
 class OrdersService(  # noqa: WPS215 WPS214
+    RenderMixin[Order],
+    TemplateMixin[Order],
     ManagedResourceMixin[Order],
     CollectionMixin[Order],
     Service[Order],
@@ -93,30 +101,6 @@ class OrdersService(  # noqa: WPS215 WPS214
         """
         self._resource_do_request(resource_id, "POST", "notify", json=user)
 
-    def template(self, resource_id: str) -> str:
-        """Render order template.
-
-        Args:
-            resource_id: Order resource ID
-
-        Returns:
-            Order template text in markdown format.
-        """
-        response = self._resource_do_request(resource_id, "GET", "template")
-        return response.text
-
-    def render(self, resource_id: str) -> str:
-        """Render the order template for the given order ID.
-
-        Args:
-            resource_id: Order resource ID
-
-        Returns:
-            Rendered order as HTML.
-        """
-        response = self._resource_do_request(resource_id, "GET", "render")
-        return response.text
-
     def quote(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
         """Quote the order.
 
@@ -159,6 +143,8 @@ class OrdersService(  # noqa: WPS215 WPS214
 
 
 class AsyncOrdersService(  # noqa: WPS215 WPS214
+    AsyncRenderMixin[Order],
+    AsyncTemplateMixin[Order],
     AsyncManagedResourceMixin[Order],
     AsyncCollectionMixin[Order],
     AsyncService[Order],
@@ -234,30 +220,6 @@ class AsyncOrdersService(  # noqa: WPS215 WPS214
             resource_data: User data to notify
         """
         await self._resource_do_request(resource_id, "POST", "notify", json=resource_data)
-
-    async def template(self, resource_id: str) -> str:
-        """Render order template.
-
-        Args:
-            resource_id: Order resource ID
-
-        Returns:
-            Order template text in markdown format.
-        """
-        response = await self._resource_do_request(resource_id, "GET", "template")
-        return response.text
-
-    async def render(self, resource_id: str) -> str:
-        """Render the order template for the given order ID.
-
-        Args:
-            resource_id: Order resource ID
-
-        Returns:
-            Rendered order as HTML.
-        """
-        response = await self._resource_do_request(resource_id, "GET", "render")
-        return response.text
 
     async def quote(self, resource_id: str, resource_data: ResourceData | None = None) -> Order:
         """Quote the order.
