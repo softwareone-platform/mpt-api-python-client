@@ -18,14 +18,14 @@ def async_subscriptions_service(async_http_client):
     return AsyncSubscriptionsService(http_client=async_http_client)
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "iterate", "terminate", "render"])
 def test_methods_present(subscriptions_service, method):
     result = hasattr(subscriptions_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "iterate", "terminate", "render"])
 def test_async_methods_present(async_subscriptions_service, method):
     result = hasattr(async_subscriptions_service, method)
 

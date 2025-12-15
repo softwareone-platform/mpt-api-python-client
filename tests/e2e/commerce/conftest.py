@@ -29,3 +29,13 @@ def commerce_product_template_id(e2e_config):
 @pytest.fixture
 def commerce_user_id(e2e_config):
     return e2e_config["commerce.user.id"]
+
+
+@pytest.fixture
+def subscription_item_id(e2e_config):
+    return e2e_config["commerce.subscription.product.item.id"]
+
+
+@pytest.fixture
+def subscription_agreement_id(e2e_config):
+    return e2e_config["commerce.subscription.agreement.id"]

@@ -74,6 +74,9 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
 ]
 rp_project = "mpt-api-python-client"
+markers = [
+  "flaky: mark test as flaky (may fail intermittently)",
+]
 
 [tool.coverage.run]
 branch = true
@@ -120,14 +123,16 @@ per-file-ignores = [
   "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/mixins.py: WPS110 WPS202 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/products.py: WPS204 WPS214 WPS215 WPS235",
+  "mpt_api_client/resources/commerce/*.py: WPS235 WPS215",
   "mpt_api_client/rql/query_builder.py: WPS110 WPS115 WPS210 WPS214",
   "tests/e2e/accounts/*.py: WPS430 WPS202",
   "tests/e2e/catalog/*.py: WPS202 WPS421",
   "tests/e2e/catalog/items/*.py: WPS110 WPS202",
-  "tests/e2e/commerce/*.py: WPS204 WPS453",
+  "tests/e2e/commerce/*.py: WPS202 WPS204 WPS453",
   "tests/e2e/commerce/agreement/*.py: WPS202",
   "tests/e2e/commerce/agreement/attachment/*.py: WPS202",
   "tests/e2e/commerce/order/*.py: WPS202 WPS204",
+  "tests/e2e/commerce/subscription/*.py: WPS202",
   "tests/unit/http/test_async_service.py: WPS204 WPS202",
   "tests/unit/http/test_service.py: WPS204 WPS202",
   "tests/unit/http/test_mixins.py: WPS204 WPS202 WPS210",
