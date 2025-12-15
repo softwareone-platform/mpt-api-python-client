@@ -22,8 +22,8 @@ async def created_asset(async_mpt_vendor, asset_factory):
         print(f"TEARDOWN - Unable to terminate asset: {getattr(error, 'title', str(error))}")  # noqa: WPS421
 
 
-async def test_get_asset_by_id(async_mpt_vendor, agreement_asset_id):
-    result = await async_mpt_vendor.commerce.assets.get(agreement_asset_id)
+async def test_get_asset_by_id(async_mpt_vendor, asset_id):
+    result = await async_mpt_vendor.commerce.assets.get(asset_id)
 
     assert result is not None
 
@@ -36,15 +36,15 @@ async def test_list_assets(async_mpt_vendor):
     assert len(result) > 0
 
 
-async def test_get_asset_by_id_not_found(async_mpt_vendor, invalid_agreement_asset_id):
+async def test_get_asset_by_id_not_found(async_mpt_vendor, invalid_asset_id):
     with pytest.raises(MPTAPIError, match=r"404 Not Found"):
-        await async_mpt_vendor.commerce.assets.get(invalid_agreement_asset_id)
+        await async_mpt_vendor.commerce.assets.get(invalid_asset_id)
 
 
-async def test_filter_assets(async_mpt_vendor, agreement_asset_id):
+async def test_filter_assets(async_mpt_vendor, asset_id):
     select_fields = ["-externalIds"]
     filtered_assets = (
-        async_mpt_vendor.commerce.assets.filter(RQLQuery(id=agreement_asset_id))
+        async_mpt_vendor.commerce.assets.filter(RQLQuery(id=asset_id))
         .filter(RQLQuery(name="E2E Seeded Order Asset"))
         .select(*select_fields)
     )
