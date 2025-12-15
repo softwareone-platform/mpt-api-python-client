@@ -111,44 +111,6 @@ def test_notify(orders_service):
         assert request.content == b'{"email":"user@example.com","name":"John Doe"}'
 
 
-def test_template(orders_service):
-    with respx.mock:
-        mock_route = respx.get(
-            "https://api.example.com/public/v1/commerce/orders/ORD-123/template"
-        ).mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content="# Order Template\n\nThis is a markdown template.",
-            )
-        )
-
-        result = orders_service.template("ORD-123")
-
-        assert mock_route.called
-        assert mock_route.call_count == 1
-        assert result == "# Order Template\n\nThis is a markdown template."
-
-
-def test_render(orders_service):
-    with respx.mock:
-        mock_route = respx.get(
-            "https://api.example.com/public/v1/commerce/orders/ORD-123/render"
-        ).mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content="# Order Render\n\nThis is a markdown render.",
-            )
-        )
-
-        result = orders_service.render("ORD-123")
-
-        assert mock_route.called
-        assert mock_route.call_count == 1
-        assert result == "# Order Render\n\nThis is a markdown render."
-
-
 @pytest.mark.parametrize(
     ("action", "input_status"),
     [
@@ -237,38 +199,6 @@ async def test_async_notify(async_orders_service):
         assert request.content == b'{"email":"user@example.com","name":"John Doe"}'
 
 
-async def test_async_template(async_orders_service):
-    template_content = "# Order Template\n\nThis is a markdown template."
-    with respx.mock:
-        respx.get("https://api.example.com/public/v1/commerce/orders/ORD-123/template").mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content=template_content,
-            )
-        )
-
-        result = await async_orders_service.template("ORD-123")
-
-        assert result == template_content
-
-
-async def test_async_render(async_orders_service):
-    render_content = "# Order Render\n\nThis is a markdown render."
-    with respx.mock:
-        respx.get("https://api.example.com/public/v1/commerce/orders/ORD-123/render").mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content=render_content,
-            )
-        )
-
-        result = await async_orders_service.render("ORD-123")
-
-        assert result == render_content
-
-
 def test_subscription_service(http_client):
     orders_service = OrdersService(http_client=http_client)
 
@@ -305,14 +235,14 @@ def test_async_asset_service(async_http_client):
     assert result.endpoint_params == {"order_id": "ORD-123"}
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "render", "template"])
 def test_mixins_present(orders_service, method):
     result = hasattr(orders_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "render", "template"])
 def test_async_mixins_present(async_orders_service, method):
     result = hasattr(async_orders_service, method)
 

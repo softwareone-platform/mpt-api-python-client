@@ -6,6 +6,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.commerce.mixins import AsyncRenderMixin, RenderMixin
 
 
 class OrdersAsset(Model):
@@ -21,6 +22,7 @@ class OrdersAssetServiceConfig:
 
 
 class OrdersAssetService(  # noqa: WPS215
+    RenderMixin[OrdersAsset],
     ManagedResourceMixin[OrdersAsset],
     CollectionMixin[OrdersAsset],
     Service[OrdersAsset],
@@ -28,43 +30,12 @@ class OrdersAssetService(  # noqa: WPS215
 ):
     """Orders Asset service."""
 
-    def render(self, resource_id: str) -> str:
-        """Render order asset template.
-
-        Args:
-            resource_id: Order asset resource ID
-
-        Returns:
-            Order asset template text in markdown format.
-        """
-        response = self._resource_do_request(
-            resource_id,
-            "GET",
-            "render",
-        )
-        return response.text
-
 
 class AsyncOrdersAssetService(  # noqa: WPS215
+    AsyncRenderMixin[OrdersAsset],
     AsyncManagedResourceMixin[OrdersAsset],
     AsyncCollectionMixin[OrdersAsset],
     AsyncService[OrdersAsset],
     OrdersAssetServiceConfig,
 ):
     """Async Orders Asset service."""
-
-    async def render(self, resource_id: str) -> str:
-        """Render order asset template.
-
-        Args:
-            resource_id: Order asset resource ID
-
-        Returns:
-            Order asset template text in markdown format.
-        """
-        response = await self._resource_do_request(
-            resource_id,
-            "GET",
-            "render",
-        )
-        return response.text

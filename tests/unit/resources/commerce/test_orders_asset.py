@@ -1,6 +1,4 @@
-import httpx
 import pytest
-import respx
 
 from mpt_api_client.resources.commerce.orders_asset import (
     AsyncOrdersAssetService,
@@ -44,39 +42,3 @@ def test_async_endpoint(async_asset_service):
     result = async_asset_service.path == "/public/v1/commerce/orders/ORD-123/assets"
 
     assert result is True
-
-
-def test_render(asset_service):
-    template_content = "# Order Asset Template\n\nThis is a sample order asset template."
-    with respx.mock:
-        respx.get(
-            "https://api.example.com/public/v1/commerce/orders/ORD-123/assets/ASSET-456/render"
-        ).mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content=template_content,
-            )
-        )
-
-        result = asset_service.render("ASSET-456")
-
-        assert result == template_content
-
-
-async def test_async_render(async_asset_service):
-    template_content = "# Order Asset Template\n\nThis is a sample order asset template."
-    with respx.mock:
-        respx.get(
-            "https://api.example.com/public/v1/commerce/orders/ORD-123/assets/ASSET-456/render"
-        ).mock(
-            return_value=httpx.Response(
-                status_code=httpx.codes.OK,
-                headers={"content-type": "text/markdown"},
-                content=template_content,
-            )
-        )
-
-        result = await async_asset_service.render("ASSET-456")
-
-        assert result == template_content

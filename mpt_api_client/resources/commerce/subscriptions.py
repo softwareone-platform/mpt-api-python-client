@@ -13,7 +13,12 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
-from mpt_api_client.resources.commerce.mixins import AsyncTerminateMixin, TerminateMixin
+from mpt_api_client.resources.commerce.mixins import (
+    AsyncRenderMixin,
+    AsyncTerminateMixin,
+    RenderMixin,
+    TerminateMixin,
+)
 
 
 class Subscription(Model):
@@ -34,22 +39,11 @@ class SubscriptionsService(  # noqa: WPS215
     GetMixin[Subscription],
     CollectionMixin[Subscription],
     TerminateMixin[Subscription],
+    RenderMixin[Subscription],
     Service[Subscription],
     SubscriptionsServiceConfig,
 ):
     """Subscription service."""
-
-    def render(self, resource_id: str) -> str:
-        """Render subscription template.
-
-        Args:
-            resource_id: Subscription resource ID
-
-        Returns:
-            Order template text in markdown format.
-        """
-        response = self._resource_do_request(resource_id, "GET", "render")
-        return response.text
 
 
 class AsyncSubscriptionsService(  # noqa: WPS215
@@ -58,19 +52,8 @@ class AsyncSubscriptionsService(  # noqa: WPS215
     AsyncGetMixin[Subscription],
     AsyncCollectionMixin[Subscription],
     AsyncTerminateMixin[Subscription],
+    AsyncRenderMixin[Subscription],
     AsyncService[Subscription],
     SubscriptionsServiceConfig,
 ):
     """Async Subscription service."""
-
-    async def render(self, resource_id: str) -> str:
-        """Render subscription template.
-
-        Args:
-            resource_id: Subscription resource ID
-
-        Returns:
-            Order template text in markdown format.
-        """
-        response = await self._resource_do_request(resource_id, "GET", "render")
-        return response.text
