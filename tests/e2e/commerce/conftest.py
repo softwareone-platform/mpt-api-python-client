@@ -49,3 +49,18 @@ def asset_item_id(e2e_config):
 @pytest.fixture
 def asset_agreement_id(e2e_config):
     return e2e_config["commerce.assets.agreement.id"]
+
+
+@pytest.fixture
+def subscription_id(e2e_config):
+    return e2e_config["commerce.subscription.id"]
+
+
+@pytest.fixture
+def agreement_subscription_line_id(e2e_config):
+    return e2e_config["commerce.agreement.subscription.line.id"]
+
+
+@pytest.fixture
+def invalid_subscription_id():
+    return "SUB-0000-0000-0000"
