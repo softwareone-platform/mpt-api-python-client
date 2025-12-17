@@ -1,1 +1,0 @@
-"""Tests for seed package."""
