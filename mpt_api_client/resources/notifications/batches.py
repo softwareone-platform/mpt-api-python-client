@@ -1,14 +1,13 @@
-from httpx._types import FileTypes
-
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
+    AsyncCreateFileMixin,
     AsyncGetMixin,
     CollectionMixin,
+    CreateFileMixin,
     GetMixin,
 )
-from mpt_api_client.models import FileModel, Model, ResourceData
+from mpt_api_client.models import FileModel, Model
 
 
 class Batch(Model):
@@ -21,43 +20,18 @@ class BatchesServiceConfig:
     _endpoint = "/public/v1/notifications/batches"
     _model_class = Batch
     _collection_key = "data"
+    _upload_file_key = "attachment"
+    _upload_data_key = "batch"
 
 
 class BatchesService(
+    CreateFileMixin[Batch],
     GetMixin[Batch],
     CollectionMixin[Batch],
     Service[Batch],
     BatchesServiceConfig,
 ):
     """Notifications Batches service."""
-
-    def create(
-        self,
-        resource_data: ResourceData | None = None,
-        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
-        data_key: str = "_attachment_data",
-    ) -> Model:
-        """Create batch with attachments.
-
-        Args:
-            resource_data: batch data.
-            files: Files data.
-            data_key: Key to use for the JSON data in the multipart form.
-
-        Returns:
-            Created resource.
-        """
-        files = files or {}
-
-        if resource_data:
-            files[data_key] = (
-                None,
-                json_to_file_payload(resource_data),
-                "application/json",
-            )
-
-        response = self.http_client.request("post", self.path, files=files)
-        return self._model_class.from_response(response)
 
     def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
         """Get batch attachment.
@@ -77,40 +51,13 @@ class BatchesService(
 
 
 class AsyncBatchesService(
+    AsyncCreateFileMixin[Batch],
     AsyncGetMixin[Batch],
     AsyncCollectionMixin[Batch],
     AsyncService[Batch],
     BatchesServiceConfig,
 ):
     """Async Notifications Batches service."""
-
-    async def create(
-        self,
-        resource_data: ResourceData | None = None,
-        files: dict[str, FileTypes] | None = None,  # noqa: WPS221
-        data_key: str = "_attachment_data",
-    ) -> Model:
-        """Create batch with attachments.
-
-        Args:
-            resource_data: batch data.
-            files: Files data.
-            data_key: Key to use for the JSON data in the multipart form.
-
-        Returns:
-            Created resource.
-        """
-        files = files or {}
-
-        if resource_data:
-            files[data_key] = (
-                None,
-                json_to_file_payload(resource_data),
-                "application/json",
-            )
-
-        response = await self.http_client.request("post", self.path, files=files)
-        return self._model_class.from_response(response)
 
     async def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
         """Get batch attachment.

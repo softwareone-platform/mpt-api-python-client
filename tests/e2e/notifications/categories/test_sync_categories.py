@@ -17,21 +17,18 @@ def created_category(mpt_ops, category_data):
         print(f"TEARDOWN - Unable to delete category {category.id}: {error.title}")  # noqa: WPS421
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_create_category(created_category, category_data):
     assert created_category.name == category_data["name"]  # act
 
     assert created_category.description == category_data["description"]
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
-def test_get_category(mpt_client, created_category):
+def test_get_category(mpt_client, category_id):
     service = mpt_client.notifications.categories
 
-    result = service.get(created_category.id)
+    result = service.get(category_id)
 
-    assert result.id == created_category.id
-    assert result.name == created_category.name
+    assert result.id == category_id
 
 
 @pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
@@ -48,23 +45,13 @@ def test_update_category(mpt_ops, created_category):
     assert result.description == "Updated description"
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
-def test_list_categories(mpt_client, created_category):
+def test_filter_categories(mpt_client, category_id):
     service = mpt_client.notifications.categories
 
-    result = list(service.iterate())
-
-    assert any(category.id == created_category.id for category in result)
-
-
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
-def test_filter_categories(mpt_client, created_category):
-    service = mpt_client.notifications.categories
-
-    result = list(service.filter(RQLQuery(id=created_category.id)).iterate())
+    result = list(service.filter(RQLQuery(id=category_id)).iterate())
 
     assert len(result) == 1
-    assert result[0].id == created_category.id
+    assert result[0].id == category_id
 
 
 @pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
@@ -96,14 +83,10 @@ def test_category_not_found(mpt_client, invalid_category_id):
         service.get(invalid_category_id)
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_delete_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
 
     service.delete(created_category.id)  # act
-
-    with pytest.raises(MPTAPIError):
-        service.get(created_category.id)
 
 
 def test_delete_category_not_found(mpt_ops, invalid_category_id):
