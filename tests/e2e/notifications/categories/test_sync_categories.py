@@ -45,7 +45,6 @@ def test_update_category(mpt_ops, created_category):
     assert result.description == "Updated description"
 
 
-
 def test_filter_categories(mpt_client, category_id):
     service = mpt_client.notifications.categories
 

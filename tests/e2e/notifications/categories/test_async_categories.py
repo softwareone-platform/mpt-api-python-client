@@ -17,7 +17,7 @@ async def async_created_category(async_mpt_ops, category_data):
         print(f"TEARDOWN - Unable to delete category {category.id}: {error.title}")  # noqa: WPS421
 
 
-def test_create_category(async_created_category, category_data):
+def test_create_category(async_created_category, category_data):  # noqa: AAA01
     assert async_created_category.name == category_data["name"]
     assert async_created_category.description == category_data["description"]
 
@@ -46,10 +46,7 @@ async def test_update_category(async_mpt_ops, async_created_category):
 async def test_filter_categories(async_mpt_vendor, category_id):
     service = async_mpt_vendor.notifications.categories
 
-    result = [
-        category
-        async for category in service.filter(RQLQuery(id=category_id)).iterate()
-    ]
+    result = [category async for category in service.filter(RQLQuery(id=category_id)).iterate()]
 
     assert len(result) == 1
     assert result[0].id == category_id
