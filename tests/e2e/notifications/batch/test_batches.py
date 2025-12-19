@@ -11,7 +11,7 @@ def test_create_batch(batch_service, batch_data):
 
 
 def test_get_batch(batch_service, batch_id):
-    result = batch_service.get(batch_id)
+    result = batch_service.get(batch_id, select=["attachments"])
 
     assert result.id == batch_id
 
@@ -30,7 +30,13 @@ def test_create_batch_with_file(batch_service, batch_data, logo_fd):
     assert result is not None
 
 
-@pytest.mark.skip(reason="Batches attachments not implemented")  # noqa: AAA01
-def test_download_attachment():
-    # TODO - Implement get and download E2E tests for attachment
-    raise NotImplementedError
+def test_download_attachment(batch_service, batch_id, batch_attachment_id):
+    result = batch_service.download_attachment(batch_id, batch_attachment_id)
+
+    assert result.filename == "logo.png"
+
+
+def test_get_attachment(batch_service, batch_id, batch_attachment_id):
+    result = batch_service.get_attachment(batch_id, batch_attachment_id)
+
+    assert result.id == batch_attachment_id
