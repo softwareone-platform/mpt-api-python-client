@@ -48,7 +48,6 @@ class AsyncHTTPClient:
         base_headers = {
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",
-            "Accept": "application/json",
         }
         self.httpx_client = AsyncClient(
             base_url=base_url,

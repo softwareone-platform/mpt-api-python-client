@@ -14,6 +14,10 @@ class Batch(Model):
     """Notifications Batch resource."""
 
 
+class BatchAttachment(Model):
+    """Notifications Batch Attachment resource."""
+
+
 class BatchesServiceConfig:
     """Notifications Batches service configuration."""
 
@@ -33,8 +37,26 @@ class BatchesService(
 ):
     """Notifications Batches service."""
 
-    def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
+    def get_attachment(self, batch_id: str, attachment_id: str) -> BatchAttachment:
         """Get batch attachment.
+
+        Args:
+            batch_id: Batch ID.
+            attachment_id: Attachment ID.
+
+        Returns:
+            BatchAttachment containing the attachment data.
+        """
+        response = self.http_client.request(
+            "get",
+            f"{self.path}/{batch_id}/attachments/{attachment_id}",
+            headers={"Accept": "application/json"},
+        )
+
+        return BatchAttachment.from_response(response)
+
+    def download_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
+        """Download batch attachment.
 
         Args:
             batch_id: Batch ID.
@@ -59,8 +81,25 @@ class AsyncBatchesService(
 ):
     """Async Notifications Batches service."""
 
-    async def get_batch_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
+    async def get_attachment(self, batch_id: str, attachment_id: str) -> BatchAttachment:
         """Get batch attachment.
+
+        Args:
+            batch_id: Batch ID.
+            attachment_id: Attachment ID.
+
+        Returns:
+            BatchAttachment containing the attachment data.
+        """
+        response = await self.http_client.request(
+            "get",
+            f"{self.path}/{batch_id}/attachments/{attachment_id}",
+            headers={"Accept": "application/json"},
+        )
+        return BatchAttachment.from_response(response)
+
+    async def download_attachment(self, batch_id: str, attachment_id: str) -> FileModel:
+        """Download batch attachment.
 
         Args:
             batch_id: Batch ID.
