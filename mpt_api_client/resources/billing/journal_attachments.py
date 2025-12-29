@@ -1,11 +1,17 @@
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
-    AsyncFilesOperationsMixin,
-    AsyncModifiableResourceMixin,
+    AsyncCreateFileMixin,
+    AsyncDeleteMixin,
+    AsyncDownloadFileMixin,
+    AsyncGetMixin,
+    AsyncUpdateMixin,
     CollectionMixin,
-    FilesOperationsMixin,
-    ModifiableResourceMixin,
+    CreateFileMixin,
+    DeleteMixin,
+    DownloadFileMixin,
+    GetMixin,
+    UpdateMixin,
 )
 from mpt_api_client.models import Model
 
@@ -20,11 +26,16 @@ class JournalAttachmentsServiceConfig:
     _endpoint = "/public/v1/billing/journals/{journal_id}/attachments"
     _model_class = JournalAttachment
     _collection_key = "data"
+    _upload_file_key = "file"
+    _upload_data_key = "attachment"
 
 
 class JournalAttachmentsService(
-    FilesOperationsMixin[JournalAttachment],
-    ModifiableResourceMixin[JournalAttachment],
+    CreateFileMixin[JournalAttachment],
+    UpdateMixin[JournalAttachment],
+    DownloadFileMixin[JournalAttachment],
+    DeleteMixin,
+    GetMixin[JournalAttachment],
     CollectionMixin[JournalAttachment],
     Service[JournalAttachment],
     JournalAttachmentsServiceConfig,
@@ -33,8 +44,11 @@ class JournalAttachmentsService(
 
 
 class AsyncJournalAttachmentsService(
-    AsyncFilesOperationsMixin[JournalAttachment],
-    AsyncModifiableResourceMixin[JournalAttachment],
+    AsyncCreateFileMixin[JournalAttachment],
+    AsyncUpdateMixin[JournalAttachment],
+    AsyncDownloadFileMixin[JournalAttachment],
+    AsyncDeleteMixin,
+    AsyncGetMixin[JournalAttachment],
     AsyncCollectionMixin[JournalAttachment],
     AsyncService[JournalAttachment],
     JournalAttachmentsServiceConfig,

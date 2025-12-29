@@ -12,6 +12,7 @@
   "accounts.user.id": "USR-9673-3314",
   "accounts.user_group.id": "UGR-6822-0561",
   "audit.record.id": "AUD-3748-4760-1006-3938",
+  "billing.journal.attachment.id": "JOA-6425-9776",
   "billing.journal.id": "BJO-6562-0928",
   "catalog.authorization.id": "AUT-9288-6146",
   "catalog.listing.id": "LST-5489-0806",
