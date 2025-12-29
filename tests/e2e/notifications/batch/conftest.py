@@ -24,3 +24,8 @@ def batch_data(category_id, short_uuid):
         "body": "Hello world",
         "contacts": [{"email": f"{short_uuid}@example.com"}],
     }
+
+
+@pytest.fixture
+def batch_attachment_id(e2e_config):
+    return e2e_config["notifications.batch.attachment.id"]
