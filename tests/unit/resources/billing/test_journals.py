@@ -1,4 +1,6 @@
+import httpx
 import pytest
+import respx
 
 from mpt_api_client.resources.billing.journal_attachments import (
     AsyncJournalAttachmentsService,
@@ -11,10 +13,6 @@ from mpt_api_client.resources.billing.journal_charges import (
 from mpt_api_client.resources.billing.journal_sellers import (
     AsyncJournalSellersService,
     JournalSellersService,
-)
-from mpt_api_client.resources.billing.journal_upload import (
-    AsyncJournalUploadService,
-    JournalUploadService,
 )
 from mpt_api_client.resources.billing.journals import AsyncJournalsService, JournalsService
 
@@ -31,7 +29,7 @@ def async_journals_service(async_http_client):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
+    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept", "upload"],
 )
 def test_mixins_present(journals_service, method):
     result = hasattr(journals_service, method)
@@ -41,7 +39,7 @@ def test_mixins_present(journals_service, method):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept"],
+    ["get", "create", "update", "delete", "regenerate", "submit", "enquiry", "accept", "upload"],
 )
 def test_async_mixins_present(async_journals_service, method):
     result = hasattr(async_journals_service, method)
@@ -55,7 +53,6 @@ def test_async_mixins_present(async_journals_service, method):
         ("attachments", JournalAttachmentsService),
         ("sellers", JournalSellersService),
         ("charges", JournalChargesService),
-        ("upload", JournalUploadService),
     ],
 )
 def test_property_services(journals_service, service_method, expected_service_class):
@@ -71,7 +68,6 @@ def test_property_services(journals_service, service_method, expected_service_cl
         ("attachments", AsyncJournalAttachmentsService),
         ("sellers", AsyncJournalSellersService),
         ("charges", AsyncJournalChargesService),
-        ("upload", AsyncJournalUploadService),
     ],
 )
 def test_async_property_services(async_journals_service, service_method, expected_service_class):
@@ -79,3 +75,67 @@ def test_async_property_services(async_journals_service, service_method, expecte
 
     assert isinstance(result, expected_service_class)
     assert result.endpoint_params == {"journal_id": "JRN-0000-0001"}
+
+
+def test_upload(journals_service, tmp_path) -> None:
+    file_path = tmp_path / "journal.jsonl"
+    file_path.write_text("test data")
+    with file_path.open("rb") as file_obj, respx.mock:
+        mock_route = respx.post(
+            "https://api.example.com/public/v1/billing/journals/JRN-0000-0001/upload"
+        ).mock(return_value=httpx.Response(200, json={"result": "ok"}))
+
+        result = journals_service.upload(
+            journal_id="JRN-0000-0001",
+            file=file_obj,
+        )
+
+        assert mock_route.called
+        assert result is not None
+
+
+async def test_async_upload(async_journals_service, tmp_path) -> None:
+    file_path = tmp_path / "journal.jsonl"
+    file_path.write_text("test data")
+    with file_path.open("rb") as file_obj, respx.mock:
+        mock_route = respx.post(
+            "https://api.example.com/public/v1/billing/journals/JRN-0000-0001/upload"
+        ).mock(return_value=httpx.Response(200, json={"result": "ok"}))
+
+        result = await async_journals_service.upload(
+            journal_id="JRN-0000-0001",
+            file=file_obj,
+        )
+
+        assert mock_route.called
+        assert result is not None
+
+
+def test_upload_without_file(journals_service) -> None:
+    with respx.mock:
+        mock_route = respx.post(
+            "https://api.example.com/public/v1/billing/journals/JRN-0000-0001/upload"
+        ).mock(return_value=httpx.Response(200, json={"result": "ok"}))
+
+        result = journals_service.upload(
+            journal_id="JRN-0000-0001",
+            file=None,
+        )
+
+        assert mock_route.called
+        assert result is not None
+
+
+async def test_async_upload_without_file(async_journals_service) -> None:
+    with respx.mock:
+        mock_route = respx.post(
+            "https://api.example.com/public/v1/billing/journals/JRN-0000-0001/upload"
+        ).mock(return_value=httpx.Response(200, json={"result": "ok"}))
+
+        result = await async_journals_service.upload(
+            journal_id="JRN-0000-0001",
+            file=None,
+        )
+
+        assert mock_route.called
+        assert result is not None
