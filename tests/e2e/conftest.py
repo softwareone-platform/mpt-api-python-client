@@ -156,3 +156,8 @@ def price_list_id(e2e_config):
 @pytest.fixture
 def user_group_id(e2e_config):
     return e2e_config["accounts.user_group.id"]
+
+
+@pytest.fixture
+def commerce_product_id(e2e_config):
+    return e2e_config["commerce.product.id"]
