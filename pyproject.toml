@@ -119,7 +119,7 @@ per-file-ignores = [
   "mpt_api_client/mpt_client.py: WPS214 WPS235",
   "mpt_api_client/resources/*: WPS215",
   "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235 WPS453",
-  "mpt_api_client/resources/billing/*.py: WPS202 WPS204 WPS214 WPS215",
+  "mpt_api_client/resources/billing/*.py: WPS202 WPS204 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/mixins.py: WPS110 WPS202 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/products.py: WPS204 WPS214 WPS215 WPS235",
