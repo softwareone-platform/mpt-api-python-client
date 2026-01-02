@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.billing.statement_attachments import (
+    AsyncStatementAttachmentsService,
+    StatementAttachmentsService,
+)
 from mpt_api_client.resources.billing.statement_charges import (
     AsyncStatementChargesService,
     StatementChargesService,
@@ -19,7 +23,19 @@ def async_statements_service(async_http_client):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "update", "issue", "cancel", "error", "pending", "queue", "retry", "recalculate"],
+    [
+        "get",
+        "update",
+        "issue",
+        "cancel",
+        "error",
+        "pending",
+        "queue",
+        "retry",
+        "recalculate",
+        "attachments",
+        "charges",
+    ],
 )
 def test_mixins_present(statements_service, method):
     result = hasattr(statements_service, method)
@@ -29,7 +45,19 @@ def test_mixins_present(statements_service, method):
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "update", "issue", "cancel", "error", "pending", "queue", "retry", "recalculate"],
+    [
+        "get",
+        "update",
+        "issue",
+        "cancel",
+        "error",
+        "pending",
+        "queue",
+        "retry",
+        "recalculate",
+        "attachments",
+        "charges",
+    ],
 )
 def test_async_mixins_present(async_statements_service, method):
     result = hasattr(async_statements_service, method)
@@ -41,6 +69,7 @@ def test_async_mixins_present(async_statements_service, method):
     ("service_method", "expected_service_class"),
     [
         ("charges", StatementChargesService),
+        ("attachments", StatementAttachmentsService),
     ],
 )
 def test_property_services(statements_service, service_method, expected_service_class):
@@ -54,6 +83,7 @@ def test_property_services(statements_service, service_method, expected_service_
     ("service_method", "expected_service_class"),
     [
         ("charges", AsyncStatementChargesService),
+        ("attachments", AsyncStatementAttachmentsService),
     ],
 )
 def test_async_property_services(async_statements_service, service_method, expected_service_class):

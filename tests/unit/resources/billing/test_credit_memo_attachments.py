@@ -38,14 +38,14 @@ def test_async_endpoint(async_credit_memo_attachments_service):
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate", "download"])
 def test_methods_present(credit_memo_attachments_service, method: str):
     result = hasattr(credit_memo_attachments_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "create", "update", "delete"])
+@pytest.mark.parametrize("method", ["get", "create", "update", "delete", "iterate", "download"])
 def test_async_methods_present(async_credit_memo_attachments_service, method: str):
     result = hasattr(async_credit_memo_attachments_service, method)
 

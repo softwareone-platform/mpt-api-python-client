@@ -9,6 +9,10 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.mixins import AsyncIssuableMixin, IssuableMixin
+from mpt_api_client.resources.billing.statement_attachments import (
+    AsyncStatementAttachmentsService,
+    StatementAttachmentsService,
+)
 from mpt_api_client.resources.billing.statement_charges import (
     AsyncStatementChargesService,
     StatementChargesService,
@@ -44,6 +48,13 @@ class StatementsService(
             endpoint_params={"statement_id": statement_id},
         )
 
+    def attachments(self, statement_id: str) -> StatementAttachmentsService:
+        """Return statement attachments service."""
+        return StatementAttachmentsService(
+            http_client=self.http_client,
+            endpoint_params={"statement_id": statement_id},
+        )
+
 
 class AsyncStatementsService(
     AsyncUpdateMixin[Statement],
@@ -58,6 +69,13 @@ class AsyncStatementsService(
     def charges(self, statement_id: str) -> AsyncStatementChargesService:
         """Return statement charges service."""
         return AsyncStatementChargesService(
+            http_client=self.http_client,
+            endpoint_params={"statement_id": statement_id},
+        )
+
+    def attachments(self, statement_id: str) -> AsyncStatementAttachmentsService:
+        """Return statement attachments service."""
+        return AsyncStatementAttachmentsService(
             http_client=self.http_client,
             endpoint_params={"statement_id": statement_id},
         )
