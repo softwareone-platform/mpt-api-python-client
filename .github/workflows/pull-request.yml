@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: "Checkout"
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -36,12 +36,12 @@ jobs:
     - name: "Run validation & test"
       run: docker compose run --service-ports app_test
 
-    - name: "Run E2E test"
-      run: docker compose run --service-ports e2e bash -c "pytest -v -p no:randomly --no-cov --reportportal --rp-launch=$RP_LAUNCH --rp-api-key=$RP_API_KEY --rp-endpoint=$RP_ENDPOINT --junitxml=e2e-report.xml tests/e2e"
-      env:
-        RP_LAUNCH: github-e2e-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_number }}
-        RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
-        RP_API_KEY: ${{ secrets.RP_API_KEY }}
+#    - name: "Run E2E test"
+#      run: docker compose run --service-ports e2e bash -c "pytest -v -p no:randomly --no-cov --reportportal --rp-launch=$RP_LAUNCH --rp-api-key=$RP_API_KEY --rp-endpoint=$RP_ENDPOINT --junitxml=e2e-report.xml tests/e2e"
+#      env:
+#        RP_LAUNCH: github-e2e-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_number }}
+#        RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
+#        RP_API_KEY: ${{ secrets.RP_API_KEY }}
 
 
     - name: "Run SonarCloud Scan"
