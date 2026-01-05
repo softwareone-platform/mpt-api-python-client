@@ -53,15 +53,13 @@ uv add -r requirements.txt
 Run all validations with:
 
 ```bash
-docker compose run --rm app_test
+make test-all
 ```
 
 Run pytest with:
 
 ```bash
-pytest tests/unit
-pytest tests/e2e
-pytest tests/seed
+make test-all
 ```
 ## License
 
