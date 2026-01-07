@@ -1,0 +1,12 @@
+services:
+  app:
+    container_name: mtp_api_client
+    build:
+      context: .
+      target: dev
+      dockerfile: Dockerfile
+    working_dir: /mpt_api_client
+    volumes:
+      - .:/mpt_api_client
+    env_file:
+      - .env
