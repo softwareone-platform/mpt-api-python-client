@@ -40,7 +40,7 @@ class HTTPClient:
         *,
         base_url: str | None = None,
         api_token: str | None = None,
-        timeout: float = 10.0,
+        timeout: float = 20.0,
         retries: int = 5,
     ):
         api_token = api_token or os.getenv("MPT_TOKEN")

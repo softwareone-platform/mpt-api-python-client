@@ -108,8 +108,8 @@ def uuid_str():
 
 
 @pytest.fixture
-def logo_fd():
-    file_path = pathlib.Path("tests/data/logo.png").resolve()
+def logo_fd(project_root_path):
+    file_path = project_root_path / "tests/data/logo.png"
     return file_path.open("rb")
 
 

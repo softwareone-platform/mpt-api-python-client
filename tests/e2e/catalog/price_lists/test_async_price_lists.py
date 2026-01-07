@@ -29,28 +29,22 @@ def test_create_price_list(async_created_price_list, product_id):
     assert result.product.id == product_id
 
 
-async def test_get_price_list(async_price_lists_service, async_created_price_list):
-    result = await async_price_lists_service.get(async_created_price_list.id)
-
-    assert result.id == async_created_price_list.id
-
-
-async def test_get_price_list_by_id(async_price_lists_service, price_list_id):
+async def test_get_price_list(async_price_lists_service, price_list_id):
     result = await async_price_lists_service.get(price_list_id)
 
     assert result.id == price_list_id
 
 
-async def test_filter_price_lists(async_price_lists_service, async_created_price_list):
+async def test_filter_price_lists(async_price_lists_service, price_list_id):
     await assert_async_service_filter_with_iterate(
-        async_price_lists_service, async_created_price_list.id, ["-product"]
+        async_price_lists_service, price_list_id, ["-product"]
     )  # act
 
 
-async def test_update_price_list(async_price_lists_service, async_created_price_list, short_uuid):
+async def test_update_price_list(async_price_lists_service, price_list_id, short_uuid):
     await assert_async_update_resource(
         async_price_lists_service,
-        async_created_price_list.id,
+        price_list_id,
         "notes",
         f"Updated notes {short_uuid}",
     )  # act

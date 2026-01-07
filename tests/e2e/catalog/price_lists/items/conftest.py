@@ -1,5 +1,7 @@
 import pytest
 
+from mpt_api_client import RQLQuery
+
 
 @pytest.fixture
 def price_list_items_service(mpt_ops, price_list_id):
@@ -21,6 +23,10 @@ def price_list_item_data(short_uuid):
 
 
 @pytest.fixture
-def price_list_item(price_list_items_service):
-    price_list_items = price_list_items_service.fetch_page(1)
-    return price_list_items[0]
+def price_list_item(price_list_items_service, item_id):
+    return next(price_list_items_service.filter(RQLQuery(item__id=item_id)).iterate())
+
+
+@pytest.fixture
+def price_list_item_id(price_list_item):
+    return price_list_item.id
