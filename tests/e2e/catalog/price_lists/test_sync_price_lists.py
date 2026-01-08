@@ -15,10 +15,10 @@ def test_create_price_list(created_price_list, product_id):
     assert result.product.id == product_id
 
 
-def test_get_price_list(price_lists_service, created_price_list):
-    result = price_lists_service.get(created_price_list.id)
+def test_get_price_list(price_lists_service, price_list_id):
+    result = price_lists_service.get(price_list_id)
 
-    assert result.id == created_price_list.id
+    assert result.id == price_list_id
 
 
 def test_get_price_list_by_id(price_lists_service, price_list_id):
@@ -27,23 +27,21 @@ def test_get_price_list_by_id(price_lists_service, price_list_id):
     assert result.id == price_list_id
 
 
-def test_iterate_price_lists(price_lists_service, created_price_list):
+def test_iterate_price_lists(price_lists_service, price_list_id):
     price_lists = list(price_lists_service.iterate())
 
-    result = any(price_list.id == created_price_list.id for price_list in price_lists)
+    result = any(price_list.id == price_list_id for price_list in price_lists)
 
     assert result is True
 
 
-def test_filter_price_lists(price_lists_service, created_price_list):
-    assert_service_filter_with_iterate(
-        price_lists_service, created_price_list.id, ["-product"]
-    )  # act
+def test_filter_price_lists(price_lists_service, price_list_id):
+    assert_service_filter_with_iterate(price_lists_service, price_list_id, ["-product"])  # act
 
 
-def test_update_price_list(price_lists_service, created_price_list, short_uuid):
+def test_update_price_list(price_lists_service, price_list_id, short_uuid):
     assert_update_resource(
-        price_lists_service, created_price_list.id, "notes", f"Updated notes {short_uuid}"
+        price_lists_service, price_list_id, "notes", f"Updated notes {short_uuid}"
     )  # act
 
 

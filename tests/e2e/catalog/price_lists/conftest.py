@@ -26,5 +26,5 @@ def created_price_list(price_lists_service, price_list_data):
 
 
 @pytest.fixture
-def price_list_id(created_price_list):
-    return created_price_list.id
+def price_list_id(e2e_config):
+    return e2e_config["catalog.price_list.id"]
