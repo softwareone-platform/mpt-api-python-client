@@ -21,6 +21,8 @@
   "billing.ledger.attachment.id": "LEA-4971-4321",
   "billing.ledger.charge.id": "CHG-2589-1434-0000-0000-0200",
   "billing.ledger.id": "BLE-2589-1434-7310-3075",
+  "billing.statement.charge.id": "CHG-2589-1434-0000-0000-0200",
+  "billing.statement.id": "SOM-7311-9982-9805-9250",
   "catalog.authorization.id": "AUT-9288-6146",
   "catalog.listing.id": "LST-5489-0806",
   "catalog.price_list.id": "PRC-7255-3950-0245",
