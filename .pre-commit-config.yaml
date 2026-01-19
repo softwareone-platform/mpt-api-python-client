@@ -29,7 +29,7 @@ repos:
         additional_dependencies: [Flake8-pyproject, Flake8-AAA, wemake-python-styleguide==1.3.*]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.0
+    rev: v1.19.0
     hooks:
       - id: mypy
         args: ["--config-file=pyproject.toml", "."]
