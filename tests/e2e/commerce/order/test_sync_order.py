@@ -40,7 +40,8 @@ def test_get_order_by_id_not_found(mpt_client, invalid_order_id):
 def test_filter_orders(mpt_client, order_id):
     select_fields = ["-authorization"]
     filtered_orders = (
-        mpt_client.commerce.orders.filter(RQLQuery(id=order_id))
+        mpt_client.commerce.orders
+        .filter(RQLQuery(id=order_id))
         .filter(RQLQuery(type="Purchase"))
         .select(*select_fields)
     )

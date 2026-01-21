@@ -48,7 +48,8 @@ async def test_filter_licensees(async_mpt_client, licensee_id):
     """Test filtering licensees using RQL asynchronously."""
     select_fields = ["-address"]
     async_filtered_licensees = (
-        async_mpt_client.accounts.licensees.filter(RQLQuery(id=licensee_id))
+        async_mpt_client.accounts.licensees
+        .filter(RQLQuery(id=licensee_id))
         .filter(RQLQuery(name="E2E Seeded Licensee"))
         .select(*select_fields)
     )

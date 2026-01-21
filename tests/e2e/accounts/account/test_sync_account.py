@@ -106,7 +106,8 @@ def test_account_rql_filter(mpt_ops, account_id):
     """Test filtering accounts using RQL synchronously."""
     selected_fields = ["-address"]
     filtered_accounts = (
-        mpt_ops.accounts.accounts.filter(RQLQuery(id=account_id))
+        mpt_ops.accounts.accounts
+        .filter(RQLQuery(id=account_id))
         .filter(RQLQuery(name="Test Api Client Vendor"))
         .select(*selected_fields)
     )

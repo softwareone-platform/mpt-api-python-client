@@ -670,7 +670,8 @@ def test_col_mx_fetch_one_with_filters(dummy_service, single_result_response, fi
 def test_col_mx_fetch_page_with_filter(dummy_service, list_response, filter_status_active):
     """Test fetching a page of resources with filters applied."""
     custom_collection = (
-        dummy_service.filter(filter_status_active)
+        dummy_service
+        .filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
         .order_by("-created", "name")
     )
@@ -902,7 +903,8 @@ async def test_async_col_mx_fetch_page_with_filter(
 ) -> None:
     """Test fetching a page of resources with filters applied."""
     custom_collection = (
-        async_dummy_service.filter(filter_status_active)
+        async_dummy_service
+        .filter(filter_status_active)
         .select("-audit", "product.agreements", "-product.agreements.product")
         .order_by("-created", "name")
     )

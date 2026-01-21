@@ -47,7 +47,8 @@ async def test_filter_user_groups(async_mpt_ops, user_group_id):
     """Test filtering user groups with specific criteria."""
     select_fields = ["-name"]
     filtered_user_groups = (
-        async_mpt_ops.accounts.user_groups.filter(RQLQuery(id=user_group_id))
+        async_mpt_ops.accounts.user_groups
+        .filter(RQLQuery(id=user_group_id))
         .filter(RQLQuery(name="E2E Seeded User Group"))
         .select(*select_fields)
     )

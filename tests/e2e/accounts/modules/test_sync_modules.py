@@ -26,7 +26,8 @@ def test_get_module_by_id_not_found(mpt_ops, invalid_module_id):
 def test_filter_modules(mpt_ops, module_id, module_name):
     select_fields = ["-description"]
     filtered_modules = (
-        mpt_ops.accounts.modules.filter(RQLQuery(id=module_id))
+        mpt_ops.accounts.modules
+        .filter(RQLQuery(id=module_id))
         .filter(RQLQuery(name=module_name))
         .select(*select_fields)
     )

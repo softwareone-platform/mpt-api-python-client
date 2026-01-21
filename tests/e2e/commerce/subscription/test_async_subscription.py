@@ -42,7 +42,8 @@ async def test_get_subscription_by_id_not_found(async_mpt_vendor, invalid_subscr
 async def test_filter_subscriptions(async_mpt_vendor, subscription_id):
     select_fields = ["-externalIds"]
     filtered_subscriptions = (
-        async_mpt_vendor.commerce.subscriptions.filter(RQLQuery(id=subscription_id))
+        async_mpt_vendor.commerce.subscriptions
+        .filter(RQLQuery(id=subscription_id))
         .filter(RQLQuery(name="E2E Seeded Subscription"))
         .select(*select_fields)
     )

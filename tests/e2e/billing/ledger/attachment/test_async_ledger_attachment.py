@@ -53,7 +53,8 @@ async def test_list_ledger_attachments(ledger_attachments):
 async def test_filter_ledger_attachments(ledger_attachments, ledger_attachment_id):
     select_fields = ["-description"]
     filtered_attachments = (
-        ledger_attachments.filter(RQLQuery(id=ledger_attachment_id))
+        ledger_attachments
+        .filter(RQLQuery(id=ledger_attachment_id))
         .filter(RQLQuery(name="E2E Seeded Ledger Attachment"))
         .select(*select_fields)
     )

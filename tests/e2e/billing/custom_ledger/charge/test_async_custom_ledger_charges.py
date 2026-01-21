@@ -35,7 +35,8 @@ async def test_list_custom_ledger_charges(custom_ledger_charges):
 async def test_filter_custom_ledger_charges(custom_ledger_charges, custom_ledger_charge_id):
     select_fields = ["-price"]
     filtered_charges = (
-        custom_ledger_charges.filter(RQLQuery(id=custom_ledger_charge_id))
+        custom_ledger_charges
+        .filter(RQLQuery(id=custom_ledger_charge_id))
         .filter(RQLQuery(description__value2="Description 2"))
         .select(*select_fields)
     )

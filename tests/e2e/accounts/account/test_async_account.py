@@ -115,7 +115,8 @@ async def test_account_rql_filter(async_mpt_ops, account_id):
     """Test filtering accounts using RQL asynchronously."""
     selected_fields = ["-address"]
     filtered_accounts = (
-        async_mpt_ops.accounts.accounts.filter(RQLQuery(id=account_id))
+        async_mpt_ops.accounts.accounts
+        .filter(RQLQuery(id=account_id))
         .filter(RQLQuery(name="Test Api Client Vendor"))
         .select(*selected_fields)
     )

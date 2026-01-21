@@ -28,7 +28,8 @@ def test_get_statement_by_id_not_found(mpt_ops, invalid_statement_id):
 def test_filter_statements(mpt_ops, statement_id):
     select_fields = ["-client"]
     filtered_statements = (
-        mpt_ops.billing.statements.filter(RQLQuery(id=statement_id))
+        mpt_ops.billing.statements
+        .filter(RQLQuery(id=statement_id))
         .filter(RQLQuery(type="Debit"))
         .select(*select_fields)
     )

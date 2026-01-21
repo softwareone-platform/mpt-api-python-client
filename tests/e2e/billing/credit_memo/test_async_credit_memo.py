@@ -49,7 +49,8 @@ async def test_filter_credit_memos(async_mpt_ops, credit_memo):
     credit_memo_status = credit_memo.status
     select_fields = ["-vendor"]
     filtered_credit_memos = (
-        async_mpt_ops.billing.credit_memos.filter(RQLQuery(id=credit_memo_id))
+        async_mpt_ops.billing.credit_memos
+        .filter(RQLQuery(id=credit_memo_id))
         .filter(RQLQuery(status=credit_memo_status))
         .select(*select_fields)
     )

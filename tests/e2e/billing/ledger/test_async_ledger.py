@@ -28,7 +28,8 @@ async def test_get_billing_ledger_by_id_not_found(async_mpt_ops, invalid_ledger_
 async def test_filter_billing_ledgers(async_mpt_ops, ledger_id, commerce_product_id):
     select_fields = ["-authorization"]
     filtered_ledgers = (
-        async_mpt_ops.billing.ledgers.filter(RQLQuery(id=ledger_id))
+        async_mpt_ops.billing.ledgers
+        .filter(RQLQuery(id=ledger_id))
         .filter(RQLQuery(f"product.id={commerce_product_id}"))
         .select(*select_fields)
     )

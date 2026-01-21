@@ -64,7 +64,8 @@ def test_filter_order_assets(mpt_vendor, created_order_asset, commerce_asset_dra
     asset_id = created_order_asset.id
     assets = mpt_vendor.commerce.orders.assets(commerce_asset_draft_order_id)
     filtered_assets = (
-        assets.filter(RQLQuery(id=asset_id))
+        assets
+        .filter(RQLQuery(id=asset_id))
         .filter(RQLQuery(name="E2E Created Order Asset"))
         .select(*select_fields)
     )

@@ -42,7 +42,8 @@ def test_get_custom_ledger_by_id_not_found(mpt_ops, invalid_custom_ledger_id):
 def test_filter_custom_ledgers(mpt_ops, custom_ledger_id):
     select_fields = ["-price"]
     filtered_custom_ledgers = (
-        mpt_ops.billing.custom_ledgers.filter(RQLQuery(id=custom_ledger_id))
+        mpt_ops.billing.custom_ledgers
+        .filter(RQLQuery(id=custom_ledger_id))
         .filter(RQLQuery(name="E2E Seeded Custom Ledger"))
         .select(*select_fields)
     )

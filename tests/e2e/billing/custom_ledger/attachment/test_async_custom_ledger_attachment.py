@@ -60,7 +60,8 @@ async def test_filter_custom_ledger_attachments(
 ):
     select_fields = ["-price"]
     filtered_attachments = (
-        custom_ledger_attachments.filter(RQLQuery(id=custom_ledger_attachment_id))
+        custom_ledger_attachments
+        .filter(RQLQuery(id=custom_ledger_attachment_id))
         .filter(RQLQuery(name="test_custom_ledger.xlsx"))
         .select(*select_fields)
     )

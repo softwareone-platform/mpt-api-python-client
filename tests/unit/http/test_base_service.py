@@ -70,7 +70,8 @@ def test_build_url_with_query_state_and_params(http_client, filter_status_active
 
 def test_build_url_with_chained_methods(dummy_service, filter_status_active):
     chained_service = (
-        dummy_service.filter(filter_status_active)
+        dummy_service
+        .filter(filter_status_active)
         .order_by("-created", "name")
         .select("id", "name", "-audit")
     )

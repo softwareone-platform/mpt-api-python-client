@@ -26,7 +26,8 @@ async def test_get_module_by_id_not_found(async_mpt_ops, invalid_module_id):
 async def test_filter_modules(async_mpt_ops, module_id, module_name):
     select_fields = ["-description"]
     filtered_modules = (
-        async_mpt_ops.accounts.modules.filter(RQLQuery(id=module_id))
+        async_mpt_ops.accounts.modules
+        .filter(RQLQuery(id=module_id))
         .filter(RQLQuery(name=module_name))
         .select(*select_fields)
     )

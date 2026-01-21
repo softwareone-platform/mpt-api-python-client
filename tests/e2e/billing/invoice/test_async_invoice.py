@@ -49,7 +49,8 @@ async def test_filter_invoices(async_mpt_ops, invoice):
     invoice_status = invoice.status
     select_fields = ["-buyer"]
     filtered_invoices = (
-        async_mpt_ops.billing.invoices.filter(RQLQuery(id=invoice_id))
+        async_mpt_ops.billing.invoices
+        .filter(RQLQuery(id=invoice_id))
         .filter(RQLQuery(status=invoice_status))
         .select(*select_fields)
     )

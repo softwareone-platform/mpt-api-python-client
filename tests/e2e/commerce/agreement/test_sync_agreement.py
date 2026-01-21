@@ -37,7 +37,8 @@ def test_get_agreement_by_id_not_found(mpt_ops, invalid_agreement_id):
 def test_filter_agreements(mpt_ops, agreement_id):
     select_fields = ["-value"]
     filtered_agreements = (
-        mpt_ops.commerce.agreements.filter(RQLQuery(id=agreement_id))
+        mpt_ops.commerce.agreements
+        .filter(RQLQuery(id=agreement_id))
         .filter(RQLQuery(name="E2E Seeded For Commerce for Test Api Client Client"))
         .select(*select_fields)
     )

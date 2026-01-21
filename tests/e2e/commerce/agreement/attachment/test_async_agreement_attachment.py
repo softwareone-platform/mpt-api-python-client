@@ -42,7 +42,8 @@ async def test_list_agreement_attachments(agreement_attachments):
 async def test_filter_agreement_attachments(agreement_attachments, agreement_attachment_id):
     select_fields = ["-description"]
     filtered_attachments = (
-        agreement_attachments.filter(RQLQuery(id=agreement_attachment_id))
+        agreement_attachments
+        .filter(RQLQuery(id=agreement_attachment_id))
         .filter(RQLQuery(name="E2E Seeded Agreement Attachment"))
         .select(*select_fields)
     )

@@ -33,7 +33,8 @@ async def test_list_journal_charges(journal_charges):
 async def test_filter_journal_charges(journal_charges, journal_charge_id):
     select_fields = ["-period"]
     filtered_charges = (
-        journal_charges.filter(RQLQuery(id=journal_charge_id))
+        journal_charges
+        .filter(RQLQuery(id=journal_charge_id))
         .filter(RQLQuery(externalIds__invoice="INV12345"))
         .select(*select_fields)
     )

@@ -33,7 +33,8 @@ async def test_list_ledger_charges(ledger_charges):
 async def test_filter_ledger_charges(ledger_charges, ledger_charge_id):
     select_fields = ["-journal"]
     filtered_charges = (
-        ledger_charges.filter(RQLQuery(id=ledger_charge_id))
+        ledger_charges
+        .filter(RQLQuery(id=ledger_charge_id))
         .filter(RQLQuery(externalIds__invoice="INV12345"))
         .select(*select_fields)
     )

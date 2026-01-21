@@ -33,7 +33,8 @@ def test_list_statement_charges(statement_charges):
 def test_filter_statement_charges(statement_charges, statement_charge_id):
     select_fields = ["-price"]
     filtered_charges = (
-        statement_charges.filter(RQLQuery(id=statement_charge_id))
+        statement_charges
+        .filter(RQLQuery(id=statement_charge_id))
         .filter(RQLQuery(externalIds__invoice="INV12345"))
         .select(*select_fields)
     )

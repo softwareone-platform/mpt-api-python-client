@@ -60,7 +60,8 @@ async def test_iterate_item_groups(async_mpt_vendor, product_id, async_created_i
 async def test_filter_item_groups(async_mpt_vendor, product_id, item_group_id):
     select_fields = ["-description"]
     filtered_item_groups = (
-        async_mpt_vendor.catalog.products.item_groups(product_id)
+        async_mpt_vendor.catalog.products
+        .item_groups(product_id)
         .filter(RQLQuery(id=item_group_id))
         .select(*select_fields)
     )
