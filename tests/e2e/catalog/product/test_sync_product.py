@@ -53,7 +53,8 @@ def test_product_save_settings(mpt_vendor, created_product):
 def test_filter_and_select_products(mpt_vendor, product_id):
     select_fields = ["-icon", "-revision", "-settings", "-vendor", "-statistics", "-website"]
     filtered_products = (
-        mpt_vendor.catalog.products.filter(RQLQuery(id=product_id))
+        mpt_vendor.catalog.products
+        .filter(RQLQuery(id=product_id))
         .filter(RQLQuery(name="E2E Seeded"))
         .select(*select_fields)
     )

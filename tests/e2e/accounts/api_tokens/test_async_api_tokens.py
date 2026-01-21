@@ -47,7 +47,8 @@ async def test_filter_api_tokens(async_mpt_vendor, api_token_id):
     """Test filtering API tokens with specific criteria."""
     select_fields = ["-description"]
     filtered_api_tokens = (
-        async_mpt_vendor.accounts.api_tokens.filter(RQLQuery(id=api_token_id))
+        async_mpt_vendor.accounts.api_tokens
+        .filter(RQLQuery(id=api_token_id))
         .filter(RQLQuery(name="E2E Seeded Token"))
         .select(*select_fields)
     )

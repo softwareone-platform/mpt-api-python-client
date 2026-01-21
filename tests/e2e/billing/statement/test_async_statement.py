@@ -28,7 +28,8 @@ async def test_get_statement_by_id_not_found(async_mpt_ops, invalid_statement_id
 async def test_filter_statements(async_mpt_ops, statement_id):
     select_fields = ["-client"]
     filtered_statements = (
-        async_mpt_ops.billing.statements.filter(RQLQuery(id=statement_id))
+        async_mpt_ops.billing.statements
+        .filter(RQLQuery(id=statement_id))
         .filter(RQLQuery(type="Debit"))
         .select(*select_fields)
     )

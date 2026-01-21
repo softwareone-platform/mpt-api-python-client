@@ -44,7 +44,8 @@ def test_get_asset_by_id_not_found(mpt_vendor, invalid_asset_id):
 def test_filter_assets(mpt_vendor, asset_id):
     select_fields = ["-externalIds"]
     filtered_assets = (
-        mpt_vendor.commerce.assets.filter(RQLQuery(id=asset_id))
+        mpt_vendor.commerce.assets
+        .filter(RQLQuery(id=asset_id))
         .filter(RQLQuery(name="E2E Seeded Order Asset"))
         .select(*select_fields)
     )

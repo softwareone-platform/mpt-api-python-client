@@ -23,7 +23,8 @@ async def test_list_journal_sellers(journal_sellers):
 async def test_filter_journal_sellers(journal_sellers, seller_id):
     select_fields = ["-period"]
     filtered_sellers = (
-        journal_sellers.filter(RQLQuery(id=seller_id))
+        journal_sellers
+        .filter(RQLQuery(id=seller_id))
         .filter(RQLQuery(name="E2E Seeded Seller"))
         .select(*select_fields)
     )

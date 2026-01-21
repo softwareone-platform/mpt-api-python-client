@@ -66,7 +66,8 @@ async def test_filter_order_subscriptions(async_mpt_vendor, created_order_subscr
     subscription_id = created_order_subscription.id
     subscriptions = async_mpt_vendor.commerce.orders.subscriptions(order_id)
     filtered_subscriptions = (
-        subscriptions.filter(RQLQuery(id=subscription_id))
+        subscriptions
+        .filter(RQLQuery(id=subscription_id))
         .filter(RQLQuery(name="E2E Created Order Subscription"))
         .select(*select_fields)
     )

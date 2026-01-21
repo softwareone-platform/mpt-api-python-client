@@ -50,7 +50,8 @@ def test_get_seller_by_id_not_found(mpt_ops, invalid_seller_id):
 def test_filter_sellers(mpt_ops, seller_id):
     select_fields = ["-address"]
     filtered_sellers = (
-        mpt_ops.accounts.sellers.filter(RQLQuery(id=seller_id))
+        mpt_ops.accounts.sellers
+        .filter(RQLQuery(id=seller_id))
         .filter(RQLQuery(name="E2E Seeded Seller"))
         .select(*select_fields)
     )

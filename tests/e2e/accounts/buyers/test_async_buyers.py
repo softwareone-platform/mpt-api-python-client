@@ -51,7 +51,8 @@ async def test_filter_buyers(async_mpt_ops, buyer_id):
     """Test filtering buyers using RQL asynchronously."""
     select_fields = ["-address"]
     async_filtered_buyers = (
-        async_mpt_ops.accounts.buyers.filter(RQLQuery(id=buyer_id))
+        async_mpt_ops.accounts.buyers
+        .filter(RQLQuery(id=buyer_id))
         .filter(RQLQuery(name="E2E Seeded Buyer"))
         .select(*select_fields)
     )

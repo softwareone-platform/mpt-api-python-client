@@ -44,7 +44,8 @@ def test_get_licensee_by_id_not_found(mpt_client, invalid_licensee_id):
 def test_filter_licensees(mpt_client, licensee_id):
     select_fields = ["-address"]
     filtered_licensees = (
-        mpt_client.accounts.licensees.filter(RQLQuery(id=licensee_id))
+        mpt_client.accounts.licensees
+        .filter(RQLQuery(id=licensee_id))
         .filter(RQLQuery(name="E2E Seeded Licensee"))
         .select(*select_fields)
     )

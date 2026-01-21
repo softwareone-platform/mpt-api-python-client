@@ -49,7 +49,8 @@ def test_filter_invoices(mpt_ops, invoice):
     invoice_status = invoice.status
     select_fields = ["-buyer"]
     filtered_invoices = (
-        mpt_ops.billing.invoices.filter(RQLQuery(id=invoice_id))
+        mpt_ops.billing.invoices
+        .filter(RQLQuery(id=invoice_id))
         .filter(RQLQuery(status=invoice_status))
         .select(*select_fields)
     )

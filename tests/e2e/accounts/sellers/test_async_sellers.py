@@ -51,7 +51,8 @@ async def test_get_seller_by_id_not_found(async_mpt_ops, invalid_seller_id):
 async def test_filter_sellers(async_mpt_ops, seller_id):
     select_fields = ["-address"]
     async_filtered_sellers = (
-        async_mpt_ops.accounts.sellers.filter(RQLQuery(id=seller_id))
+        async_mpt_ops.accounts.sellers
+        .filter(RQLQuery(id=seller_id))
         .filter(RQLQuery(name="E2E Seeded Seller"))
         .select(*select_fields)
     )

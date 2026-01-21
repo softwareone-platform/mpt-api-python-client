@@ -40,7 +40,8 @@ async def test_get_order_by_id_not_found(async_mpt_client, invalid_order_id):
 async def test_filter_orders(async_mpt_client, order_id):
     select_fields = ["-authorization"]
     filtered_orders = (
-        async_mpt_client.commerce.orders.filter(RQLQuery(id=order_id))
+        async_mpt_client.commerce.orders
+        .filter(RQLQuery(id=order_id))
         .filter(RQLQuery(type="Purchase"))
         .select(*select_fields)
     )

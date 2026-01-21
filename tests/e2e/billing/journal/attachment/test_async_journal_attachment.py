@@ -56,7 +56,8 @@ async def test_list_journal_attachments(journal_attachments):
 async def test_filter_journal_attachments(journal_attachments, journal_attachment_id):
     select_fields = ["-description"]
     filtered_attachments = (
-        journal_attachments.filter(RQLQuery(id=journal_attachment_id))
+        journal_attachments
+        .filter(RQLQuery(id=journal_attachment_id))
         .filter(RQLQuery(name="E2E Seeded Billing Journal Attachment"))
         .select(*select_fields)
     )

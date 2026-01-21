@@ -70,7 +70,8 @@ async def test_filter_order_assets(
     asset_id = created_order_asset.id
     assets = async_mpt_vendor.commerce.orders.assets(commerce_asset_draft_order_id)
     filtered_assets = (
-        assets.filter(RQLQuery(id=asset_id))
+        assets
+        .filter(RQLQuery(id=asset_id))
         .filter(RQLQuery(name="E2E Created Order Asset"))
         .select(*select_fields)
     )

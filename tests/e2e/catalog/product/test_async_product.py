@@ -59,7 +59,8 @@ async def test_product_save_settings(async_mpt_vendor, async_created_product):
 async def test_filter_and_select_products(async_mpt_vendor, product_id):
     select_fields = ["-icon", "-revision", "-settings", "-vendor", "-statistics", "-website"]
     filtered_products = (
-        async_mpt_vendor.catalog.products.filter(RQLQuery(id=product_id))
+        async_mpt_vendor.catalog.products
+        .filter(RQLQuery(id=product_id))
         .filter(RQLQuery(name="E2E Seeded"))
         .select(*select_fields)
     )

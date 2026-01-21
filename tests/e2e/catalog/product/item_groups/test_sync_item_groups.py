@@ -60,7 +60,8 @@ def test_iterate_item_groups(mpt_vendor, product_id, created_item_group):
 def test_filter_item_groups(mpt_vendor, product_id, item_group_id):
     select_fields = ["-description"]
     filtered_item_groups = (
-        mpt_vendor.catalog.products.item_groups(product_id)
+        mpt_vendor.catalog.products
+        .item_groups(product_id)
         .filter(RQLQuery(id=item_group_id))
         .select(*select_fields)
     )

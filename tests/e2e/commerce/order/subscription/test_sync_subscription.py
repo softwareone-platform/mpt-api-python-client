@@ -64,7 +64,8 @@ def test_filter_order_subscriptions(mpt_vendor, created_order_subscription, orde
     subscription_id = created_order_subscription.id
     subscriptions = mpt_vendor.commerce.orders.subscriptions(order_id)
     filtered_subscriptions = (
-        subscriptions.filter(RQLQuery(id=subscription_id))
+        subscriptions
+        .filter(RQLQuery(id=subscription_id))
         .filter(RQLQuery(name="E2E Created Order Subscription"))
         .select(*select_fields)
     )

@@ -64,7 +64,8 @@ async def test_get_billing_journal_by_id_not_found(async_mpt_vendor, invalid_bil
 async def test_filter_billing_journals(async_mpt_vendor, billing_journal_id):
     select_fields = ["-value"]
     filtered_billing_journals = (
-        async_mpt_vendor.billing.journals.filter(RQLQuery(id=billing_journal_id))
+        async_mpt_vendor.billing.journals
+        .filter(RQLQuery(id=billing_journal_id))
         .filter(RQLQuery(name="E2E Seeded Billing Journal"))
         .select(*select_fields)
     )

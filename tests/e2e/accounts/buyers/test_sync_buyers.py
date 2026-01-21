@@ -49,7 +49,8 @@ def test_filter_buyers(mpt_ops, buyer_id):
     """Test filtering buyers using RQL synchronously."""
     select_fields = ["-address"]
     filtered_buyers = (
-        mpt_ops.accounts.buyers.filter(RQLQuery(id=buyer_id))
+        mpt_ops.accounts.buyers
+        .filter(RQLQuery(id=buyer_id))
         .filter(RQLQuery(name="E2E Seeded Buyer"))
         .select(*select_fields)
     )

@@ -28,7 +28,8 @@ async def test_get_billing_override_by_id_not_found(async_mpt_ops, invalid_billi
 async def test_filter_billing_overrides(async_mpt_ops, billing_override_id):
     select_fields = ["-client"]
     filtered_billing_overrides = (
-        async_mpt_ops.billing.manual_overrides.filter(RQLQuery(id=billing_override_id))
+        async_mpt_ops.billing.manual_overrides
+        .filter(RQLQuery(id=billing_override_id))
         .filter(RQLQuery(externalId="e2e-seeded-override"))
         .select(*select_fields)
     )

@@ -28,7 +28,8 @@ def test_get_billing_ledger_by_id_not_found(mpt_ops, invalid_ledger_id):
 def test_filter_billing_ledgers(mpt_ops, ledger_id, commerce_product_id):
     select_fields = ["-authorization"]
     filtered_ledgers = (
-        mpt_ops.billing.ledgers.filter(RQLQuery(id=ledger_id))
+        mpt_ops.billing.ledgers
+        .filter(RQLQuery(id=ledger_id))
         .filter(RQLQuery(f"product.id={commerce_product_id}"))
         .select(*select_fields)
     )
