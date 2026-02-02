@@ -12,7 +12,7 @@ from mpt_api_client.resources.accounts.account_user_groups import (
     AccountUserGroupsService,
     AsyncAccountUserGroupsService,
 )
-from mpt_api_client.resources.accounts.mixins.invitable_mixin import (
+from mpt_api_client.resources.accounts.mixins import (
     AsyncInvitableMixin,
     InvitableMixin,
 )
