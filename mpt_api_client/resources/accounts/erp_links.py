@@ -10,7 +10,10 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
-from mpt_api_client.resources.accounts.mixins import AsyncBlockableMixin, BlockableMixin
+from mpt_api_client.resources.accounts.mixins.blockable_mixin import (
+    AsyncBlockableMixin,
+    BlockableMixin,
+)
 
 
 class ErpLink(Model):
