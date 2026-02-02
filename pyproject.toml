@@ -121,7 +121,6 @@ per-file-ignores = [
   "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235 WPS453",
   "mpt_api_client/resources/billing/*.py: WPS202 WPS204 WPS214 WPS215 WPS235 WPS110",
   "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
-  "mpt_api_client/resources/catalog/mixins.py: WPS110 WPS202 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/products.py: WPS204 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/commerce/*.py: WPS235 WPS215",
   "mpt_api_client/rql/query_builder.py: WPS110 WPS115 WPS210 WPS214",
@@ -143,11 +142,7 @@ per-file-ignores = [
   "tests/unit/resources/commerce/*.py: WPS202 WPS204",
   "tests/unit/resources/*/test_mixins.py: WPS118 WPS202 WPS204 WPS235",
   "tests/unit/test_mpt_client.py: WPS235",
-  "tests/seed/catalog/test_product.py: WPS202 WPS204 WPS219",
   "tests/*: WPS432 WPS202",
-  "seed/*: WPS404",
-  "seed/accounts/*.py: WPS204 WPS404 WPS453",
-  "seed/catalog/product.py: WPS202 WPS204 WPS217 WPS201 WPS213 WPS404",
 ]
 
 [tool.ruff]
