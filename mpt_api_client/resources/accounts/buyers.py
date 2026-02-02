@@ -17,9 +17,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
-from mpt_api_client.resources.accounts.mixins import (
+from mpt_api_client.resources.accounts.mixins.activatable_mixin import (
     ActivatableMixin,
     AsyncActivatableMixin,
+)
+from mpt_api_client.resources.accounts.mixins.validate_mixin import (
     AsyncValidateMixin,
     ValidateMixin,
 )
