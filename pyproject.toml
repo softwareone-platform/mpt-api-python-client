@@ -115,7 +115,6 @@ select = ["AAA", "E999", "WPS"]
 show-source = true
 statistics = false
 per-file-ignores = [
-  "mpt_api_client/http/mixins.py: WPS202 WPS204 WPS235",
   "mpt_api_client/models/model.py: WPS215 WPS110",
   "mpt_api_client/mpt_client.py: WPS214 WPS235",
   "mpt_api_client/resources/*: WPS215",
@@ -138,7 +137,7 @@ per-file-ignores = [
   "tests/e2e/commerce/subscription/*.py: WPS202",
   "tests/unit/http/test_async_service.py: WPS204 WPS202",
   "tests/unit/http/test_service.py: WPS204 WPS202",
-  "tests/unit/http/test_mixins.py: WPS204 WPS202 WPS210",
+  "tests/unit/http/mixins/*: WPS204 WPS202 WPS210",
   "tests/unit/resources/accounts/*.py: WPS204 WPS202 WPS210",
   "tests/unit/resources/catalog/test_products.py: WPS202 WPS210",
   "tests/unit/resources/commerce/*.py: WPS202 WPS204",
