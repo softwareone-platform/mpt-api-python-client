@@ -28,8 +28,8 @@ repos:
       - id: flake8
         additional_dependencies:
           [
-            Flake8-pyproject==1.2.*,
-            Flake8-AAA==0.17.*,
+            flake8-aaa==0.17.*,
+            flake8-pyproject==1.2.*,
             wemake-python-styleguide==1.5.*,
           ]
 
@@ -39,3 +39,5 @@ repos:
       - id: mypy
         args: ["--config-file=pyproject.toml", "."]
         pass_filenames: false
+        additional_dependencies:
+          - python-box==7.3.2

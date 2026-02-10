@@ -31,15 +31,15 @@ class AsyncHTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
-        api_token = api_token or os.getenv("MPT_TOKEN")
+        api_token = api_token or os.getenv("MPT_API_TOKEN")
         if not api_token:
             raise ValueError(
                 "API token is required. "
-                "Set it up as env variable MPT_TOKEN or pass it as `api_token` "
+                "Set it up as env variable MPT_API_TOKEN or pass it as `api_token` "
                 "argument to MPTClient."
             )
 
-        base_url = validate_base_url(base_url or os.getenv("MPT_URL"))
+        base_url = validate_base_url(base_url or os.getenv("MPT_API_BASE_URL"))
         base_headers = {
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",

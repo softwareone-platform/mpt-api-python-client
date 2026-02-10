@@ -38,8 +38,8 @@ def test_async_http_initialization(mocker):
 
 
 def test_async_env_initialization(monkeypatch, mocker):
-    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
-    monkeypatch.setenv("MPT_URL", API_URL)
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    monkeypatch.setenv("MPT_API_TOKEN", API_TOKEN)
     mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
 
     AsyncHTTPClient()  # act
@@ -56,14 +56,11 @@ def test_async_env_initialization(monkeypatch, mocker):
     )
 
 
-def test_async_http_without_token():
+def test_async_http_without_token(monkeypatch):
+    monkeypatch.delenv("MPT_API_TOKEN", raising=False)
+
     with pytest.raises(ValueError):
         AsyncHTTPClient(base_url=API_URL)
-
-
-def test_async_http_without_url():
-    with pytest.raises(ValueError):
-        AsyncHTTPClient(api_token=API_TOKEN)
 
 
 @respx.mock

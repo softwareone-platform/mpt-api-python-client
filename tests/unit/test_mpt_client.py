@@ -44,8 +44,8 @@ def test_mpt_client(resource_name: str, expected_type: type) -> None:
 
 
 def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("MPT_URL", API_URL)
-    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    monkeypatch.setenv("MPT_API_TOKEN", API_TOKEN)
 
     result = MPTClient()
 
@@ -74,8 +74,8 @@ def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
 
 
 def test_async_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("MPT_URL", API_URL)
-    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    monkeypatch.setenv("MPT_API_TOKEN", API_TOKEN)
 
     result = AsyncMPTClient()
 

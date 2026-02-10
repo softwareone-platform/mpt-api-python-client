@@ -28,8 +28,8 @@ def test_http_initialization(mocker):
 
 
 def test_env_initialization(monkeypatch, mocker):
-    monkeypatch.setenv("MPT_TOKEN", API_TOKEN)
-    monkeypatch.setenv("MPT_URL", API_URL)
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    monkeypatch.setenv("MPT_API_TOKEN", API_TOKEN)
     mock_client = mocker.patch("mpt_api_client.http.client.Client")
 
     HTTPClient()  # act
@@ -46,14 +46,11 @@ def test_env_initialization(monkeypatch, mocker):
     )
 
 
-def test_http_without_token():
+def test_http_without_token(monkeypatch):
+    monkeypatch.delenv("MPT_API_TOKEN", raising=False)
+
     with pytest.raises(ValueError):
         HTTPClient(base_url=API_URL)
-
-
-def test_http_without_url():
-    with pytest.raises(ValueError):
-        HTTPClient(api_token=API_TOKEN)
 
 
 @respx.mock
