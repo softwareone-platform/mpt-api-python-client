@@ -15,14 +15,14 @@ def test_create_with_field():
     query.eq("value")  # act
 
     assert query.op == RQLQuery.OP_EXPRESSION
-    assert str(query) == "eq(field,value)"
+    assert str(query) == "eq(field,'value')"
 
 
 def test_create_single_kwarg():
     result = RQLQuery(id="ID")
 
     assert result.op == RQLQuery.OP_EXPRESSION
-    assert str(result) == "eq(id,ID)"
+    assert str(result) == "eq(id,'ID')"
     assert result.children == []
     assert result.negated is False
 
@@ -31,17 +31,17 @@ def test_create_multiple_kwargs():  # noqa: WPS218
     result = RQLQuery(id="ID", status__in=("a", "b"), ok=True)
 
     assert result.op == RQLQuery.OP_AND
-    assert str(result) == "and(eq(id,ID),in(status,(a,b)),eq(ok,true))"
+    assert str(result) == "and(eq(id,'ID'),in(status,(a,b)),eq(ok,'true'))"
     assert len(result.children) == 3
     assert result.children[0].op == RQLQuery.OP_EXPRESSION
     assert result.children[0].children == []
-    assert str(result.children[0]) == "eq(id,ID)"
+    assert str(result.children[0]) == "eq(id,'ID')"
     assert result.children[1].op == RQLQuery.OP_EXPRESSION
     assert result.children[1].children == []
     assert str(result.children[1]) == "in(status,(a,b))"
     assert result.children[2].op == RQLQuery.OP_EXPRESSION
     assert result.children[2].children == []
-    assert str(result.children[2]) == "eq(ok,true)"
+    assert str(result.children[2]) == "eq(ok,'true')"
 
 
 def test_new_empty():

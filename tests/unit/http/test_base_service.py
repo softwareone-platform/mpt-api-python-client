@@ -52,7 +52,7 @@ def test_build_url_with_query_state(http_client, filter_status_active):
 
     result = service_with_state.build_path()
 
-    assert result == "/api/v1/test?order=created,-name&select=id,name&eq(status,active)"
+    assert result == "/api/v1/test?order=created,-name&select=id,name&eq(status,'active')"
 
 
 def test_build_url_with_query_state_and_params(http_client, filter_status_active):
@@ -65,7 +65,7 @@ def test_build_url_with_query_state_and_params(http_client, filter_status_active
 
     result = service_with_state.build_path(query_params)
 
-    assert result == "/api/v2/test/T-123?limit=5&eq(status,active)"
+    assert result == "/api/v2/test/T-123?limit=5&eq(status,'active')"
 
 
 def test_build_url_with_chained_methods(dummy_service, filter_status_active):
@@ -79,6 +79,6 @@ def test_build_url_with_chained_methods(dummy_service, filter_status_active):
     result = chained_service.build_path({"limit": "10"})
 
     expected_url = (
-        "/api/v1/test?limit=10&order=-created,name&select=id,name,-audit&eq(status,active)"
+        "/api/v1/test?limit=10&order=-created,name&select=id,name,-audit&eq(status,'active')"
     )
     assert result == expected_url

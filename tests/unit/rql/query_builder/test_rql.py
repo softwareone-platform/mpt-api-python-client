@@ -28,9 +28,9 @@ def test_bool():  # noqa: AAA01
 
 
 def test_str():  # noqa: AAA01
-    assert str(RQLQuery(id="ID")) == "eq(id,ID)"
-    assert str(~RQLQuery(id="ID")) == "not(eq(id,ID))"
-    assert str(~RQLQuery(id="ID", field="value")) == "not(and(eq(id,ID),eq(field,value)))"
+    assert str(RQLQuery(id="ID")) == "eq(id,'ID')"
+    assert str(~RQLQuery(id="ID")) == "not(eq(id,'ID'))"
+    assert str(~RQLQuery(id="ID", field="value")) == "not(and(eq(id,'ID'),eq(field,'value')))"
     assert not str(RQLQuery())
 
 

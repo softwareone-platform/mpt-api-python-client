@@ -15,8 +15,8 @@ def test_dotted_path_comp(op):
     test = Test()
     today = dt.datetime.now(dt.UTC).date()
     now = dt.datetime.now(dt.UTC)
-    today_expected_result = f"{op}(asset.id,{today.isoformat()})"
-    now_expected_result = f"{op}(asset.id,{now.isoformat()})"
+    today_expected_result = f"{op}(asset.id,'{today.isoformat()}')"
+    now_expected_result = f"{op}(asset.id,'{now.isoformat()}')"
 
     with pytest.raises(TypeError):
         getattr(RQLQuery().asset.id, op)(test)
@@ -29,9 +29,9 @@ def test_dotted_path_comp(op):
 def test_dotted_path_comp_bool_and_str(op):
     result = getattr(RQLQuery().asset.id, op)
 
-    assert str(result("value")) == f"{op}(asset.id,value)"
-    assert str(result(True)) == f"{op}(asset.id,true)"  # noqa: FBT003
-    assert str(result(False)) == f"{op}(asset.id,false)"  # noqa: FBT003
+    assert str(result("value")) == f"{op}(asset.id,'value')"
+    assert str(result(True)) == f"{op}(asset.id,'true')"  # noqa: FBT003
+    assert str(result(False)) == f"{op}(asset.id,'false')"  # noqa: FBT003
 
 
 @pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])  # noqa: AAA01
@@ -43,9 +43,9 @@ def test_dotted_path_comp_numerics(op):
     result_float = str(attribute_op_match(10.678937))
     decimal_result = str(attribute_op_match(Decimal("32983.328238273")))
 
-    assert integer_result == f"{op}(asset.id,10)"
-    assert result_float == f"{op}(asset.id,10.678937)"
-    assert decimal_result == f"{op}(asset.id,{decimal_object!s})"
+    assert integer_result == f"{op}(asset.id,'10')"
+    assert result_float == f"{op}(asset.id,'10.678937')"
+    assert decimal_result == f"{op}(asset.id,'{decimal_object!s}')"
 
 
 @pytest.mark.parametrize("op", ["like", "ilike"])
