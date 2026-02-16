@@ -14,6 +14,7 @@ from mpt_api_client.exceptions import (
     MPTError,
     transform_http_status_exception,
 )
+from mpt_api_client.http.client_utils import validate_base_url
 from mpt_api_client.http.types import (
     HeaderTypes,
     QueryParam,
@@ -51,13 +52,7 @@ class HTTPClient:
                 "argument to MPTClient."
             )
 
-        base_url = base_url or os.getenv("MPT_URL")
-        if not base_url:
-            raise ValueError(
-                "Base URL is required. "
-                "Set it up as env variable MPT_URL or pass it as `base_url` "
-                "argument to MPTClient."
-            )
+        base_url = validate_base_url(base_url or os.getenv("MPT_URL"))
         base_headers = {
             "User-Agent": "swo-marketplace-client/1.0",
             "Authorization": f"Bearer {api_token}",
