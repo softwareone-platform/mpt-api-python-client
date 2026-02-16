@@ -1,4 +1,4 @@
-from mpt_api_client.rql import RQLQuery
+from mpt_api_client.rql import RQLProperty, RQLQuery
 
 
 def test_in_and_namespaces():
@@ -11,9 +11,8 @@ def test_in_and_namespaces():
 
 
 def test_in():
-    products = ["PRD-1", "PRD-2"]
-    product_ids = ",".join(products)
+    products = ["PRD-1", "PRD-2", RQLProperty("product.id")]
 
     result = RQLQuery(product__id__in=products)
 
-    assert str(result) == f"in(product.id,({product_ids}))"
+    assert str(result) == "in(product.id,('PRD-1','PRD-2',product.id))"

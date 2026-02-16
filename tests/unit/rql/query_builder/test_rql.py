@@ -1,13 +1,15 @@
-from mpt_api_client.rql import RQLQuery
+from mpt_api_client.rql import RQLProperty, RQLQuery, RQLValue
 
 
 def test_repr():  # noqa: AAA01
-    products = ["PRD-1", "PRD-2"]
-    product_ids = ",".join(products)
+    products = ["PRD-1", RQLValue("PRD-2"), RQLProperty("agreement.product.id")]
     expression_query = RQLQuery(product__id__in=products)
     or_expression = RQLQuery(name="Albert") | RQLQuery(surname="Einstein")
 
-    assert repr(expression_query) == f"<RQLQuery(expr) in(product.id,({product_ids}))>"
+    assert (
+        repr(expression_query)
+        == "<RQLQuery(expr) in(product.id,('PRD-1','PRD-2',agreement.product.id))>"
+    )
     assert repr(or_expression) == "<RQLQuery(or)>"
 
 
@@ -28,9 +30,9 @@ def test_bool():  # noqa: AAA01
 
 
 def test_str():  # noqa: AAA01
-    assert str(RQLQuery(id="ID")) == "eq(id,ID)"
-    assert str(~RQLQuery(id="ID")) == "not(eq(id,ID))"
-    assert str(~RQLQuery(id="ID", field="value")) == "not(and(eq(id,ID),eq(field,value)))"
+    assert str(RQLQuery(id="ID")) == "eq(id,'ID')"
+    assert str(~RQLQuery(id="ID")) == "not(eq(id,'ID'))"
+    assert str(~RQLQuery(id="ID", field="value")) == "not(and(eq(id,'ID'),eq(field,'value')))"
     assert not str(RQLQuery())
 
 
