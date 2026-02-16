@@ -30,7 +30,7 @@ def test_build_url(filter_status_active):
     assert result == (
         "order=-created,name"
         "&select=-audit,product.agreements,-product.agreements.product"
-        "&eq(status,active)"
+        "&eq(status,'active')"
     )
 
 
@@ -46,4 +46,4 @@ def test_build_with_params(filter_status_active):
 
     result = query_state.build(query_params)
 
-    assert result == "limit=10&order=created&select=name&eq(status,active)"
+    assert result == "limit=10&order=created&select=name&eq(status,'active')"

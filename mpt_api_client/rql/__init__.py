@@ -1,3 +1,3 @@
-from mpt_api_client.rql.query_builder import RQLQuery
+from mpt_api_client.rql.query_builder import Property, RQLQuery, Value
 
-__all__ = ["RQLQuery"]  # noqa: WPS410
+__all__ = ["Property", "RQLQuery", "Value"]  # noqa: WPS410

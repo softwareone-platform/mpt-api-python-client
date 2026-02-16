@@ -73,7 +73,7 @@ def test_col_mx_fetch_one_with_filters(
     assert first_request.url == (
         "https://api.example.com/api/v1/test"
         "?limit=1&offset=0&order=created"
-        "&select=id,name&eq(status,active)"
+        "&select=id,name&eq(status,'active')"
     )
 
 
@@ -91,7 +91,7 @@ def test_col_mx_fetch_page_with_filter(
         "https://api.example.com/api/v1/test?limit=10&offset=5"
         "&order=-created,name"
         "&select=-audit,product.agreements,-product.agreements.product"
-        "&eq(status,active)"
+        "&eq(status,'active')"
     )
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
@@ -213,7 +213,7 @@ def test_col_mx_iterate_with_filters(
     request = mock_route.calls[0].request
     assert (
         str(request.url) == "https://api.example.com/api/v1/test"
-        "?limit=100&offset=0&order=created&select=id,name&eq(status,active)"
+        "?limit=100&offset=0&order=created&select=id,name&eq(status,'active')"
     )
 
 
@@ -322,7 +322,7 @@ async def test_async_col_mx_fetch_one_with_filters(
     assert first_request.url == (
         "https://api.example.com/api/v1/test"
         "?limit=1&offset=0&order=created"
-        "&select=id,name&eq(status,active)"
+        "&select=id,name&eq(status,'active')"
     )
 
 
@@ -342,7 +342,7 @@ async def test_async_col_mx_fetch_page_with_filter(
         "https://api.example.com/api/v1/test?limit=10&offset=5"
         "&order=-created,name"
         "&select=-audit,product.agreements,-product.agreements.product"
-        "&eq(status,active)"
+        "&eq(status,'active')"
     )
     with respx.mock:
         mock_route = respx.get("https://api.example.com/api/v1/test").mock(
@@ -464,7 +464,7 @@ async def test_async_col_mx_iterate_with_filters(
     request = mock_route.calls[0].request
     assert (
         str(request.url) == "https://api.example.com/api/v1/test"
-        "?limit=100&offset=0&order=created&select=id,name&eq(status,active)"
+        "?limit=100&offset=0&order=created&select=id,name&eq(status,'active')"
     )
 
 
