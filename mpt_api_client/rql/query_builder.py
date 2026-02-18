@@ -257,28 +257,39 @@ class RQLQuery:
     def __str__(self) -> str:
         return self._to_string(self)
 
-    def any(self) -> Self:
+    def any(self, collection_name: str) -> Self:
         """Any nested objects have to match the filter condition.
+
+        Args:
+            collection_name: The name of the collection to which apply the `any` operator.
 
         Returns:
             RQLQuery: RQLQuery with new condition
 
         Examples:
-            RQLQuery(saleDetails__orderQty__gt=11).any()
-            will result: any(saleDetails,orderQty=11)
+            RQLQuery(orderQty__gt=11).any("saleDetails")
+            will result (single): any(saleDetails,orderQty=11)
+            (RQLQuery(orderQty__gt=11) & RQLQuery(price__lt=100)).any("saleDetails")
+            will result (multiple): any(and(saleDetails,gt(orderQty,11),lt(price,100)))
         """
-        return self.new(op=self.OP_ANY, children=[self])
+        return self._nest(self.OP_ANY, collection_name)
 
-    def all(self) -> Self:
+    def all(self, collection_name: str) -> Self:
         """All nested objects have to match the filter condition.
+
+        Args:
+            collection_name: The name of the collection to which apply the `all` operator.
 
         Returns:
             RQLQuery: RQLQuery with new condition
 
-        Example:
-            RQLQuery(saleDetails__orderQty__gt=1).all()
+        Examples:
+            RQLQuery(orderQty__gt=1).all("saleDetails")
+            will result (single): all(saleDetails,gt(orderQty,1))
+            (RQLQuery(orderQty__gt=11) & RQLQuery(price__lt=100)).all("saleDetails")
+            will result (multiple): all(and(saleDetails,gt(orderQty,11),lt(price,100)))
         """
-        return self.new(op=self.OP_ALL, children=[self])
+        return self._nest(self.OP_ALL, collection_name)
 
     def n(self, name: str) -> Self:  # noqa: WPS111
         """Set the current field for this `RQLQuery` object.
@@ -522,3 +533,9 @@ class RQLQuery:
 
         self.children.append(query)
         return self
+
+    def _nest(self, op: str, collection_name: str) -> Self:
+        name = collection_name.replace("__", ".")
+        collection = self._to_string(self) if self.children else self.expr or ""
+        expr = f"{op}({name},{collection})"
+        return self.new(expr=expr)
