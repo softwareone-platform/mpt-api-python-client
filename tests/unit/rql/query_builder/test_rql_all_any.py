@@ -6,7 +6,7 @@ def test_all():
 
     result = str(query)
 
-    assert result == "all(saleDetails,gt(orderQty,1))"
+    assert result == "all(saleDetails,gt(orderQty,'1'))"
 
 
 def test_any():
@@ -14,7 +14,7 @@ def test_any():
 
     result = str(query)
 
-    assert result == "any(saleDetails,gt(orderQty,1))"
+    assert result == "any(saleDetails,gt(orderQty,'1'))"
 
 
 def test_all_multiple_conditions():
@@ -24,7 +24,7 @@ def test_all_multiple_conditions():
 
     result = str(query)
 
-    assert result == "all(saleDetails,and(gt(orderQty,1),lt(price,100)))"
+    assert result == "all(saleDetails,and(gt(orderQty,'1'),lt(price,'100')))"
 
 
 def test_any_multiple_conditions():
@@ -34,4 +34,4 @@ def test_any_multiple_conditions():
 
     result = str(query)
 
-    assert result == "any(saleDetails,and(gt(orderQty,1),lt(price,100)))"
+    assert result == "any(saleDetails,and(gt(orderQty,'1'),lt(price,'100')))"

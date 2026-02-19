@@ -9,7 +9,13 @@ Numeric = int | float | Decimal
 QueryValue = str | bool | dt.date | dt.datetime | Numeric
 
 
-def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS231
+def quote_rql_value(value: str) -> str:
+    """Wrap value in single quotes for RQL comparison operators."""
+    escaped_value = value.replace("'", r"\'")
+    return f"'{escaped_value}'"
+
+
+def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS231 C901
     """
     Parse keyword arguments into RQL query expressions.
 
@@ -26,7 +32,7 @@ def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS23
 
     Examples:
         parse_kwargs({'name': 'John', 'age__gt': 25})
-        ['eq(name,John)', 'gt(age,25)']
+        ["eq(name,'John')", "gt(age,'25')"]
 
         parse_kwargs({'status__in': ['active', 'pending']})
         ['in(status,(active,pending))']
@@ -37,17 +43,21 @@ def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS23
         if len(tokens) == 1:
             field = tokens[0]
             str_value = rql_encode("eq", value)
+            str_value = quote_rql_value(str_value)
             query.append(f"eq({field},{str_value})")
             continue
         op = tokens[-1]
         if op not in constants.KEYWORDS:
             field = ".".join(tokens)
             str_value = rql_encode("eq", value)
+            str_value = quote_rql_value(str_value)
             query.append(f"eq({field},{str_value})")
             continue
         field = ".".join(tokens[:-1])
         if op in constants.COMP or op in constants.SEARCH:
             str_value = rql_encode(op, value)
+            if op in constants.COMP:
+                str_value = quote_rql_value(str_value)
             query.append(f"{op}({field},{str_value})")
             continue
         if op in constants.LIST:
@@ -473,6 +483,8 @@ class RQLQuery:
     def _bin(self, op: str, value: QueryValue) -> Self:
         self._field = ".".join(self._path)
         value = rql_encode(op, value)
+        if op in constants.COMP:
+            value = quote_rql_value(value)
         self.expr = f"{op}({self._field},{value})"
         return self
 
