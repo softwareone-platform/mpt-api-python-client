@@ -9,6 +9,38 @@ Numeric = int | float | Decimal
 QueryValue = str | bool | dt.date | dt.datetime | Numeric
 
 
+class Property:
+    """Wrapper for model properties in RQL queries."""
+
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+    @override
+    def __str__(self) -> str:
+        return self.value
+
+
+class Value:
+    """Wrapper for literal values in RQL queries."""
+
+    def __init__(self, value: QueryValue) -> None:
+        self.value = value
+
+    @override
+    def __str__(self) -> str:
+        if isinstance(self.value, str):
+            return f"'{self.value}'"
+        if isinstance(self.value, bool):
+            return "true" if self.value else "false"
+
+        if isinstance(self.value, dt.date | dt.datetime):
+            str_time = self.value.isoformat()
+            return f"'{str_time}'"
+
+        # Matching: if isinstance(value, int | float | Decimal):
+        return str(self.value)
+
+
 def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS231
     """
     Parse keyword arguments into RQL query expressions.
@@ -62,16 +94,14 @@ def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS23
     return query
 
 
-def query_value_str(value: QueryValue) -> str:
+def query_value_str(value: Any) -> str:
     """Converts a value to string for use in RQL queries."""
-    if isinstance(value, str):
-        return value
-    if isinstance(value, bool):
-        return "true" if value else "false"
-
-    if isinstance(value, dt.date | dt.datetime):
-        return value.isoformat()
-    # Matching: if isinstance(value, int | float | Decimal):
+    if isinstance(value, QueryValue):
+        value = Value(value)
+    if isinstance(value, Value):
+        return str(value)
+    if isinstance(value, Property):
+        return str(value)
     return str(value)
 
 
@@ -104,10 +134,10 @@ def rql_encode(op: str, value: Any) -> str:
         rql_encode('in', ['a', 'b', 'c'])
         'a,b,c'
     """
-    if op not in constants.LIST and isinstance(value, QueryValue):
+    if op not in constants.LIST and isinstance(value, QueryValue | Value | Property):
         return query_value_str(value)
     if op in constants.LIST and isinstance(value, list | tuple | set):
-        return ",".join(str(el) for el in value)
+        return ",".join(query_value_str(el) for el in value)
 
     raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
