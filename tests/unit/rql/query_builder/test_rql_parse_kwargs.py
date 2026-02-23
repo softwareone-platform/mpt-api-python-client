@@ -18,7 +18,7 @@ def test_improper_op(mock_product_id_for_expression):
 
     result = parse_kwargs(products_expr)
 
-    assert str(result) == f"['eq(product.id.inn,{mock_product_id_for_expression})']"
+    assert str(result) == "[\"eq(product.id.inn,'PRD-1')\"]"
 
 
 def test_parse_eq(mock_product_id_for_expression):
@@ -26,7 +26,7 @@ def test_parse_eq(mock_product_id_for_expression):
 
     result = parse_kwargs(products_expr)
 
-    assert str(result) == f"['eq(product.id,{mock_product_id_for_expression})']"
+    assert str(result) == "[\"eq(product.id,'PRD-1')\"]"
 
 
 def test_parse_like(mock_product_id_for_expression):
@@ -34,7 +34,7 @@ def test_parse_like(mock_product_id_for_expression):
 
     result = parse_kwargs(products_expr)
 
-    assert str(result) == f"['like(product.id,{mock_product_id_for_expression})']"
+    assert str(result) == "[\"like(product.id,'PRD-1')\"]"
 
 
 def test_parse_null_op(mock_product_id_for_expression):
