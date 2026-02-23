@@ -45,7 +45,7 @@ dev = [
     "pytest-reportportal==5.6.*",
     "pytest-rerunfailures==16.1.*",
     "pytest-xdist==3.8.*",
-    "responses==0.25.*",
+    "responses==0.26.*",
     "respx==0.22.*",
     "ruff==0.15.*", # force ruff version to have same formatting everywhere
     "typing-extensions==4.15.*",
