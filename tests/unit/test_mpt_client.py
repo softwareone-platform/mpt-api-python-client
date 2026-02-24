@@ -9,11 +9,13 @@ from mpt_api_client.resources import (
     AsyncBilling,
     AsyncCatalog,
     AsyncCommerce,
+    AsyncHelpdesk,
     AsyncNotifications,
     Audit,
     Billing,
     Catalog,
     Commerce,
+    Helpdesk,
     Notifications,
 )
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -32,6 +34,7 @@ def get_mpt_client():
         ("billing", Billing),
         ("accounts", Accounts),
         ("notifications", Notifications),
+        ("helpdesk", Helpdesk),
     ],
 )
 def test_mpt_client(resource_name: str, expected_type: type) -> None:
@@ -62,6 +65,7 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
         ("billing", AsyncBilling),
         ("accounts", AsyncAccounts),
         ("notifications", AsyncNotifications),
+        ("helpdesk", AsyncHelpdesk),
     ],
 )
 def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
