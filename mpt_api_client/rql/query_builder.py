@@ -1,4 +1,5 @@
 import datetime as dt
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import Any, Self, override
 
@@ -46,7 +47,7 @@ class RQLValue:
         return str(self.value)
 
 
-def parse_kwargs(query_dict: dict[str, QueryValue]) -> list[str]:  # noqa: WPS231
+def parse_kwargs(query_dict: dict[str, QueryValue | Iterable[QueryValue]]) -> list[str]:  # noqa: WPS231
     """
     Parse keyword arguments into RQL query expressions.
 
@@ -186,7 +187,7 @@ class RQLQuery:
     def __init__(  # noqa: WPS211
         self,
         namespace_: str | None = None,  # noqa: WPS120
-        **kwargs: QueryValue,
+        **kwargs: QueryValue | Iterable[QueryValue],
     ) -> None:
         self.op: str = self.OP_EXPRESSION
         self.children: list[RQLQuery] = []
