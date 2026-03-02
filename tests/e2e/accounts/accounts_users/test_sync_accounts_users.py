@@ -32,10 +32,7 @@ def created_account_user_group(mpt_vendor, created_account_user, created_user_gr
     user_group_data = created_user_group
     create_user_group_data = {"id": user_group_data.id}
     users = mpt_vendor.accounts.accounts.users(account_id=account_id)
-    created_account_user_group = users.groups(user_id=created_account_user_data.id).create(
-        create_user_group_data
-    )
-    yield created_account_user_group
+    yield users.groups(user_id=created_account_user_data.id).create(create_user_group_data)
 
     users_obj = mpt_vendor.accounts.accounts.users(account_id=account_id)
     try:

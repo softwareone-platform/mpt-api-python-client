@@ -36,10 +36,7 @@ async def created_account_user_group(  # noqa: WPS210
     user_group_data = created_user_group
     create_user_group_data = {"id": user_group_data.id}
     users = async_mpt_vendor.accounts.accounts.users(account_id=account_id)
-    created_account_user_group = await users.groups(user_id=created_account_user_data.id).create(
-        create_user_group_data
-    )
-    yield created_account_user_group
+    yield await users.groups(user_id=created_account_user_data.id).create(create_user_group_data)
 
     users_obj = async_mpt_vendor.accounts.accounts.users(account_id=account_id)
     try:
