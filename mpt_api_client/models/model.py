@@ -15,8 +15,7 @@ class MptBox(Box):
     """python-box that preserves camelCase keys when converted to json."""
 
     def __init__(self, *args, attribute_mapping: dict[str, str] | None = None, **_):  # type: ignore[no-untyped-def]
-        attribute_mapping = attribute_mapping or {}
-        self._attribute_mapping = attribute_mapping
+        self._attribute_mapping = (attribute_mapping or {}).copy()
         super().__init__(
             *args,
             camel_killer_box=False,
@@ -34,7 +33,8 @@ class MptBox(Box):
         if item in _box_safe_attributes:
             return object.__setattr__(self, item, value)
 
-        super().__setattr__(item, value)  # type: ignore[no-untyped-call]
+        mapped_key = self._prep_key(item)
+        super().__setattr__(mapped_key, value)  # type: ignore[no-untyped-call]
         return None
 
     @override
@@ -50,7 +50,7 @@ class MptBox(Box):
         }
         out_dict = {}
         for parsed_key, item_value in super().to_dict().items():
-            original_key = reverse_mapping[parsed_key]
+            original_key = reverse_mapping.get(parsed_key, parsed_key)
             out_dict[original_key] = item_value
         return out_dict
 
@@ -58,8 +58,12 @@ class MptBox(Box):
         try:
             return self._attribute_mapping[key]
         except KeyError:
-            self._attribute_mapping[key] = _camel_killer(key)
-            return self._attribute_mapping[key]
+            # Check if key is already a value in the mapping (it's already the API key)
+            if key in self._attribute_mapping.values():
+                return key
+            mapped_key = _camel_killer(key)
+            self._attribute_mapping[key] = mapped_key
+            return mapped_key  # type: ignore[no-any-return]
 
 
 class Model:  # noqa: WPS214
@@ -94,6 +98,12 @@ class Model:  # noqa: WPS214
     def __setattr__(self, attribute: str, attribute_value: Any) -> None:
         if attribute in self._safe_attributes:
             object.__setattr__(self, attribute, attribute_value)
+            return
+
+        # Respect descriptors (e.g., @property setters) defined on the class
+        cls_attr = getattr(self.__class__, attribute, None)
+        if isinstance(cls_attr, property) and cls_attr.fset is not None:
+            cls_attr.fset(self, attribute_value)
             return
 
         self._box.__setattr__(attribute, attribute_value)
