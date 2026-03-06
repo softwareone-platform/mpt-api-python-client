@@ -1,9 +1,23 @@
-from typing import ClassVar
-
 import pytest
 from httpx import Response
 
 from mpt_api_client.models import Meta, Model
+
+
+class AgreementDummy(Model):  # noqa: WPS431
+    """Dummy class for testing."""
+
+
+class ContactDummy(Model):
+    """Dummy class for testing."""
+
+    name: str
+
+
+class AgreementWithContactDummy(Model):
+    """Dummy class for testing."""
+
+    contact: ContactDummy
 
 
 @pytest.fixture
@@ -29,26 +43,17 @@ def test_from_response(meta_data):
     assert result.meta == expected_meta
 
 
-def test_attribute_getter(meta_data):
-    resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
+def test_attribute_id(meta_data):
+    resource_data = {"id": "1", "name": {"given": "Albert", "family": "Einstein"}}
     response_data = resource_data | {"$meta": meta_data}
     response = Response(200, json=response_data)
+    resource = Model.from_response(response)
 
-    result = Model.from_response(response)
+    resource.id = "R-1"  # act
 
-    assert result.id == "1"
-    assert result.name.given == "Albert"
-
-
-def test_attribute_setter():  # noqa: AAA01
-    resource_data = {"id": 1, "name": {"given": "Albert", "family": "Einstein"}}
-    resource = Model(resource_data)
-
-    resource.id = "2"
-    resource.name.given = "John"
-
-    assert resource.id == "2"
-    assert resource.name.given == "John"
+    assert resource.id == "R-1"
+    assert resource.name.given == "Albert"
+    assert resource.to_dict() == {"id": "R-1", "name": {"given": "Albert", "family": "Einstein"}}
 
 
 def test_wrong_data_type():
@@ -67,22 +72,13 @@ def test_id_property_with_string_id():
     assert isinstance(result.id, str)
 
 
-def test_id_property_with_numeric_id():
-    resource_data = {"id": 1024}
-
-    result = Model(resource_data)
-
-    assert result.id == "1024"
-    assert isinstance(result.id, str)
-
-
 def test_case_conversion():
     resource_data = {"id": "abc-123", "FullName": "Alice Smith"}
 
     result = Model(resource_data)
 
     assert result.full_name == "Alice Smith"
-    assert result.to_dict() == resource_data
+    assert result.to_dict() == {"id": "abc-123", "fullName": "Alice Smith"}
     with pytest.raises(AttributeError):
         _ = result.FullName  # noqa: WPS122
 
@@ -91,7 +87,7 @@ def test_deep_case_conversion():
     resource_data = {"id": "ABC-123", "contact": {"id": "ABC-345", "FullName": "Alice Smith"}}
     expected_resource_data = {
         "id": "ABC-123",
-        "contact": {"id": "ABC-345", "FullName": "Alice Smith", "StreetAddress": "123 Main St"},
+        "contact": {"id": "ABC-345", "fullName": "Alice Smith", "streetAddress": "123 Main St"},
     }
     resource = Model(resource_data)
 
@@ -116,17 +112,91 @@ def test_repr():
 
 
 def test_mapping():
-    class MappingModel(Model):  # noqa: WPS431
-        _attribute_mapping: ClassVar[dict[str, str]] = {
-            "second_id": "resource_id",
-            "Full_Name": "name",
-        }
+    resource_data = {"id": "abc-123", "secondId": "resource-abc-123", "fullName": "Alice Smith"}
 
-    # BL
-    resource_data = {"id": "abc-123", "second_id": "resource-abc-123", "Full_Name": "Alice Smith"}
+    result = Model(**resource_data)
 
-    result = MappingModel(resource_data)
-
-    assert result.name == "Alice Smith"
-    assert result.resource_id == "resource-abc-123"
+    assert result.full_name == "Alice Smith"
+    assert result.second_id == "resource-abc-123"
     assert result.to_dict() == resource_data
+
+
+def test_overwritting():
+    agreement_data = {
+        "id": "AGR-123",
+        "parameters": {
+            "ordering": [
+                {"externalId": "contact", "value": "Hommer Simpson"},
+                {"externalId": "address", "value": "Springfield"},
+            ]
+        },
+    }
+    agreement = AgreementDummy(agreement_data)
+
+    agreement.parameters.ordering[1] = {"externalId": "address", "value": "Springfield"}  # act
+
+    assert agreement.id == "AGR-123"
+    assert agreement.parameters.ordering[0].external_id == "contact"
+    assert agreement.to_dict() == agreement_data
+
+
+def test_append():
+    agreement_data = {
+        "id": "AGR-123",
+        "parameters": {
+            "ordering": [
+                {"externalId": "contact", "value": "Hommer Simpson"},
+                {"externalId": "address", "value": "Springfield"},
+            ]
+        },
+    }
+    agreement = AgreementDummy(agreement_data)
+    new_param = {"externalId": "email", "value": "homer.simpson@example.com"}
+
+    agreement.parameters.ordering.append(new_param)  # act
+
+    assert agreement.id == "AGR-123"
+    assert agreement.parameters.ordering[0].external_id == "contact"
+    assert agreement.parameters.ordering[1].external_id == "address"
+    assert agreement.parameters.ordering[2].external_id == "email"
+    agreement_data["parameters"]["ordering"].append(new_param)
+    assert agreement.to_dict() == agreement_data
+
+
+def test_overwrite_list():
+    ordering_parameters = [
+        {"externalId": "contact", "value": "Hommer Simpson"},
+        {"externalId": "address", "value": "Springfield"},
+    ]
+    agreement_data = {
+        "id": "AGR-123",
+        "parameters": {"ordering": ordering_parameters},
+    }
+    agreement = AgreementDummy(agreement_data)
+
+    agreement.parameters.ordering = ordering_parameters  # act
+
+    assert agreement.id == "AGR-123"
+    assert agreement.parameters.ordering[0].external_id == "contact"
+    assert agreement.parameters.ordering[1].external_id == "address"
+    assert agreement.to_dict() == agreement_data
+
+
+def test_advanced_mapping():
+    ordering_parameters = [
+        {"externalId": "contact", "value": "Hommer Simpson"},
+        {"externalId": "address", "value": "Springfield"},
+    ]
+    agreement_data = {
+        "id": "AGR-123",
+        "contact": {"name": "Hommer Simpson"},
+        "parameters": {"ordering": ordering_parameters},
+    }
+    agreement = AgreementWithContactDummy(agreement_data)
+
+    agreement.parameters.ordering = ordering_parameters  # act
+
+    assert isinstance(agreement.contact, ContactDummy)
+    assert agreement.parameters.ordering[0].external_id == "contact"
+    assert agreement.parameters.ordering[1].external_id == "address"
+    assert agreement.to_dict() == agreement_data

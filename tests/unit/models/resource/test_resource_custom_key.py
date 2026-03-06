@@ -8,7 +8,7 @@ class ChargeResourceMock(Model):
 
 
 def test_custom_data_key():
-    record_data = {"id": 1, "amount": 100}
+    record_data = {"id": "1", "amount": 100}
     response = Response(200, json={"charge": record_data})
 
     result = ChargeResourceMock.from_response(response)
