@@ -24,7 +24,7 @@ uv add mpt-api-client
 from mpt_api_client import MPTClient
 
 # client = MPTClient(api_key=<your_api_key>, base_url=<mpt_api_url>)
-client = MPTClient() # Reads MPT_API_TOKEN and MPT_API_BASE_URL from the environment
+client = MPTClient()  # Reads MPT_API_TOKEN and MPT_API_BASE_URL from the environment
 
 for product in client.catalog.products.iterate():
     print(product.name)
@@ -36,11 +36,13 @@ for product in client.catalog.products.iterate():
 import asyncio
 from mpt_api_client import AsyncMPTClient
 
+
 async def main():
     # client = AsyncMPTClient(api_key=<your_api_key>, base_url=<mpt_api_url>)
-    client = AsyncMPTClient() # Reads MPT_API_TOKEN and MPT_API_BASE_URL from the environment
+    client = AsyncMPTClient()  # Reads MPT_API_TOKEN and MPT_API_BASE_URL from the environment
     async for product in client.catalog.products.iterate():
         print(product.name)
+
 
 asyncio.run(main())
 ```
