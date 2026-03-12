@@ -23,6 +23,7 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=list(fields),
                 select=self.query_state.select,  # type: ignore[attr-defined]
+                render=self.query_state.render,  # type: ignore[attr-defined]
             )
         )
 
@@ -39,6 +40,7 @@ class QueryableMixin:
                 rql=combined_filter,
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=self.query_state.select,  # type: ignore[attr-defined]
+                render=self.query_state.render,  # type: ignore[attr-defined]
             )
         )
 
@@ -60,6 +62,22 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=list(fields),
+                render=self.query_state.render,  # type: ignore[attr-defined]
+            ),
+        )
+
+    def options(self, *, render: bool = False) -> Self:
+        """Set query options.
+
+        Returns:
+            New copy of the collection with the given options applied.
+        """
+        return self._create_new_instance(
+            QueryState(
+                rql=self.query_state.filter,  # type: ignore[attr-defined]
+                order_by=self.query_state.order_by,  # type: ignore[attr-defined]
+                select=self.query_state.select,  # type: ignore[attr-defined]
+                render=render,
             ),
         )
 

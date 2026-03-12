@@ -42,3 +42,15 @@ async def test_get_record_not_found(async_mpt_vendor: AsyncMPTClient) -> None:
 
     with pytest.raises(MPTAPIError):
         await service.get("REC-000-000-000")
+
+
+async def test_get_records_with_render(async_mpt_vendor: AsyncMPTClient, product_id: str) -> None:
+    template_chars = ["{{", "}}"]
+    audit_filter = RQLQuery(object__id=product_id)
+    service = async_mpt_vendor.audit.records.filter(audit_filter).options(render=True)
+    records = [record async for record in service.iterate()]
+
+    assert records
+    for record in records:
+        assert record.object.id == product_id
+        assert not any(char in record.details for char in template_chars)

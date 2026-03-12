@@ -43,3 +43,16 @@ def test_get_record_not_found(mpt_vendor: MPTClient) -> None:
 
     with pytest.raises(MPTAPIError):
         service.get("REC-000-000-000")
+
+
+def test_get_records_with_render(mpt_vendor: MPTClient, product_id) -> None:
+    template_chars = ["{{", "}}"]
+    audit_filter = RQLQuery(object__id=product_id)
+    service = mpt_vendor.audit.records.filter(audit_filter).options(render=True)
+
+    result = list(service.iterate())
+
+    assert result
+    for record in result:
+        assert record.object.id == product_id
+        assert not any(char in record.details for char in template_chars)

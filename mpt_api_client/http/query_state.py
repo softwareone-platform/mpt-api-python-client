@@ -17,6 +17,8 @@ class QueryState:
         rql: RQLQuery | None = None,
         order_by: list[str] | None = None,
         select: list[str] | None = None,
+        *,
+        render: bool = False,
     ) -> None:
         """Initialize the query state with optional filter, ordering, and selection criteria.
 
@@ -24,10 +26,12 @@ class QueryState:
             rql: RQL query for filtering data.
             order_by: List of fields to order by (prefix with '-' for descending).
             select: List of fields to select in the response.
+            render: Whether to include the render() parameter in the query string.
         """
         self._filter = rql
         self._order_by = order_by
         self._select = select
+        self._render = render
 
     @property
     def filter(self) -> RQLQuery | None:
@@ -43,6 +47,11 @@ class QueryState:
     def select(self) -> list[str] | None:
         """Get the current select fields."""
         return self._select
+
+    @property
+    def render(self) -> bool:
+        """Get the current render state."""
+        return self._render
 
     def build(self, query_params: dict[str, Any] | None = None) -> str:
         """Build a query string from the current state and additional parameters.
@@ -66,7 +75,11 @@ class QueryState:
         if self._filter:
             query_parts.append(str(self._filter))
 
+        if self._render:
+            query_parts.append("render()")
+
         if query_parts:
             query = "&".join(query_parts)
             return f"{query}"
+
         return ""

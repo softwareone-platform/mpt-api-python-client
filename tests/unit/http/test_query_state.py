@@ -23,6 +23,7 @@ def test_build_url(filter_status_active):
         rql=filter_status_active,
         select=["-audit", "product.agreements", "-product.agreements.product"],
         order_by=["-created", "name"],
+        render=False,
     )
 
     result = query_state.build()
@@ -31,6 +32,24 @@ def test_build_url(filter_status_active):
         "order=-created,name"
         "&select=-audit,product.agreements,-product.agreements.product"
         "&eq(status,'active')"
+    )
+
+
+def test_build_url_with_render(filter_status_active):
+    query_state = QueryState(
+        rql=filter_status_active,
+        select=["-audit", "product.agreements", "-product.agreements.product"],
+        order_by=["-created", "name"],
+        render=True,
+    )
+
+    result = query_state.build()
+
+    assert result == (
+        "order=-created,name"
+        "&select=-audit,product.agreements,-product.agreements.product"
+        "&eq(status,'active')"
+        "&render()"
     )
 
 

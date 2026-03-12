@@ -78,3 +78,12 @@ def test_queryable_mixin_method_chaining(
     assert result.query_state.filter == filter_status_active
     assert result.query_state.order_by == ["created", "-name"]
     assert result.query_state.select == ["id", "name"]
+
+
+def test_queryable_mixin_options_render(dummy_service: DummyService) -> None:
+    result = dummy_service.options(render=True)
+
+    assert result != dummy_service
+    assert not dummy_service.query_state.render
+    assert result.query_state.render
+    assert result.select("id").query_state.render
