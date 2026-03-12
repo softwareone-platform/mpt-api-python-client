@@ -22,7 +22,7 @@ def seller_factory(currencies):
                 "postCode": "12345",
                 "country": "US",
             },
-            "currencies": currencies,
+            "currency": currencies,
             "externalId": external_id,
         }
 

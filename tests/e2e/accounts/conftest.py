@@ -23,7 +23,10 @@ def account_icon(logo_fd):
 
 @pytest.fixture
 def currencies():
-    return ["USD", "EUR"]
+    return [
+        {"value": "EUR", "billingEnabled": False, "isDefault": False},
+        {"value": "USD", "billingEnabled": True, "isDefault": True},
+    ]
 
 
 @pytest.fixture
