@@ -1,7 +1,7 @@
 import re
 from collections import UserList
 from collections.abc import Iterable
-from typing import Any, ClassVar, Self, get_args, get_origin, override
+from typing import Any, Self, get_args, get_origin, override
 
 from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
@@ -169,7 +169,6 @@ class BaseModel:
 class Model(BaseModel):
     """Provides a resource to interact with api data using fluent interfaces."""
 
-    _data_key: ClassVar[str | None] = None
     id: str
 
     def __init__(
@@ -192,7 +191,7 @@ class Model(BaseModel):
 
     @classmethod
     def from_response(cls, response: Response) -> Self:
-        """Creates a collection from a response.
+        """Creates a Model from a response.
 
         Args:
             response: The httpx response object.
@@ -200,8 +199,6 @@ class Model(BaseModel):
         response_data = response.json()
         if isinstance(response_data, dict):
             response_data.pop("$meta", None)
-        if cls._data_key:
-            response_data = response_data.get(cls._data_key)
         if not isinstance(response_data, dict):
             raise TypeError("Response data must be a dict.")
         meta = Meta.from_response(response)
