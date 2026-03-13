@@ -166,7 +166,7 @@ cython_debug/
 .DS_Store
 .ruff_cache
 .idea
-
+.openapi/
 # Makefile
 make/local.mk
 
