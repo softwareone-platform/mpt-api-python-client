@@ -29,16 +29,6 @@ def price_list_item_data():
         "status": "Active",
         "description": "Item description",
         "reasonForChange": "Price update",
-        "priceList": {"id": "PRC-001", "currency": "USD"},
-        "item": {"id": "ITM-001", "name": "My Item"},
-        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
-    }
-
-
-@pytest.fixture
-def price_list_item_price_data():
-    return {
-        "id": "PLI-002",
         "unitLP": 100.0,
         "unitPP": 80.0,
         "markup": 25.0,
@@ -53,6 +43,9 @@ def price_list_item_price_data():
         "LPx1": 100.0,
         "LPxM": 9.0,
         "LPxY": 108.0,
+        "priceList": {"id": "PRC-001", "currency": "USD"},
+        "item": {"id": "ITM-001", "name": "My Item"},
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
     }
 
 
@@ -92,14 +85,14 @@ def test_price_list_item_primitive_fields(price_list_item_data):
     assert result.to_dict() == price_list_item_data
 
 
-def test_price_list_item_price_fields(price_list_item_price_data):
-    result = PriceListItem(price_list_item_price_data)
+def test_price_list_item_price_fields(price_list_item_data):
+    result = PriceListItem(price_list_item_data)
 
     assert result.unit_lp == pytest.approx(100.0)
     assert result.unit_pp == pytest.approx(80.0)
     assert result.unit_sp == pytest.approx(90.0)
-    assert result.markup == pytest.approx(25.0)
-    assert result.margin == pytest.approx(20.0)
+    assert result.spxm == pytest.approx(8.0)
+    assert result.lpx1 == pytest.approx(100.0)
 
 
 def test_price_list_item_nested_models(price_list_item_data):

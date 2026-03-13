@@ -167,6 +167,8 @@ cython_debug/
 .ruff_cache
 .idea
 .openapi/
+openapi/openapi-dev.json
+.github/copilot-instructions.md
 # Makefile
 make/local.mk
 
