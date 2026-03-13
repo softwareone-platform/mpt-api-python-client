@@ -6,10 +6,35 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 
 
 class Listing(Model):
-    """Listing resource."""
+    """Listing resource.
+
+    Attributes:
+        authorization: Reference to the authorization.
+        product: Reference to the product.
+        vendor: Reference to the vendor.
+        seller: Reference to the seller.
+        price_list: Reference to the associated price list.
+        primary: Whether this is the primary listing.
+        notes: Additional notes.
+        statistics: Listing statistics.
+        eligibility: Eligibility information.
+        audit: Audit information (created, updated events).
+    """
+
+    authorization: BaseModel | None
+    product: BaseModel | None
+    vendor: BaseModel | None
+    seller: BaseModel | None
+    price_list: BaseModel | None
+    primary: bool | None
+    notes: str | None
+    statistics: BaseModel | None
+    eligibility: BaseModel | None
+    audit: BaseModel | None
 
 
 class ListingsServiceConfig:

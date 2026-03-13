@@ -6,6 +6,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.price_list_items import (
     AsyncPriceListItemsService,
     PriceListItemsService,
@@ -13,7 +14,31 @@ from mpt_api_client.resources.catalog.price_list_items import (
 
 
 class PriceList(Model):
-    """Price List resource."""
+    """Price List resource.
+
+    Attributes:
+        currency: Currency code for this price list.
+        precision: Decimal precision for prices.
+        default_markup: Default markup percentage.
+        default_margin: Default margin percentage.
+        notes: Additional notes.
+        external_ids: External identifiers for the price list.
+        statistics: Price list statistics.
+        product: Reference to the associated product.
+        vendor: Reference to the vendor.
+        audit: Audit information (created, updated events).
+    """
+
+    currency: str | None
+    precision: int | None
+    default_markup: float | None
+    default_margin: float | None
+    notes: str | None
+    external_ids: BaseModel | None
+    statistics: BaseModel | None
+    product: BaseModel | None
+    vendor: BaseModel | None
+    audit: BaseModel | None
 
 
 class PriceListsServiceConfig:

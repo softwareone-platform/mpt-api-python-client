@@ -12,6 +12,7 @@ from mpt_api_client.http.mixins import (
     UpdateFileMixin,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
@@ -51,7 +52,33 @@ from mpt_api_client.resources.catalog.products_templates import (
 
 
 class Product(Model):
-    """Product resource."""
+    """Product resource.
+
+    Attributes:
+        name: Product name.
+        short_description: Short description of the product.
+        long_description: Long description of the product.
+        external_ids: External identifiers for the product.
+        website: Product website URL.
+        icon: URL or identifier for the product icon.
+        status: Product status.
+        vendor: Reference to the vendor account.
+        settings: Product settings.
+        statistics: Product statistics.
+        audit: Audit information (created, updated events).
+    """
+
+    name: str | None
+    short_description: str | None
+    long_description: str | None
+    external_ids: BaseModel | None
+    website: str | None
+    icon: str | None
+    status: str | None
+    vendor: BaseModel | None
+    settings: BaseModel | None
+    statistics: BaseModel | None
+    audit: BaseModel | None
 
 
 class ProductsServiceConfig:

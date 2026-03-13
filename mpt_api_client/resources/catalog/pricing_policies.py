@@ -9,6 +9,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.pricing_policy_attachments import (
     AsyncPricingPolicyAttachmentsService,
     PricingPolicyAttachmentsService,
@@ -16,7 +17,33 @@ from mpt_api_client.resources.catalog.pricing_policy_attachments import (
 
 
 class PricingPolicy(Model):
-    """Pricing policy resource."""
+    """Pricing policy resource.
+
+    Attributes:
+        name: Pricing policy name.
+        external_ids: External identifiers for the pricing policy.
+        client: Reference to the client account.
+        eligibility: Eligibility information.
+        markup: Markup percentage.
+        margin: Margin percentage.
+        notes: Additional notes.
+        products: List of associated products.
+        status: Pricing policy status.
+        statistics: Pricing policy statistics.
+        audit: Audit information (created, updated events).
+    """
+
+    name: str | None
+    external_ids: BaseModel | None
+    client: BaseModel | None
+    eligibility: BaseModel | None
+    markup: float | None
+    margin: float | None
+    notes: str | None
+    products: list[BaseModel] | None
+    status: str | None
+    statistics: BaseModel | None
+    audit: BaseModel | None
 
 
 class PricingPoliciesServiceConfig:
