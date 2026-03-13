@@ -10,8 +10,6 @@ API_URL = "https://api.example.com"
 class DummyModel(Model):
     """Dummy resource for testing."""
 
-    _data_key = None
-
 
 @pytest.fixture
 def http_client():
