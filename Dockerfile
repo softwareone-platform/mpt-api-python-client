@@ -16,7 +16,8 @@ RUN uv sync --frozen --no-cache --no-dev
 FROM build AS dev
 
 RUN uv sync --frozen --no-cache --dev
-
+RUN apt update && apt install -y curl
+RUN curl -fsSL https://gh.io/copilot-install | bash
 CMD ["bash"]
 
 FROM build AS prod
