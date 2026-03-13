@@ -2,12 +2,14 @@ from typing import Any
 
 import pytest
 
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.product_term_variants import (
     AsyncTermVariantService,
     TermVariantService,
 )
 from mpt_api_client.resources.catalog.product_terms import (
     AsyncTermService,
+    Term,
     TermService,
 )
 
@@ -22,6 +24,19 @@ def async_term_service(async_http_client: Any) -> AsyncTermService:
     return AsyncTermService(
         http_client=async_http_client, endpoint_params={"product_id": "PRD-001"}
     )
+
+
+@pytest.fixture
+def term_data():
+    return {
+        "id": "TRM-001",
+        "name": "Terms of Service",
+        "description": "Standard terms",
+        "displayOrder": 1,
+        "status": "Active",
+        "product": {"id": "PRD-001", "name": "My Product"},
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
 
 
 def test_endpoint(term_service: TermService) -> None:
@@ -68,3 +83,25 @@ def test_async_variants_property(async_term_service: AsyncTermService) -> None:
     assert isinstance(result, AsyncTermVariantService)
     assert result.http_client == async_term_service.http_client
     assert result.endpoint_params == {"product_id": "PRD-001", "term_id": "TCS-001"}
+
+
+def test_term_primitive_fields(term_data: dict) -> None:
+    result = Term(term_data)
+
+    assert result.to_dict() == term_data
+
+
+def test_term_nested_fields_are_base_models(term_data: dict) -> None:
+    result = Term(term_data)
+
+    assert isinstance(result.product, BaseModel)
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_term_optional_fields_absent() -> None:
+    result = Term({"id": "TRM-001"})
+
+    assert result.id == "TRM-001"
+    assert not hasattr(result, "name")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")

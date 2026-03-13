@@ -6,10 +6,23 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 
 
 class UnitOfMeasure(Model):
-    """Unit of Measure resource."""
+    """Unit of Measure resource.
+
+    Attributes:
+        description: Unit of measure description.
+        name: Unit of measure name.
+        statistics: Unit of measure statistics.
+        audit: Audit information (created, updated events).
+    """
+
+    description: str | None
+    name: str | None
+    statistics: BaseModel | None
+    audit: BaseModel | None
 
 
 class UnitsOfMeasureServiceConfig:

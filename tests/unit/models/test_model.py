@@ -2,7 +2,12 @@ import pytest
 from httpx import Response
 
 from mpt_api_client.models import Meta, Model
-from mpt_api_client.models.model import BaseModel, ModelList, to_snake_case  # noqa: WPS347
+from mpt_api_client.models.model import (  # noqa: WPS347
+    BaseModel,
+    ModelList,
+    to_camel_case,
+    to_snake_case,
+)
 
 
 class AgreementDummy(Model):  # noqa: WPS431
@@ -326,3 +331,33 @@ def test_process_value_scalar_list_elements():
 
     assert isinstance(container.tags, ModelList)
     assert list(container.tags) == ["a", "b", "c"]
+
+
+@pytest.mark.parametrize(
+    ("camel", "snake"),
+    [
+        ("PPx1", "ppx1"),
+        ("SPxM", "spxm"),
+        ("unitLP", "unit_lp"),
+        ("totalGT", "total_gt"),
+    ],
+)
+def test_to_snake_case_consecutive_uppercase(camel, snake):
+    result = to_snake_case(camel)  # act
+
+    assert result == snake
+
+
+@pytest.mark.parametrize(
+    ("snake", "camel"),
+    [
+        ("ppx1", "PPx1"),
+        ("spxm", "SPxM"),
+        ("unit_lp", "unitLP"),
+        ("total_gt", "totalGT"),
+    ],
+)
+def test_to_camel_case_consecutive_uppercase(snake, camel):
+    result = to_camel_case(snake)  # act
+
+    assert result == camel

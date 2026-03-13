@@ -1,7 +1,9 @@
 import pytest
 
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.pricing_policy_attachments import (
     AsyncPricingPolicyAttachmentsService,
+    PricingPolicyAttachment,
     PricingPolicyAttachmentsService,
 )
 
@@ -20,6 +22,21 @@ def async_pricing_policy_attachments_service(
     return AsyncPricingPolicyAttachmentsService(
         http_client=async_http_client, endpoint_params={"pricing_policy_id": "PRP-0000-0001"}
     )
+
+
+@pytest.fixture
+def pricing_policy_attachment_data():
+    return {
+        "id": "ATT-001",
+        "name": "Terms of Service",
+        "type": "Document",
+        "size": 1024,
+        "description": "Attachment description",
+        "fileName": "terms.pdf",
+        "contentType": "application/pdf",
+        "status": "Active",
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
 
 
 def test_endpoint(pricing_policy_attachments_service) -> None:
@@ -52,3 +69,24 @@ def test_async_methods_present(async_pricing_policy_attachments_service, method:
     result = hasattr(async_pricing_policy_attachments_service, method)
 
     assert result is True
+
+
+def test_pricing_policy_attach_primitives(pricing_policy_attachment_data):
+    result = PricingPolicyAttachment(pricing_policy_attachment_data)
+
+    assert result.to_dict() == pricing_policy_attachment_data
+
+
+def test_pricing_policy_attachment_nested_models(pricing_policy_attachment_data):
+    result = PricingPolicyAttachment(pricing_policy_attachment_data)
+
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_pricing_policy_attachment_absent():
+    result = PricingPolicyAttachment({"id": "ATT-001"})
+
+    assert result.id == "ATT-001"
+    assert not hasattr(result, "name")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")

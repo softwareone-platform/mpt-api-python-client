@@ -2,11 +2,12 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.product_terms import (
     AsyncTermService,
     TermService,
 )
-from mpt_api_client.resources.catalog.products import AsyncProductsService, ProductsService
+from mpt_api_client.resources.catalog.products import AsyncProductsService, Product, ProductsService
 from mpt_api_client.resources.catalog.products_documents import (
     AsyncDocumentService,
     DocumentService,
@@ -225,6 +226,49 @@ def test_sync_product_update(products_service, tmp_path):
     assert request.method == "PUT"
     assert request.url.path == f"/public/v1/catalog/products/{product_id}"
     assert result.to_dict() == expected_response
+
+
+@pytest.fixture
+def product_data():
+    return {
+        "id": "PRD-001",
+        "name": "My Product",
+        "shortDescription": "Short desc",
+        "longDescription": "Long description of the product",
+        "externalIds": {"vendor": "ext-001"},
+        "website": "https://example.com",
+        "icon": "https://example.com/icon.png",
+        "status": "Active",
+        "vendor": {"id": "ACC-001", "name": "Vendor"},
+        "settings": {"allowCustomization": True},
+        "statistics": {"listings": 3},
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
+
+
+def test_product_primitive_fields(product_data):
+    result = Product(product_data)
+
+    assert result.to_dict() == product_data
+
+
+def test_product_nested_fields_are_base_models(product_data):
+    result = Product(product_data)
+
+    assert isinstance(result.external_ids, BaseModel)
+    assert isinstance(result.vendor, BaseModel)
+    assert isinstance(result.settings, BaseModel)
+    assert isinstance(result.statistics, BaseModel)
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_product_optional_fields_absent():
+    result = Product({"id": "PRD-001"})
+
+    assert result.id == "PRD-001"
+    assert not hasattr(result, "name")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")
 
 
 async def test_async_product_update(async_products_service, tmp_path):

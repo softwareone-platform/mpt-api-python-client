@@ -6,10 +6,27 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 
 
 class Template(Model):
-    """Template resource."""
+    """Template resource.
+
+    Attributes:
+        name: Template name.
+        content: Template content.
+        type: Template type.
+        default: Whether this is the default template.
+        product: Reference to the product.
+        audit: Audit information (created, updated events).
+    """
+
+    name: str | None
+    content: str | None
+    type: str | None
+    default: bool | None
+    product: BaseModel | None
+    audit: BaseModel | None
 
 
 class TemplatesServiceConfig:

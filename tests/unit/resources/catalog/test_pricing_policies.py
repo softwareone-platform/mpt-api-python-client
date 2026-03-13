@@ -2,9 +2,11 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.pricing_policies import (
     AsyncPricingPoliciesService,
     PricingPoliciesService,
+    PricingPolicy,
 )
 from mpt_api_client.resources.catalog.pricing_policy_attachments import (
     AsyncPricingPolicyAttachmentsService,
@@ -20,6 +22,24 @@ def pricing_policies_service(http_client):
 @pytest.fixture
 def async_pricing_policies_service(async_http_client):
     return AsyncPricingPoliciesService(http_client=async_http_client)
+
+
+@pytest.fixture
+def pricing_policy_data():
+    return {
+        "id": "PRP-001",
+        "name": "My Policy",
+        "notes": "Some notes",
+        "status": "Active",
+        "markup": 25.0,
+        "margin": 20.0,
+        "externalIds": {"vendor": "ext-001"},
+        "client": {"id": "ACC-001", "name": "Client"},
+        "eligibility": {"status": "Eligible"},
+        "products": [{"id": "PRD-001", "name": "My Product"}],
+        "statistics": {"items": 5},
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
 
 
 def test_activate(pricing_policies_service):
@@ -160,3 +180,28 @@ def test_async_mixins_present(async_pricing_policies_service, method):
     result = hasattr(async_pricing_policies_service, method)
 
     assert result is True
+
+
+def test_pricing_policy_primitive_fields(pricing_policy_data):
+    result = PricingPolicy(pricing_policy_data)
+
+    assert result.to_dict() == pricing_policy_data
+
+
+def test_pricing_policy_nested_models(pricing_policy_data):
+    result = PricingPolicy(pricing_policy_data)
+
+    assert isinstance(result.external_ids, BaseModel)
+    assert isinstance(result.client, BaseModel)
+    assert isinstance(result.eligibility, BaseModel)
+    assert isinstance(result.statistics, BaseModel)
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_pricing_policy_optional_fields_absent():
+    result = PricingPolicy({"id": "PRP-001"})
+
+    assert result.id == "PRP-001"
+    assert not hasattr(result, "name")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")

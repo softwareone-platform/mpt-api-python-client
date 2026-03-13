@@ -1,6 +1,7 @@
 import re
 from collections import UserList
 from collections.abc import Iterable
+from types import MappingProxyType
 from typing import Any, Self, get_args, get_origin, override
 
 from mpt_api_client.http.types import Response
@@ -12,9 +13,47 @@ ResourceData = dict[str, Any]
 _SNAKE_CASE_BOUNDARY = re.compile(r"([a-z0-9])([A-Z])")
 _SNAKE_CASE_ACRONYM = re.compile(r"(?<=[A-Z])(?=[A-Z][a-z0-9])")
 
+# Explicit bidirectional mappings for API field names that contain two or more consecutive
+# uppercase letters (e.g. PPx1, unitLP). The generic regex cannot round-trip these correctly,
+# so we maintain an explicit lookup table that is checked before the regex is applied.
+_FIELD_NAME_MAPPINGS: MappingProxyType[str, str] = MappingProxyType({
+    # PP* price columns
+    "PPx1": "ppx1",
+    "PPxM": "ppxm",
+    "PPxY": "ppxy",
+    # SP* price columns
+    "SPx1": "spx1",
+    "SPxM": "spxm",
+    "SPxY": "spxy",
+    # LP* price columns
+    "LPx1": "lpx1",
+    "LPxM": "lpxm",
+    "LPxY": "lpxy",
+    # unit + 2-letter acronym suffix
+    "unitLP": "unit_lp",
+    "unitPP": "unit_pp",
+    "unitSP": "unit_sp",
+    # total + 2-letter acronym suffix
+    "totalGT": "total_gt",
+    "totalPP": "total_pp",
+    "totalSP": "total_sp",
+    "totalST": "total_st",
+})
+
+_FIELD_NAME_MAPPINGS_REVERSE: MappingProxyType[str, str] = MappingProxyType({
+    snake: camel for camel, snake in _FIELD_NAME_MAPPINGS.items()
+})
+
 
 def to_snake_case(key: str) -> str:
-    """Converts a camelCase string to snake_case."""
+    """Converts a camelCase string to snake_case.
+
+    Explicit mappings in ``_FIELD_NAME_MAPPINGS`` take priority over the generic
+    regex for fields that contain two or more consecutive uppercase letters.
+    """
+    mapped = _FIELD_NAME_MAPPINGS.get(key)
+    if mapped is not None:
+        return mapped
     if "_" in key and key.islower():
         return key
     # Common pattern for PascalCase/camelCase conversion
@@ -24,7 +63,14 @@ def to_snake_case(key: str) -> str:
 
 
 def to_camel_case(key: str) -> str:
-    """Converts a snake_case string to camelCase."""
+    """Converts a snake_case string to camelCase.
+
+    Explicit mappings in ``_FIELD_NAME_MAPPINGS_REVERSE`` take priority over the
+    generic logic for fields that contain two or more consecutive uppercase letters.
+    """
+    mapped = _FIELD_NAME_MAPPINGS_REVERSE.get(key)
+    if mapped is not None:
+        return mapped
     parts = key.split("_")
     return parts[0] + "".join(x.title() for x in parts[1:])  # noqa: WPS111 WPS221
 

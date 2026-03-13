@@ -6,6 +6,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.catalog.mixins import AsyncPublishableMixin, PublishableMixin
 from mpt_api_client.resources.catalog.product_term_variants import (
     AsyncTermVariantService,
@@ -14,7 +15,23 @@ from mpt_api_client.resources.catalog.product_term_variants import (
 
 
 class Term(Model):
-    """Term resource."""
+    """Term resource.
+
+    Attributes:
+        name: Term name.
+        description: Term description.
+        display_order: Display order of the term.
+        status: Term status.
+        product: Reference to the product.
+        audit: Audit information (created, updated events).
+    """
+
+    name: str | None
+    description: str | None
+    display_order: int | None
+    status: str | None
+    product: BaseModel | None
+    audit: BaseModel | None
 
 
 class TermServiceConfig:
