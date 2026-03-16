@@ -2,6 +2,7 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.commerce.orders import AsyncOrdersService, Order, OrdersService
 from mpt_api_client.resources.commerce.orders_asset import (
     AsyncOrdersAssetService,
@@ -247,3 +248,93 @@ def test_async_mixins_present(async_orders_service, method):
     result = hasattr(async_orders_service, method)
 
     assert result is True
+
+
+@pytest.fixture
+def order_data():
+    return {
+        "id": "ORD-001",
+        "type": "Purchase",
+        "status": "Processing",
+        "notes": "Some notes",
+        "comments": "Some comments",
+        "defaultMarkupSource": "standard",
+        "statusNotes": {"reason": "pending review"},
+        "template": {"id": "TPL-001"},
+        "listing": {"id": "LST-001"},
+        "authorization": {"id": "AUT-001"},
+        "agreement": {"id": "AGR-001"},
+        "assignee": {"id": "USR-001"},
+        "externalIds": {"vendor": "ext-001"},
+        "price": {"total": 100},
+        "lines": [{"id": "LIN-001"}],
+        "subscriptions": [{"id": "SUB-001"}],
+        "assets": [{"id": "ASS-001"}],
+        "parameters": {"fulfillment": []},
+        "error": {"message": "some error"},
+        "product": {"id": "PRD-001"},
+        "client": {"id": "ACC-001"},
+        "licensee": {"id": "ACC-002"},
+        "buyer": {"id": "ACC-003"},
+        "seller": {"id": "ACC-004"},
+        "vendor": {"id": "ACC-005"},
+        "billTo": {"address": "123 Main St"},
+        "pricingPolicy": {"id": "PPL-001"},
+        "termsAndConditions": [{"id": "TAC-001"}],
+        "certificates": [{"id": "CRT-001"}],
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
+
+
+def test_order_primitive_fields(order_data):
+    result = Order(order_data)
+
+    assert result.to_dict() == order_data
+
+
+def test_order_nested_header_fields(order_data):  # noqa: WPS218
+    result = Order(order_data)
+
+    assert isinstance(result.status_notes, BaseModel)
+    assert isinstance(result.template, BaseModel)
+    assert isinstance(result.listing, BaseModel)
+    assert isinstance(result.authorization, BaseModel)
+    assert isinstance(result.agreement, BaseModel)
+
+
+def test_order_nested_pricing_fields(order_data):  # noqa: WPS218
+    result = Order(order_data)
+
+    assert isinstance(result.assignee, BaseModel)
+    assert isinstance(result.external_ids, BaseModel)
+    assert isinstance(result.price, BaseModel)
+    assert isinstance(result.parameters, BaseModel)
+    assert isinstance(result.error, BaseModel)
+
+
+def test_order_nested_party_fields(order_data):  # noqa: WPS218
+    result = Order(order_data)
+
+    assert isinstance(result.product, BaseModel)
+    assert isinstance(result.client, BaseModel)
+    assert isinstance(result.licensee, BaseModel)
+    assert isinstance(result.buyer, BaseModel)
+    assert isinstance(result.seller, BaseModel)
+
+
+def test_order_nested_billing_fields(order_data):  # noqa: WPS218
+    result = Order(order_data)
+
+    assert isinstance(result.vendor, BaseModel)
+    assert isinstance(result.bill_to, BaseModel)
+    assert isinstance(result.pricing_policy, BaseModel)
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_order_optional_fields_absent():
+    result = Order({"id": "ORD-001"})
+
+    assert result.id == "ORD-001"
+    assert not hasattr(result, "type")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")

@@ -14,10 +14,19 @@ from mpt_api_client.http.mixins import (  # noqa: WPS235
     UpdateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 
 
 class AgreementAttachment(Model):
-    """Agreement attachment resource."""
+    """Agreement attachment resource.
+
+    Attributes:
+        attachment: Attachment metadata.
+        file: File reference or URL.
+    """
+
+    attachment: BaseModel | None
+    file: str | None  # noqa: WPS110
 
 
 class AgreementsAttachmentServiceConfig:
