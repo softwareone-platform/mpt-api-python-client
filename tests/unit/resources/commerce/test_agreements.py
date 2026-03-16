@@ -2,7 +2,12 @@ import httpx
 import pytest
 import respx
 
-from mpt_api_client.resources.commerce.agreements import AgreementsService, AsyncAgreementsService
+from mpt_api_client.models.model import BaseModel
+from mpt_api_client.resources.commerce.agreements import (
+    Agreement,
+    AgreementsService,
+    AsyncAgreementsService,
+)
 from mpt_api_client.resources.commerce.agreements_attachments import (
     AgreementsAttachmentService,
     AsyncAgreementsAttachmentService,
@@ -80,3 +85,80 @@ def test_async_mixins_present(async_http_client, method):
     result = hasattr(service, method)
 
     assert result is True
+
+
+@pytest.fixture
+def agreement_data():
+    return {
+        "id": "AGR-001",
+        "icon": "https://example.com/icon.png",
+        "status": "Active",
+        "name": "My Agreement",
+        "startDate": "2024-01-01",
+        "endDate": "2025-01-01",
+        "listing": {"id": "LST-001"},
+        "authorization": {"id": "AUT-001"},
+        "vendor": {"id": "ACC-001"},
+        "client": {"id": "ACC-002"},
+        "price": {"total": 100},
+        "template": {"id": "TPL-001"},
+        "error": {"message": "some error"},
+        "lines": [{"id": "LIN-001"}],
+        "assets": [{"id": "ASS-001"}],
+        "subscriptions": [{"id": "SUB-001"}],
+        "parameters": {"fulfillment": []},
+        "licensee": {"id": "ACC-003"},
+        "buyer": {"id": "ACC-004"},
+        "seller": {"id": "ACC-005"},
+        "product": {"id": "PRD-001"},
+        "externalIds": {"vendor": "ext-001"},
+        "split": {"type": "none"},
+        "termsAndConditions": [{"id": "TAC-001"}],
+        "certificates": [{"id": "CRT-001"}],
+        "audit": {"created": {"at": "2024-01-01T00:00:00Z"}},
+    }
+
+
+def test_agreement_primitive_fields(agreement_data):
+    result = Agreement(agreement_data)
+
+    assert result.to_dict() == agreement_data
+
+
+def test_agreement_nested_party_fields(agreement_data):  # noqa: WPS218
+    result = Agreement(agreement_data)
+
+    assert isinstance(result.listing, BaseModel)
+    assert isinstance(result.authorization, BaseModel)
+    assert isinstance(result.vendor, BaseModel)
+    assert isinstance(result.client, BaseModel)
+    assert isinstance(result.price, BaseModel)
+
+
+def test_agreement_nested_relation_fields(agreement_data):  # noqa: WPS218
+    result = Agreement(agreement_data)
+
+    assert isinstance(result.template, BaseModel)
+    assert isinstance(result.error, BaseModel)
+    assert isinstance(result.parameters, BaseModel)
+    assert isinstance(result.licensee, BaseModel)
+    assert isinstance(result.buyer, BaseModel)
+
+
+def test_agreement_nested_identity_fields(agreement_data):  # noqa: WPS218
+    result = Agreement(agreement_data)
+
+    assert isinstance(result.seller, BaseModel)
+    assert isinstance(result.product, BaseModel)
+    assert isinstance(result.external_ids, BaseModel)
+    assert isinstance(result.split, BaseModel)
+    assert isinstance(result.audit, BaseModel)
+
+
+def test_agreement_optional_fields_absent():
+    result = Agreement({"id": "AGR-001"})
+
+    assert result.id == "AGR-001"
+    assert not hasattr(result, "name")
+    assert not hasattr(result, "status")
+    assert not hasattr(result, "audit")

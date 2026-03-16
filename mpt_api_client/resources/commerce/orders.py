@@ -9,6 +9,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model, ResourceData
+from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.commerce.mixins import (
     AsyncRenderMixin,
     AsyncTemplateMixin,
@@ -26,7 +27,69 @@ from mpt_api_client.resources.commerce.orders_subscription import (
 
 
 class Order(Model):
-    """Order resource."""
+    """Order resource.
+
+    Attributes:
+        type: Order type.
+        status: Order status.
+        notes: Order notes.
+        comments: Order comments.
+        default_markup_source: Default markup source.
+        status_notes: Status notes details.
+        template: Reference to the template.
+        listing: Reference to the listing.
+        authorization: Reference to the authorization.
+        agreement: Reference to the agreement.
+        assignee: Reference to the assignee.
+        external_ids: External identifiers.
+        price: Price information.
+        lines: List of order lines.
+        subscriptions: List of subscriptions.
+        assets: List of assets.
+        parameters: Order parameters.
+        error: Error information.
+        product: Reference to the product.
+        client: Reference to the client account.
+        licensee: Reference to the licensee.
+        buyer: Reference to the buyer.
+        seller: Reference to the seller.
+        vendor: Reference to the vendor account.
+        bill_to: Bill-to address.
+        pricing_policy: Reference to the pricing policy.
+        terms_and_conditions: List of terms and conditions.
+        certificates: List of certificates.
+        audit: Audit information.
+    """
+
+    type: str | None
+    status: str | None
+    notes: str | None
+    comments: str | None
+    default_markup_source: str | None
+    status_notes: BaseModel | None
+    template: BaseModel | None
+    listing: BaseModel | None
+    authorization: BaseModel | None
+    agreement: BaseModel | None
+    assignee: BaseModel | None
+    external_ids: BaseModel | None
+    price: BaseModel | None
+    lines: list[BaseModel] | None
+    subscriptions: list[BaseModel] | None
+    assets: list[BaseModel] | None
+    parameters: BaseModel | None  # noqa: WPS110
+    error: BaseModel | None
+    product: BaseModel | None
+    client: BaseModel | None
+    licensee: BaseModel | None
+    buyer: BaseModel | None
+    seller: BaseModel | None
+    vendor: BaseModel | None
+    bill_to: BaseModel | None
+    pricing_policy: BaseModel | None
+    terms_and_conditions: list[BaseModel] | None
+    certificates: list[BaseModel] | None
+    audit: BaseModel | None
 
 
 class OrdersServiceConfig:

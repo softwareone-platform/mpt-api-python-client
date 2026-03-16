@@ -6,10 +6,45 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
 
 
 class OrderSubscription(Model):
-    """Order Subscription resource."""
+    """Order Subscription resource.
+
+    Attributes:
+        name: Subscription name.
+        status: Subscription status.
+        start_date: Subscription start date.
+        termination_date: Subscription termination date.
+        commitment_date: Subscription commitment date.
+        auto_renew: Whether the subscription auto-renews.
+        external_ids: External identifiers.
+        terms: Reference to terms and conditions.
+        product: Reference to the product.
+        parameters: Subscription parameters.
+        agreement: Reference to the agreement.
+        price: Price information.
+        template: Reference to the template.
+        lines: List of subscription lines.
+        audit: Audit information.
+    """
+
+    name: str | None
+    status: str | None
+    start_date: str | None
+    termination_date: str | None
+    commitment_date: str | None
+    auto_renew: bool | None
+    external_ids: BaseModel | None
+    terms: BaseModel | None
+    product: BaseModel | None
+    parameters: BaseModel | None  # noqa: WPS110
+    agreement: BaseModel | None
+    price: BaseModel | None
+    template: BaseModel | None
+    lines: list[BaseModel] | None
+    audit: BaseModel | None
 
 
 class OrderSubscriptionsServiceConfig:
