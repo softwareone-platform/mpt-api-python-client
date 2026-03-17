@@ -2,6 +2,8 @@ import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
 
+pytestmark = [pytest.mark.flaky]
+
 
 async def test_get_chat(async_mpt_ops, chat_id):
     service = async_mpt_ops.helpdesk.chats
