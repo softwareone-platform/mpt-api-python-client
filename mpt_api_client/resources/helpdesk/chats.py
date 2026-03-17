@@ -10,6 +10,10 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.helpdesk.chat_attachments import (
+    AsyncChatAttachmentsService,
+    ChatAttachmentsService,
+)
 from mpt_api_client.resources.helpdesk.chat_links import (
     AsyncChatLinksService,
     ChatLinksService,
@@ -42,6 +46,12 @@ class ChatsService(
 ):
     """Helpdesk Chats service."""
 
+    def attachments(self, chat_id: str) -> ChatAttachmentsService:
+        """Return chat attachments service."""
+        return ChatAttachmentsService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
+
     def messages(self, chat_id: str) -> ChatMessagesService:
         """Return chat messages service."""
         return ChatMessagesService(
@@ -62,6 +72,12 @@ class AsyncChatsService(
     ChatsServiceConfig,
 ):
     """Async Helpdesk Chats service."""
+
+    def attachments(self, chat_id: str) -> AsyncChatAttachmentsService:
+        """Return async chat attachments service."""
+        return AsyncChatAttachmentsService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
 
     def messages(self, chat_id: str) -> AsyncChatMessagesService:
         """Return async chat messages service."""

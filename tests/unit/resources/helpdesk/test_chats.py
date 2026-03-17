@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.helpdesk.chat_attachments import (
+    AsyncChatAttachmentsService,
+    ChatAttachmentsService,
+)
 from mpt_api_client.resources.helpdesk.chat_links import (
     AsyncChatLinksService,
     ChatLinksService,
@@ -55,6 +59,13 @@ def test_property_services(chats_service, service_method, expected_service_class
     assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
 
 
+def test_attachments_service(chats_service):
+    result = chats_service.attachments("CHT-0000-0000-0001")
+
+    assert isinstance(result, ChatAttachmentsService)
+    assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
+
+
 @pytest.mark.parametrize(
     ("service_method", "expected_service_class"),
     [
@@ -66,4 +77,11 @@ def test_async_property_services(async_chats_service, service_method, expected_s
     result = getattr(async_chats_service, service_method)("CHT-0000-0000-0001")
 
     assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
+
+
+def test_async_attachments_service(async_chats_service):
+    result = async_chats_service.attachments("CHT-0000-0000-0001")
+
+    assert isinstance(result, AsyncChatAttachmentsService)
     assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
