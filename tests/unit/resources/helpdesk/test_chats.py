@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.helpdesk.chat_links import (
+    AsyncChatLinksService,
+    ChatLinksService,
+)
 from mpt_api_client.resources.helpdesk.chat_messages import (
     AsyncChatMessagesService,
     ChatMessagesService,
@@ -37,15 +41,29 @@ def test_async_mixins_present(async_chats_service, method):
     assert result is True
 
 
-def test_messages_service(chats_service):
-    result = chats_service.messages("CHT-0000-0000-0001")
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("messages", ChatMessagesService),
+        ("links", ChatLinksService),
+    ],
+)
+def test_property_services(chats_service, service_method, expected_service_class):
+    result = getattr(chats_service, service_method)("CHT-0000-0000-0001")
 
-    assert isinstance(result, ChatMessagesService)
+    assert isinstance(result, expected_service_class)
     assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
 
 
-def test_async_messages_service(async_chats_service):
-    result = async_chats_service.messages("CHT-0000-0000-0001")
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("messages", AsyncChatMessagesService),
+        ("links", AsyncChatLinksService),
+    ],
+)
+def test_async_property_services(async_chats_service, service_method, expected_service_class):
+    result = getattr(async_chats_service, service_method)("CHT-0000-0000-0001")
 
-    assert isinstance(result, AsyncChatMessagesService)
+    assert isinstance(result, expected_service_class)
     assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001"}
