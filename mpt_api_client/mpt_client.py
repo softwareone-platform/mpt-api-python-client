@@ -29,18 +29,24 @@ class AsyncMPTClient:
         self.http_client = http_client or AsyncHTTPClient()
 
     @classmethod
-    def from_config(cls, api_token: str, base_url: str) -> Self:
+    def from_config(
+        cls,
+        api_token: str,
+        base_url: str,
+        timeout: float = 60.0,
+    ) -> Self:
         """Create MPT client from configuration.
 
         Args:
             api_token: MPT API Token
             base_url: MPT Base URL
+            timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
         Returns:
             MPT Client
 
         """
-        return cls(AsyncHTTPClient(base_url=base_url, api_token=api_token))
+        return cls(AsyncHTTPClient(base_url=base_url, api_token=api_token, timeout=timeout))
 
     @property
     def catalog(self) -> AsyncCatalog:
@@ -88,18 +94,24 @@ class MPTClient:
         self.http_client = http_client or HTTPClient()
 
     @classmethod
-    def from_config(cls, api_token: str, base_url: str) -> Self:
+    def from_config(
+        cls,
+        api_token: str,
+        base_url: str,
+        timeout: float = 60.0,
+    ) -> Self:
         """Create MPT client from configuration.
 
         Args:
             api_token: MPT API Token
             base_url: MPT Base URL
+            timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
         Returns:
             MPT Client
 
         """
-        return cls(HTTPClient(base_url=base_url, api_token=api_token))
+        return cls(HTTPClient(base_url=base_url, api_token=api_token, timeout=timeout))
 
     @property
     def commerce(self) -> Commerce:
