@@ -22,6 +22,10 @@ from mpt_api_client.resources.helpdesk.chat_messages import (
     AsyncChatMessagesService,
     ChatMessagesService,
 )
+from mpt_api_client.resources.helpdesk.chat_participants import (
+    AsyncChatParticipantsService,
+    ChatParticipantsService,
+)
 
 
 class Chat(Model):
@@ -62,6 +66,12 @@ class ChatsService(
         """Return chat links service."""
         return ChatLinksService(http_client=self.http_client, endpoint_params={"chat_id": chat_id})
 
+    def participants(self, chat_id: str) -> ChatParticipantsService:
+        """Return chat participants service."""
+        return ChatParticipantsService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
+
 
 class AsyncChatsService(
     AsyncCreateMixin[Chat],
@@ -88,5 +98,11 @@ class AsyncChatsService(
     def links(self, chat_id: str) -> AsyncChatLinksService:
         """Return async chat links service."""
         return AsyncChatLinksService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
+
+    def participants(self, chat_id: str) -> AsyncChatParticipantsService:
+        """Return async chat participants service."""
+        return AsyncChatParticipantsService(
             http_client=self.http_client, endpoint_params={"chat_id": chat_id}
         )
