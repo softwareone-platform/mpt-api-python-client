@@ -12,6 +12,10 @@ from mpt_api_client.resources.helpdesk.chat_messages import (
     AsyncChatMessagesService,
     ChatMessagesService,
 )
+from mpt_api_client.resources.helpdesk.chat_participants import (
+    AsyncChatParticipantsService,
+    ChatParticipantsService,
+)
 from mpt_api_client.resources.helpdesk.chats import AsyncChatsService, ChatsService
 
 
@@ -50,6 +54,7 @@ def test_async_mixins_present(async_chats_service, method):
     [
         ("messages", ChatMessagesService),
         ("links", ChatLinksService),
+        ("participants", ChatParticipantsService),
     ],
 )
 def test_property_services(chats_service, service_method, expected_service_class):
@@ -71,6 +76,7 @@ def test_attachments_service(chats_service):
     [
         ("messages", AsyncChatMessagesService),
         ("links", AsyncChatLinksService),
+        ("participants", AsyncChatParticipantsService),
     ],
 )
 def test_async_property_services(async_chats_service, service_method, expected_service_class):
