@@ -1,6 +1,7 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.helpdesk.cases import AsyncCasesService, CasesService
 from mpt_api_client.resources.helpdesk.chats import AsyncChatsService, ChatsService
+from mpt_api_client.resources.helpdesk.queues import AsyncQueuesService, QueuesService
 
 
 class Helpdesk:
@@ -19,6 +20,11 @@ class Helpdesk:
         """Cases service."""
         return CasesService(http_client=self.http_client)
 
+    @property
+    def queues(self) -> QueuesService:
+        """Queues service."""
+        return QueuesService(http_client=self.http_client)
+
 
 class AsyncHelpdesk:
     """Async Helpdesk MPT API Module."""
@@ -35,3 +41,8 @@ class AsyncHelpdesk:
     def cases(self) -> AsyncCasesService:
         """Async Cases service."""
         return AsyncCasesService(http_client=self.http_client)
+
+    @property
+    def queues(self) -> AsyncQueuesService:
+        """Async Queues service."""
+        return AsyncQueuesService(http_client=self.http_client)
