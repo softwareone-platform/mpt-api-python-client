@@ -1,5 +1,6 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.helpdesk.cases import AsyncCasesService, CasesService
+from mpt_api_client.resources.helpdesk.channels import AsyncChannelsService, ChannelsService
 from mpt_api_client.resources.helpdesk.chats import AsyncChatsService, ChatsService
 from mpt_api_client.resources.helpdesk.parameter_groups import (
     AsyncParameterGroupsService,
@@ -22,6 +23,11 @@ class Helpdesk:
     def chats(self) -> ChatsService:
         """Chats service."""
         return ChatsService(http_client=self.http_client)
+
+    @property
+    def channels(self) -> ChannelsService:
+        """Channels service."""
+        return ChannelsService(http_client=self.http_client)
 
     @property
     def cases(self) -> CasesService:
@@ -54,6 +60,11 @@ class AsyncHelpdesk:
     def chats(self) -> AsyncChatsService:
         """Async Chats service."""
         return AsyncChatsService(http_client=self.http_client)
+
+    @property
+    def channels(self) -> AsyncChannelsService:
+        """Async Channels service."""
+        return AsyncChannelsService(http_client=self.http_client)
 
     @property
     def cases(self) -> AsyncCasesService:
