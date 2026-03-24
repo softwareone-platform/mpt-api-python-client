@@ -3,6 +3,10 @@ import pytest
 from mpt_api_client.resources.helpdesk import AsyncHelpdesk, Helpdesk
 from mpt_api_client.resources.helpdesk.cases import AsyncCasesService, CasesService
 from mpt_api_client.resources.helpdesk.chats import AsyncChatsService, ChatsService
+from mpt_api_client.resources.helpdesk.parameter_groups import (
+    AsyncParameterGroupsService,
+    ParameterGroupsService,
+)
 from mpt_api_client.resources.helpdesk.parameters import (
     AsyncParametersService,
     ParametersService,
@@ -31,6 +35,7 @@ def test_async_helpdesk_init(async_http_client):
         ("cases", CasesService),
         ("queues", QueuesService),
         ("parameters", ParametersService),
+        ("parameter_groups", ParameterGroupsService),
     ],
 )
 def test_helpdesk_properties(http_client, attr_name, expected):
@@ -48,6 +53,7 @@ def test_helpdesk_properties(http_client, attr_name, expected):
         ("cases", AsyncCasesService),
         ("queues", AsyncQueuesService),
         ("parameters", AsyncParametersService),
+        ("parameter_groups", AsyncParameterGroupsService),
     ],
 )
 def test_async_helpdesk_properties(async_http_client, attr_name, expected):
