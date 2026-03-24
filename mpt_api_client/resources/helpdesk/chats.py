@@ -10,6 +10,10 @@ from mpt_api_client.http.mixins import (
     UpdateMixin,
 )
 from mpt_api_client.models import Model
+from mpt_api_client.resources.helpdesk.chat_answers import (
+    AsyncChatAnswersService,
+    ChatAnswersService,
+)
 from mpt_api_client.resources.helpdesk.chat_attachments import (
     AsyncChatAttachmentsService,
     ChatAttachmentsService,
@@ -72,6 +76,12 @@ class ChatsService(
             http_client=self.http_client, endpoint_params={"chat_id": chat_id}
         )
 
+    def answers(self, chat_id: str) -> ChatAnswersService:
+        """Return chat answers service."""
+        return ChatAnswersService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
+
 
 class AsyncChatsService(
     AsyncCreateMixin[Chat],
@@ -104,5 +114,11 @@ class AsyncChatsService(
     def participants(self, chat_id: str) -> AsyncChatParticipantsService:
         """Return async chat participants service."""
         return AsyncChatParticipantsService(
+            http_client=self.http_client, endpoint_params={"chat_id": chat_id}
+        )
+
+    def answers(self, chat_id: str) -> AsyncChatAnswersService:
+        """Return async chat answers service."""
+        return AsyncChatAnswersService(
             http_client=self.http_client, endpoint_params={"chat_id": chat_id}
         )
