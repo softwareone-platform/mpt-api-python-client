@@ -5,7 +5,6 @@ from mpt_api_client.exceptions import MPTAPIError
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_get_chat(async_mpt_ops, chat_id):
     service = async_mpt_ops.helpdesk.chats
 
@@ -14,7 +13,6 @@ async def test_get_chat(async_mpt_ops, chat_id):
     assert result.id == chat_id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_chats(async_mpt_ops):
     service = async_mpt_ops.helpdesk.chats
 
@@ -23,7 +21,6 @@ async def test_list_chats(async_mpt_ops):
     assert len(result) > 0
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat(async_mpt_ops, chat_id, short_uuid):
     service = async_mpt_ops.helpdesk.chats
     new_description = f"e2e update {short_uuid}"
