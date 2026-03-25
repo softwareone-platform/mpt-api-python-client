@@ -2,6 +2,7 @@ from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.helpdesk.cases import AsyncCasesService, CasesService
 from mpt_api_client.resources.helpdesk.channels import AsyncChannelsService, ChannelsService
 from mpt_api_client.resources.helpdesk.chats import AsyncChatsService, ChatsService
+from mpt_api_client.resources.helpdesk.forms import AsyncFormsService, FormsService
 from mpt_api_client.resources.helpdesk.parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
@@ -45,6 +46,11 @@ class Helpdesk:
         return ParametersService(http_client=self.http_client)
 
     @property
+    def forms(self) -> FormsService:
+        """Forms service."""
+        return FormsService(http_client=self.http_client)
+
+    @property
     def parameter_groups(self) -> ParameterGroupsService:
         """Parameter groups service."""
         return ParameterGroupsService(http_client=self.http_client)
@@ -80,6 +86,11 @@ class AsyncHelpdesk:
     def parameters(self) -> AsyncParametersService:  # noqa: WPS110
         """Async parameters service."""
         return AsyncParametersService(http_client=self.http_client)
+
+    @property
+    def forms(self) -> AsyncFormsService:
+        """Async forms service."""
+        return AsyncFormsService(http_client=self.http_client)
 
     @property
     def parameter_groups(self) -> AsyncParameterGroupsService:
