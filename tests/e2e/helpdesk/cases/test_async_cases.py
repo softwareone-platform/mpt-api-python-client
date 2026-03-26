@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.cases import Case
 
 pytestmark = [pytest.mark.flaky]
 
@@ -12,13 +15,13 @@ async def test_get_case(async_mpt_ops, async_created_case):
     assert result.id == async_created_case.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_cases(async_mpt_ops):
     limit = 1
 
     result = await async_mpt_ops.helpdesk.cases.fetch_page(limit=limit)
 
     assert len(result) > 0
+    assert all(isinstance(case, Case) for case in result)
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")
@@ -65,7 +68,7 @@ async def test_complete_case(async_mpt_ops, async_created_case):
     assert result is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_not_found(async_mpt_ops, invalid_case_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         await async_mpt_ops.helpdesk.cases.get(invalid_case_id)
+    assert error.value.status_code == HTTPStatus.NOT_FOUND

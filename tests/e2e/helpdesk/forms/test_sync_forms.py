@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.forms import Form
 
 pytestmark = [pytest.mark.flaky]
 
@@ -17,6 +20,7 @@ def test_list_forms(mpt_ops):
     result = mpt_ops.helpdesk.forms.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(form, Form) for form in result)
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")
@@ -56,5 +60,7 @@ def test_delete_form(mpt_ops, created_form):
 
 
 def test_not_found(mpt_ops, invalid_form_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         mpt_ops.helpdesk.forms.get(invalid_form_id)
+
+    assert error.value.status_code == HTTPStatus.NOT_FOUND

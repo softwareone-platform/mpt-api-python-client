@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.parameter_groups import ParameterGroup
 
 pytestmark = [
     pytest.mark.flaky,
@@ -18,6 +21,7 @@ def test_list_parameter_groups(parameter_groups_service):
     result = parameter_groups_service.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(parameter_group, ParameterGroup) for parameter_group in result)
 
 
 def test_create_parameter_group(created_parameter_group):
@@ -40,5 +44,7 @@ def test_delete_parameter_group(parameter_groups_service, created_parameter_grou
 
 
 def test_not_found(parameter_groups_service, invalid_parameter_group_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         parameter_groups_service.get(invalid_parameter_group_id)
+
+    assert error.value.status_code == HTTPStatus.NOT_FOUND

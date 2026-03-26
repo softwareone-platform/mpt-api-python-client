@@ -1,11 +1,13 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.channels import Channel
 
-pytestmark = [pytest.mark.flaky]
+pytestmark = [pytest.mark.flaky, pytest.mark.skip(reason="Unskip after MPT-19124 completed")]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_get_channel(async_mpt_ops, channel_id):
     service = async_mpt_ops.helpdesk.channels
 
@@ -14,23 +16,21 @@ async def test_get_channel(async_mpt_ops, channel_id):
     assert result.id == channel_id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_channels(async_mpt_ops):
     service = async_mpt_ops.helpdesk.channels
 
     result = await service.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(channel, Channel) for channel in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_create_channel(async_created_channel):
     result = async_created_channel
 
     assert result.id is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_channel(async_mpt_ops, async_created_channel, short_uuid):
     service = async_mpt_ops.helpdesk.channels
     new_name = f"E2E Updated Channel {short_uuid}"
@@ -41,7 +41,6 @@ async def test_update_channel(async_mpt_ops, async_created_channel, short_uuid):
     assert result.to_dict().get("name") == new_name
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_channel(async_mpt_ops, async_created_channel):
     result = async_created_channel
 
@@ -51,5 +50,6 @@ async def test_delete_channel(async_mpt_ops, async_created_channel):
 async def test_not_found(async_mpt_ops, invalid_channel_id):
     service = async_mpt_ops.helpdesk.channels
 
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         await service.get(invalid_channel_id)
+    assert error.value.status_code == HTTPStatus.NOT_FOUND
