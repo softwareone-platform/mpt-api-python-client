@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.parameters import Parameter
 
 pytestmark = [
     pytest.mark.flaky,
@@ -18,6 +21,7 @@ async def test_list_parameters(async_mpt_ops):
     result = await async_mpt_ops.helpdesk.parameters.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(parameter, Parameter) for parameter in result)
 
 
 def test_create_parameter(async_created_parameter):
@@ -40,5 +44,6 @@ async def test_delete_parameter(async_mpt_ops, async_created_parameter):
 
 
 async def test_not_found(async_mpt_ops, invalid_parameter_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         await async_mpt_ops.helpdesk.parameters.get(invalid_parameter_id)
+    assert error.value.status_code == HTTPStatus.NOT_FOUND

@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.chat_answers import ChatAnswer
 
 pytestmark = [
     pytest.mark.flaky,
@@ -18,6 +21,7 @@ async def test_list_chat_answers(async_chat_answers_service):
     result = await async_chat_answers_service.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(answer, ChatAnswer) for answer in result)
 
 
 def test_create_chat_answer(async_created_chat_answer):
@@ -71,5 +75,6 @@ async def test_delete_chat_answer(async_chat_answers_service, async_created_chat
 
 
 async def test_not_found(async_chat_answers_service, invalid_chat_answer_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         await async_chat_answers_service.get(invalid_chat_answer_id)
+    assert error.value.status_code == HTTPStatus.NOT_FOUND

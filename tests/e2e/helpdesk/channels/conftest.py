@@ -8,7 +8,7 @@ from tests.e2e.helper import (
 
 @pytest.fixture
 def channel_id(e2e_config):
-    return e2e_config["helpdesk.channel.id"]
+    return e2e_config["helpdesk.channel.id"]  # FIXME: seed data
 
 
 @pytest.fixture

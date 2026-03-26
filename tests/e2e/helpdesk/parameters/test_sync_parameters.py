@@ -1,6 +1,9 @@
+from http import HTTPStatus
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
+from mpt_api_client.resources.helpdesk.parameters import Parameter
 
 pytestmark = [
     pytest.mark.flaky,
@@ -18,6 +21,7 @@ def test_list_parameters(mpt_ops):
     result = mpt_ops.helpdesk.parameters.fetch_page(limit=1)
 
     assert len(result) > 0
+    assert all(isinstance(parameter, Parameter) for parameter in result)
 
 
 def test_create_parameter(created_parameter):
@@ -40,5 +44,7 @@ def test_delete_parameter(mpt_ops, created_parameter):
 
 
 def test_not_found(mpt_ops, invalid_parameter_id):
-    with pytest.raises(MPTAPIError):
+    with pytest.raises(MPTAPIError) as error:
         mpt_ops.helpdesk.parameters.get(invalid_parameter_id)
+
+    assert error.value.status_code == HTTPStatus.NOT_FOUND
