@@ -8,14 +8,12 @@ from mpt_api_client.resources.helpdesk.queues import Queue
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_get_queue(mpt_ops, created_queue):
     result = mpt_ops.helpdesk.queues.get(created_queue.id)
 
     assert result.id == created_queue.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_list_queues(mpt_ops):
     result = mpt_ops.helpdesk.queues.fetch_page(limit=1)
 
@@ -23,14 +21,12 @@ def test_list_queues(mpt_ops):
     assert all(isinstance(queue, Queue) for queue in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_create_queue(created_queue):
     result = created_queue
 
-    assert result is not None
+    assert isinstance(result, Queue)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_update_queue(mpt_ops, created_queue, short_uuid):
     update_data = {"description": f"e2e update {short_uuid}"}
 
@@ -40,21 +36,18 @@ def test_update_queue(mpt_ops, created_queue, short_uuid):
     assert result.to_dict().get("description") == update_data["description"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-def test_activate_queue(mpt_ops, created_queue):
-    result = mpt_ops.helpdesk.queues.activate(created_queue.id)
+def test_activate_queue(mpt_ops, created_disabled_queue):
+    result = mpt_ops.helpdesk.queues.activate(created_disabled_queue.id)
 
-    assert result is not None
+    assert result.status == "Active"
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_disable_queue(mpt_ops, created_queue):
     result = mpt_ops.helpdesk.queues.disable(created_queue.id)
 
-    assert result is not None
+    assert result.status == "Disabled"
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_delete_queue(mpt_ops, created_queue):
     mpt_ops.helpdesk.queues.delete(created_queue.id)  # act
 
