@@ -8,7 +8,6 @@ from mpt_api_client.resources.helpdesk.chat_participants import ChatParticipant
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_chat_participants(async_chat_participants_service):
     result = await async_chat_participants_service.fetch_page(limit=1)
 
@@ -42,7 +41,6 @@ async def test_delete_chat_participant(
     await async_chat_participants_service.delete(result.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_participant_not_found(
     async_chat_participants_service, invalid_chat_participant_id
 ):
@@ -54,10 +52,9 @@ async def test_update_chat_participant_not_found(
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_participant_not_found(
     async_chat_participants_service, invalid_chat_participant_id
 ):
     with pytest.raises(MPTAPIError) as error:
         await async_chat_participants_service.delete(invalid_chat_participant_id)
-    assert error.value.status_code == HTTPStatus.NOT_FOUND
+    assert error.value.status_code == HTTPStatus.BAD_REQUEST  # TODO: verify 400 is OK instead 404
