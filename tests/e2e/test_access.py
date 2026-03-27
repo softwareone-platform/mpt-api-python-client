@@ -8,7 +8,7 @@ from mpt_api_client.exceptions import MPTHttpError
 def test_unauthorised(base_url):
     client = MPTClient.from_config(api_token="TKN-invalid", base_url=base_url)  # noqa: S106
 
-    with pytest.raises(MPTHttpError, match=r"401 Unauthorized"):
+    with pytest.raises(MPTHttpError, match=r"401 Authentication Failed"):
         client.catalog.products.fetch_page()
 
 
