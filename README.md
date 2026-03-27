@@ -1,125 +1,79 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=softwareone-platform_mpt-api-python-client&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=softwareone-platform_mpt-api-python-client)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=softwareone-platform_mpt-api-python-client&metric=coverage)](https://sonarcloud.io/summary/new_code?id=softwareone-platform_mpt-api-python-client)
-
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 # mpt-api-python-client
 
-A Python client for interacting with the MPT API.
+Python API client for the SoftwareONE Marketplace Platform (MPT) API.
 
-## Documentation
+Provides synchronous (`MPTClient`) and asynchronous (`AsyncMPTClient`) clients built on
+[httpx](https://www.python-httpx.org/), with typed resource services, mixin-based HTTP
+operations, and an RQL query builder.
 
-📚 **[Complete Usage Guide](docs/PROJECT_DESCRIPTION.md)**
-
-## Getting started
-
-### Prerequisites
-
-- Docker and Docker Compose plugin (`docker compose` CLI)
-- `make`
-- [CodeRabbit CLI](https://www.coderabbit.ai/cli) (optional. Used for running review check locally)
-
-### Make targets overview
-
-Common development workflows are wrapped in the `Makefile`. Run `make help` to see the list of available commands.
-
-### How the Makefile works
-
-The project uses a modular Makefile structure that organizes commands into logical groups:
-- **Main Makefile** (`Makefile`): Entry point that automatically includes all `.mk` files from the `make/` directory
-- **Modular includes** (`make/*.mk`): Commands are organized by category:
-  - `common.mk` - Core development commands (build, test, format, etc.)
-  - `repo.mk` - Repository management and dependency commands
-  - `migrations.mk` - Database migration commands (Only available in extension repositories)
-  - `external_tools.mk` - Integration with external tools
-
-
-You can extend the Makefile with your own custom commands creating a `local.mk` file inside make folder. This file is
-automatically ignored by git, so your personal commands won't affect other developers or appear in version control.
-
-
-### Setup
-
-Follow these steps to set up the development environment:
-
-#### 1. Clone the repository
+## Quick Start
 
 ```bash
-git clone <repository-url>
-```
-```bash
-cd mpt-api-python-client
-```
-
-#### 2. Create environment configuration
-
-Copy the sample environment file and update it with your values:
-
-```bash
-cp .env.sample .env
-```
-
-Edit the `.env` file with your actual configuration values. See the [Configuration](#configuration) section for details on available variables.
-
-#### 3. Build the Docker images
-
-Build the development environment:
-
-```bash
+cp .env.sample .env   # configure MPT_API_BASE_URL and MPT_API_TOKEN
 make build
-```
-
-This will create the Docker images with all required dependencies and the virtualenv.
-
-#### 4. Verify the setup
-
-Run the test suite to ensure everything is configured correctly:
-
-```bash
 make test
 ```
 
-You're now ready to start developing! See [Running the client](#running-the-client) for next steps.
+## Usage
 
+**[Installation & Usage Guide](docs/PROJECT_DESCRIPTION.md)**
 
-## Running the client
+```python
+from mpt_api_client import MPTClient
 
-Before running, ensure your `.env` file is populated.
+client = MPTClient()  # reads MPT_API_TOKEN and MPT_API_BASE_URL from environment
 
-```bash
-make run
+for product in client.catalog.products.iterate():
+    print(product.name)
 ```
 
-## Developer utilities
+### RQL Filtering Example
 
-Useful helper targets during development:
+```python
+from mpt_api_client import MPTClient, RQLQuery
 
-```bash
-make bash      # open a bash shell in the app container
-make check     # run ruff, flake8, and lockfile checks
-make check-all # run checks and tests
-make format    # auto-format code and imports
-make review    # check the code in the cli by running CodeRabbit
+client = MPTClient()
+products = client.catalog.products
+
+target_ids = RQLQuery("id").in_([
+    "PRD-123-456",
+    "PRD-789-012",
+])
+active = RQLQuery(status="active")
+vendor = RQLQuery("vendor.name").eq("Microsoft")
+
+query = target_ids & active & vendor
+
+for product in products.filter(query).order_by("-audit.updated.at").select("id", "name").iterate():
+    print(product.id, product.name)
 ```
 
-## Configuration
+## Documentation
 
-The following environment variables are typically set in `.env`. Docker Compose reads them when using the Make targets described above.
+| Document                                                       | Description                                                 |
+|----------------------------------------------------------------|-------------------------------------------------------------|
+| [Architecture](docs/architecture.md)                           | Layered architecture, directory structure, key abstractions |
+| [RQL Guide](docs/rql.md)                                       | Fluent builder for Resource Query Language filters           |
+| [Contributing](docs/contributing.md)                           | Development workflow, coding conventions, linting setup     |
+| [Testing](docs/testing.md)                                     | Test structure, tooling, conventions                        |
+| [Local Development](docs/local-development.md)                 | Docker setup, Make targets, environment variables           |
+| [Usage Guide](docs/PROJECT_DESCRIPTION.md)                     | Installation, sync and async usage examples                 |
+| [MPT OpenAPI Spec](https://api.s1.show/public/v1/openapi.json) | Upstream API contract (endpoints, schemas)                  |
 
-### Application
+## Key Commands
 
-| Environment Variable            | Default | Example                                   | Description                                                                               |
-|---------------------------------|---------|-------------------------------------------|-------------------------------------------------------------------------------------------|
-| `MPT_API_BASE_URL`              | -       | `https://portal.softwareone.com/mpt`      | SoftwareONE Marketplace API URL                                                           |
-| `MPT_API_TOKEN`                 | -       | eyJhbGciOiJSUzI1N...                      | SoftwareONE Marketplace API Token                                                         |
+```bash
+make build      # build Docker development environment
+make test       # run unit tests
+make check      # run all quality checks (ruff, flake8, mypy)
+make check-all  # run checks + tests
+make format     # auto-format code
+make bash       # open a shell in the container
+make run        # start an IPython session
+```
 
-### E2E
-
-| Environment Variable       | Default | Example                              | Description                                  |
-|----------------------------|---------|--------------------------------------|----------------------------------------------|
-| `MPT_API_TOKEN_CLIENT`     | -       | eyJhbGciOiJSUzI1N...                 | SoftwareONE Marketplace API Client Token     |
-| `MPT_API_TOKEN_OPERATIONS` | -       | eyJhbGciOiJSUzI1N...                 | SoftwareONE Marketplace API Operations Token |
-| `MPT_API_TOKEN_VENDOR`     | -       | eyJhbGciOiJSUzI1N...                 | SoftwareONE Marketplace API Vendor Token     |
-| `RP_API_KEY`               | -       | pytest_XXXXXXXXXXXXXX                | ReportPortal API key                         |
-| `RP_ENDPOINT`              | -       | `https://reportportal.example.com`   | ReportPortal endpoint                        |
-| `RP_LAUNCH`                | -       | `dev-env`                            | ReportPortal launch                          |
+Run `make help` to see all available commands.
