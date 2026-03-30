@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_case_id():
     return "CAS-0000-0000"
 

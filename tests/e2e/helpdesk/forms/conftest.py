@@ -14,7 +14,7 @@ def form_data(short_uuid):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_form_id():
     return "FRM-0000-0000"
 

@@ -40,6 +40,6 @@ async def async_created_chat_participant(async_chat_participants_service, chat_p
         yield chat_participant
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_participant_id():
     return "CHP-0000-0000-0000"
