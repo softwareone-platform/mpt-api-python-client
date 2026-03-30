@@ -8,7 +8,6 @@ from mpt_api_client.resources.helpdesk.chat_messages import ChatMessage
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_chat_messages(async_chat_messages_service):
     result = await async_chat_messages_service.fetch_page(limit=1)
 
