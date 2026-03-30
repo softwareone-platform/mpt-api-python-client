@@ -6,12 +6,12 @@ from tests.e2e.helper import (
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def channel_id(e2e_config):
     return e2e_config["helpdesk.channel.id"]  # FIXME: seed data
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_channel_id():
     return "CHN-0000-0000-0000"
 

@@ -38,6 +38,6 @@ async def async_created_chat_link(async_chat_links_service, chat_link_data):
         yield chat_link
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_link_id():
     return "LNK-0000-0000-0000"

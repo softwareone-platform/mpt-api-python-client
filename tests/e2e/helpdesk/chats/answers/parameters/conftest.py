@@ -11,6 +11,6 @@ def async_chat_answer_parameters_service(async_mpt_ops, chat_id, async_created_c
     return async_mpt_ops.helpdesk.chats.answers(chat_id).parameters(async_created_chat_answer.id)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_answer_parameter_id():
     return "PAR-0000-0000"

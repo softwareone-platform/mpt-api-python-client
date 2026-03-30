@@ -63,7 +63,7 @@ def created_parameter_group_parameter(
         yield parameter_group_parameter
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_parameter_group_parameter_id():
     return "PAR-0000-0000"
 

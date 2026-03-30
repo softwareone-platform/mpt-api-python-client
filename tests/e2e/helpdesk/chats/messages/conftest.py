@@ -39,6 +39,6 @@ async def async_created_chat_message(async_chat_messages_service, chat_message_d
         yield chat_message
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_message_id():
     return "MSG-0000-0000-0000"

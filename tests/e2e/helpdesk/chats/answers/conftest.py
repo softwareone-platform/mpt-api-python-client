@@ -37,6 +37,6 @@ async def async_created_chat_answer(async_chat_answers_service, chat_answer_data
         yield chat_answer
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_answer_id():
     return "ANS-0000-0000"

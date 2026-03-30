@@ -24,7 +24,7 @@ def parameter_data(short_uuid):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_parameter_id():
     return "PAR-0000-0000"
 

@@ -15,7 +15,7 @@ def queue_data(short_uuid):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_queue_id():
     return "HQU-0000-0000"
 

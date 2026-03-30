@@ -15,7 +15,7 @@ def parameter_group_data(short_uuid):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_parameter_group_id():
     return "PGR-0000-0000"
 

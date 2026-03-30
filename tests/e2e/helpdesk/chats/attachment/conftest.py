@@ -48,6 +48,6 @@ async def async_created_chat_attachment(
         )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def invalid_chat_attachment_id():
     return "ATT-0000-0000-0000-0000"
