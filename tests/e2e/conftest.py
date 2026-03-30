@@ -83,7 +83,8 @@ def project_root_path():
 @pytest.fixture(scope="session")
 def pdf_fd():
     icon_path = pathlib.Path(__file__).parent / "empty.pdf"
-    return pathlib.Path.open(icon_path, "rb")
+    with pathlib.Path.open(icon_path, "rb") as fd:
+        yield fd
 
 
 @pytest.fixture(scope="session")
