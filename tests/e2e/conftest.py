@@ -80,7 +80,7 @@ def project_root_path():
     return pathlib.Path(__file__).parent.parent.parent
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def pdf_fd():
     icon_path = pathlib.Path(__file__).parent / "empty.pdf"
     with pathlib.Path.open(icon_path, "rb") as fd:
@@ -119,10 +119,11 @@ def uuid_str():
     return str(uuid.uuid4())
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def logo_fd(project_root_path):
     file_path = project_root_path / "tests/data/logo.png"
-    return file_path.open("rb")
+    with file_path.open("rb") as fb:
+        yield fb
 
 
 @pytest.fixture(scope="session")
