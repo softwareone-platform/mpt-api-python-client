@@ -10,7 +10,7 @@ class RenderMixin[Model]:
         Returns:
             Rendered resource.
         """
-        response = self._resource_do_request(resource_id, action="render")  # type: ignore[attr-defined]
+        response = self._resource(resource_id).do_request("GET", "render")  # type: ignore[attr-defined]
         return response.text  # type: ignore[no-any-return]
 
 
@@ -26,5 +26,5 @@ class AsyncRenderMixin[Model]:
         Returns:
             Rendered resource.
         """
-        response = await self._resource_do_request(resource_id, action="render")  # type: ignore[attr-defined]
+        response = await self._resource(resource_id).do_request("GET", "render")  # type: ignore[attr-defined]
         return response.text  # type: ignore[no-any-return]

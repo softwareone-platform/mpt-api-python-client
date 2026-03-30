@@ -41,7 +41,7 @@ class SellersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return self._resource(resource_id).post("disable", json=resource_data)
 
 
 class AsyncSellersService(
@@ -60,4 +60,4 @@ class AsyncSellersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return await self._resource(resource_id).post("disable", json=resource_data)

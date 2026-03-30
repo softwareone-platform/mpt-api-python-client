@@ -7,9 +7,7 @@ class AsyncEnableMixin[Model: BaseModel]:
 
     async def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Enable a specific resource."""
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id=resource_id, method="POST", action="enable", json=resource_data
-        )
+        return await self._resource(resource_id).post("enable", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class EnableMixin[Model: BaseModel]:
@@ -17,6 +15,4 @@ class EnableMixin[Model: BaseModel]:
 
     def enable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Enable a specific resource."""
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id=resource_id, method="POST", action="enable", json=resource_data
-        )
+        return self._resource(resource_id).post("enable", json=resource_data)  # type: ignore[attr-defined, no-any-return]

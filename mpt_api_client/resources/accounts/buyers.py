@@ -61,7 +61,7 @@ class BuyersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "synchronize", json=resource_data)
+        return self._resource(resource_id).post("synchronize", json=resource_data)
 
     def transfer(self, resource_id: str, resource_data: ResourceData | None = None) -> Buyer:
         """Transfer a buyer.
@@ -70,7 +70,7 @@ class BuyersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "transfer", json=resource_data)
+        return self._resource(resource_id).post("transfer", json=resource_data)
 
 
 class AsyncBuyersService(
@@ -97,7 +97,7 @@ class AsyncBuyersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "synchronize", json=resource_data)
+        return await self._resource(resource_id).post("synchronize", json=resource_data)
 
     async def transfer(self, resource_id: str, resource_data: ResourceData | None = None) -> Buyer:
         """Transfer a buyer.
@@ -106,4 +106,4 @@ class AsyncBuyersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "transfer", json=resource_data)
+        return await self._resource(resource_id).post("transfer", json=resource_data)

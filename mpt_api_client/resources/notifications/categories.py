@@ -35,7 +35,7 @@ class CategoriesService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "publish", json=resource_data)
+        return self._resource(resource_id).post("publish", json=resource_data)
 
     def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Unpublished.
@@ -44,7 +44,7 @@ class CategoriesService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "unpublish", json=resource_data)
+        return self._resource(resource_id).post("unpublish", json=resource_data)
 
 
 class AsyncCategoriesService(
@@ -62,7 +62,7 @@ class AsyncCategoriesService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "publish", json=resource_data)
+        return await self._resource(resource_id).post("publish", json=resource_data)
 
     async def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Unpublished.
@@ -71,4 +71,4 @@ class AsyncCategoriesService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "unpublish", json=resource_data)
+        return await self._resource(resource_id).post("unpublish", json=resource_data)

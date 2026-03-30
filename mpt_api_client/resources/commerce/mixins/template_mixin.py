@@ -10,7 +10,7 @@ class TemplateMixin[Model]:
         Returns:
             Resource template.
         """
-        response = self._resource_do_request(resource_id, action="template")  # type: ignore[attr-defined]
+        response = self._resource(resource_id).do_request("GET", "template")  # type: ignore[attr-defined]
         return response.text  # type: ignore[no-any-return]
 
 
@@ -26,6 +26,5 @@ class AsyncTemplateMixin[Model]:
         Returns:
             Resource template.
         """
-        # pylint: disable=duplicate-code
-        response = await self._resource_do_request(resource_id, action="template")  # type: ignore[attr-defined]
+        response = await self._resource(resource_id).do_request("GET", "template")  # type: ignore[attr-defined]
         return response.text  # type: ignore[no-any-return]

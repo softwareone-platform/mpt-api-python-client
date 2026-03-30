@@ -30,11 +30,11 @@ class QueuesService(
 
     def activate(self, resource_id: str, resource_data: ResourceData | None = None) -> Queue:
         """Switch queue to active state."""
-        return self._resource_action(resource_id, "POST", "activate", json=resource_data)
+        return self._resource(resource_id).post("activate", json=resource_data)
 
     def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Queue:
         """Switch queue to disabled state."""
-        return self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return self._resource(resource_id).post("disable", json=resource_data)
 
 
 class AsyncQueuesService(
@@ -47,8 +47,8 @@ class AsyncQueuesService(
 
     async def activate(self, resource_id: str, resource_data: ResourceData | None = None) -> Queue:
         """Switch queue to active state."""
-        return await self._resource_action(resource_id, "POST", "activate", json=resource_data)
+        return await self._resource(resource_id).post("activate", json=resource_data)
 
     async def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Queue:
         """Switch queue to disabled state."""
-        return await self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return await self._resource(resource_id).post("disable", json=resource_data)

@@ -11,9 +11,7 @@ class ValidateMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be validated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "validate", json=resource_data
-        )
+        return self._resource(resource_id).post("validate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncValidateMixin[Model]:
@@ -26,6 +24,4 @@ class AsyncValidateMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be validated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "validate", json=resource_data
-        )
+        return await self._resource(resource_id).post("validate", json=resource_data)  # type: ignore[attr-defined, no-any-return]

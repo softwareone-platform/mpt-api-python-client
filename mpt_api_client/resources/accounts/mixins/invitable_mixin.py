@@ -11,9 +11,7 @@ class InvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "accept-invite", json=resource_data
-        )
+        return self._resource(resource_id).post("accept-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def resend_invite(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Resend an invite to a resource.
@@ -22,9 +20,7 @@ class InvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "resend-invite", json=resource_data
-        )
+        return self._resource(resource_id).post("resend-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def send_new_invite(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Send a new invite to a resource.
@@ -33,9 +29,7 @@ class InvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "send-new-invite", json=resource_data
-        )
+        return self._resource(resource_id).post("send-new-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncInvitableMixin[Model]:
@@ -50,9 +44,7 @@ class AsyncInvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "accept-invite", json=resource_data
-        )
+        return await self._resource(resource_id).post("accept-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def resend_invite(
         self, resource_id: str, resource_data: ResourceData | None = None
@@ -63,9 +55,7 @@ class AsyncInvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "resend-invite", json=resource_data
-        )
+        return await self._resource(resource_id).post("resend-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def send_new_invite(
         self, resource_id: str, resource_data: ResourceData | None = None
@@ -76,6 +66,4 @@ class AsyncInvitableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "send-new-invite", json=resource_data
-        )
+        return await self._resource(resource_id).post("send-new-invite", json=resource_data)  # type: ignore[attr-defined, no-any-return]

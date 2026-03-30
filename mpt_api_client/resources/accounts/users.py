@@ -49,7 +49,7 @@ class UsersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "sso", json=resource_data)
+        return self._resource(resource_id).post("sso", json=resource_data)
 
     def sso_check(self, resource_id: str, resource_data: ResourceData | None = None) -> User:
         """Perform SSO check action for a user.
@@ -58,7 +58,7 @@ class UsersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(resource_id, "POST", "sso-check", json=resource_data)
+        return self._resource(resource_id).post("sso-check", json=resource_data)
 
     def set_password(self, resource_id: str, password: str) -> User:
         """Set password for a user.
@@ -69,7 +69,7 @@ class UsersService(
         """
         resource_data = {"password": password}
 
-        return self._resource_action(resource_id, "POST", "set-password", json=resource_data)
+        return self._resource(resource_id).post("set-password", json=resource_data)
 
 
 class AsyncUsersService(
@@ -90,7 +90,7 @@ class AsyncUsersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "sso", json=resource_data)
+        return await self._resource(resource_id).post("sso", json=resource_data)
 
     async def sso_check(self, resource_id: str, resource_data: ResourceData | None = None) -> User:
         """Perform SSO check action for a user.
@@ -99,7 +99,7 @@ class AsyncUsersService(
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(resource_id, "POST", "sso-check", json=resource_data)
+        return await self._resource(resource_id).post("sso-check", json=resource_data)
 
     async def set_password(self, resource_id: str, password: str) -> User:
         """Set password for a user.
@@ -110,4 +110,4 @@ class AsyncUsersService(
         """
         resource_data = {"password": password}
 
-        return await self._resource_action(resource_id, "POST", "set-password", json=resource_data)
+        return await self._resource(resource_id).post("set-password", json=resource_data)

@@ -14,7 +14,7 @@ class TerminateMixin[Model]:
         Returns:
             Terminated resource.
         """
-        return self._resource_action(resource_id, "POST", "terminate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
+        return self._resource(resource_id).post("terminate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncTerminateMixin[Model]:
@@ -30,4 +30,4 @@ class AsyncTerminateMixin[Model]:
         Returns:
             Terminated resource.
         """
-        return await self._resource_action(resource_id, "POST", "terminate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
+        return await self._resource(resource_id).post("terminate", json=resource_data)  # type: ignore[attr-defined, no-any-return]

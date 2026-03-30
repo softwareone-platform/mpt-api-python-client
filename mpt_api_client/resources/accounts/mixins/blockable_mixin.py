@@ -11,9 +11,7 @@ class BlockableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "block", json=resource_data
-        )
+        return self._resource(resource_id).post("block", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def unblock(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Unblock a resource.
@@ -22,9 +20,7 @@ class BlockableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "unblock", json=resource_data
-        )
+        return self._resource(resource_id).post("unblock", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncBlockableMixin[Model]:
@@ -37,9 +33,7 @@ class AsyncBlockableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "block", json=resource_data
-        )
+        return await self._resource(resource_id).post("block", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def unblock(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Unblock a resource.
@@ -48,6 +42,4 @@ class AsyncBlockableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "unblock", json=resource_data
-        )
+        return await self._resource(resource_id).post("unblock", json=resource_data)  # type: ignore[attr-defined, no-any-return]

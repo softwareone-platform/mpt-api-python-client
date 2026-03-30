@@ -7,9 +7,7 @@ class AsyncDisableMixin[Model: BaseModel]:
 
     async def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Disable a specific resource."""
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id=resource_id, method="POST", action="disable", json=resource_data
-        )
+        return await self._resource(resource_id).post("disable", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class DisableMixin[Model: BaseModel]:
@@ -17,6 +15,4 @@ class DisableMixin[Model: BaseModel]:
 
     def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Disable a specific resource."""
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id=resource_id, method="POST", action="disable", json=resource_data
-        )
+        return self._resource(resource_id).post("disable", json=resource_data)  # type: ignore[attr-defined, no-any-return]

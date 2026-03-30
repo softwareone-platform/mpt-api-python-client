@@ -30,11 +30,11 @@ class ContactsService(
 
     def block(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Block a contact."""
-        return self._resource_action(resource_id, "POST", "block", json=resource_data)
+        return self._resource(resource_id).post("block", json=resource_data)
 
     def unblock(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Unblock a contact."""
-        return self._resource_action(resource_id, "POST", "unblock", json=resource_data)
+        return self._resource(resource_id).post("unblock", json=resource_data)
 
 
 class AsyncContactsService(
@@ -47,8 +47,8 @@ class AsyncContactsService(
 
     async def block(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Block a contact."""
-        return await self._resource_action(resource_id, "POST", "block", json=resource_data)
+        return await self._resource(resource_id).post("block", json=resource_data)
 
     async def unblock(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Unblock a contact."""
-        return await self._resource_action(resource_id, "POST", "unblock", json=resource_data)
+        return await self._resource(resource_id).post("unblock", json=resource_data)
