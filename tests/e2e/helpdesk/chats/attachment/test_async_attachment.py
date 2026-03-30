@@ -63,7 +63,6 @@ async def test_delete_chat_attachment(async_chat_attachments_service, chat_attac
     await async_chat_attachments_service.delete(created.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_get_chat_attachment_not_found(
     async_chat_attachments_service, invalid_chat_attachment_id
 ):
@@ -72,7 +71,6 @@ async def test_get_chat_attachment_not_found(
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_attachment_not_found(
     async_chat_attachments_service, invalid_chat_attachment_id
 ):
@@ -84,7 +82,6 @@ async def test_update_chat_attachment_not_found(
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_attachment_not_found(
     async_chat_attachments_service, invalid_chat_attachment_id
 ):

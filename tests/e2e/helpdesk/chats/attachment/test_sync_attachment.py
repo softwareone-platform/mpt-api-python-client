@@ -56,7 +56,6 @@ def test_delete_chat_attachment(chat_attachments_service, chat_attachment_data, 
     chat_attachments_service.delete(created.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_get_chat_attachment_not_found(chat_attachments_service, invalid_chat_attachment_id):
     with pytest.raises(MPTAPIError) as error:
         chat_attachments_service.get(invalid_chat_attachment_id)
@@ -64,7 +63,6 @@ def test_get_chat_attachment_not_found(chat_attachments_service, invalid_chat_at
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_update_chat_attachment_not_found(chat_attachments_service, invalid_chat_attachment_id):
     with pytest.raises(MPTAPIError) as error:
         chat_attachments_service.update(
@@ -75,7 +73,6 @@ def test_update_chat_attachment_not_found(chat_attachments_service, invalid_chat
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_delete_chat_attachment_not_found(chat_attachments_service, invalid_chat_attachment_id):
     with pytest.raises(MPTAPIError) as error:
         chat_attachments_service.delete(invalid_chat_attachment_id)
