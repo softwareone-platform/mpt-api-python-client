@@ -1,5 +1,3 @@
-from urllib.parse import urljoin
-
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
@@ -8,6 +6,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.http.types import FileTypes
+from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.journal_attachments import (
     AsyncJournalAttachmentsService,
@@ -63,7 +62,7 @@ class JournalsService(
             files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
             files[self._upload_data_key] = journal_id  # UNUSED type: ignore
 
-        path = urljoin(f"{self.path}/", f"{journal_id}/upload")
+        path = join_url_path(self.path, journal_id, "upload")
 
         response = self.http_client.request(  # UNUSED type: ignore[attr-defined]
             "post",
@@ -121,7 +120,7 @@ class AsyncJournalsService(
             files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
             files[self._upload_data_key] = journal_id  # UNUSED type: ignore
 
-        path = urljoin(f"{self.path}/", f"{journal_id}/upload")
+        path = join_url_path(self.path, journal_id, "upload")
 
         response = await self.http_client.request(  # UNUSED type: ignore[attr-defined]
             "post",

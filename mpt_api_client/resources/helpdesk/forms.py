@@ -30,11 +30,11 @@ class FormsService(
 
     def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Form:
         """Switch form to published state."""
-        return self._resource_action(resource_id, "POST", "publish", json=resource_data)
+        return self._resource(resource_id).post("publish", json=resource_data)
 
     def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Form:
         """Switch form to unpublished state."""
-        return self._resource_action(resource_id, "POST", "unpublish", json=resource_data)
+        return self._resource(resource_id).post("unpublish", json=resource_data)
 
 
 class AsyncFormsService(
@@ -47,8 +47,8 @@ class AsyncFormsService(
 
     async def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Form:
         """Switch form to published state."""
-        return await self._resource_action(resource_id, "POST", "publish", json=resource_data)
+        return await self._resource(resource_id).post("publish", json=resource_data)
 
     async def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Form:
         """Switch form to unpublished state."""
-        return await self._resource_action(resource_id, "POST", "unpublish", json=resource_data)
+        return await self._resource(resource_id).post("unpublish", json=resource_data)

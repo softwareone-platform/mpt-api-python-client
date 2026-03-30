@@ -1,6 +1,3 @@
-from urllib.parse import urljoin
-
-
 class DeleteMixin:
     """Delete resource mixin."""
 
@@ -10,7 +7,7 @@ class DeleteMixin:
         Args:
             resource_id: Resource ID.
         """
-        self._resource_do_request(resource_id, "DELETE")  # type: ignore[attr-defined]
+        self._resource(resource_id).delete()  # type: ignore[attr-defined]
 
 
 class AsyncDeleteMixin:
@@ -22,5 +19,4 @@ class AsyncDeleteMixin:
         Args:
             resource_id: Resource ID.
         """
-        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
-        await self.http_client.request("delete", url)  # type: ignore[attr-defined]
+        await self._resource(resource_id).delete()  # type: ignore[attr-defined]

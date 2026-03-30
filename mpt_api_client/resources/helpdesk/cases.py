@@ -36,15 +36,15 @@ class CasesService(
 
     def query(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to query state."""
-        return self._resource_action(resource_id, "POST", "query", json=resource_data)
+        return self._resource(resource_id).post("query", json=resource_data)
 
     def process(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to process state."""
-        return self._resource_action(resource_id, "POST", "process", json=resource_data)
+        return self._resource(resource_id).post("process", json=resource_data)
 
     def complete(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to complete state."""
-        return self._resource_action(resource_id, "POST", "complete", json=resource_data)
+        return self._resource(resource_id).post("complete", json=resource_data)
 
 
 class AsyncCasesService(
@@ -59,12 +59,12 @@ class AsyncCasesService(
 
     async def query(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to query state."""
-        return await self._resource_action(resource_id, "POST", "query", json=resource_data)
+        return await self._resource(resource_id).post("query", json=resource_data)
 
     async def process(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to process state."""
-        return await self._resource_action(resource_id, "POST", "process", json=resource_data)
+        return await self._resource(resource_id).post("process", json=resource_data)
 
     async def complete(self, resource_id: str, resource_data: ResourceData | None = None) -> Case:
         """Switch case to complete state."""
-        return await self._resource_action(resource_id, "POST", "complete", json=resource_data)
+        return await self._resource(resource_id).post("complete", json=resource_data)

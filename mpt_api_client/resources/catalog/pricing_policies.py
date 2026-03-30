@@ -81,7 +81,7 @@ class PricingPoliciesService(  # noqa: WPS215
         Returns:
             Activated pricing policy.
         """
-        return self._resource_action(resource_id, "POST", "activate", json=resource_data)
+        return self._resource(resource_id).post("activate", json=resource_data)
 
     def disable(self, resource_id: str, resource_data: ResourceData | None = None) -> PricingPolicy:
         """Disable pricing policy.
@@ -93,7 +93,7 @@ class PricingPoliciesService(  # noqa: WPS215
         Returns:
             Disabled pricing policy.
         """
-        return self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return self._resource(resource_id).post("disable", json=resource_data)
 
 
 class AsyncPricingPoliciesService(
@@ -123,7 +123,7 @@ class AsyncPricingPoliciesService(
         Returns:
             Activated pricing policy.
         """
-        return await self._resource_action(resource_id, "POST", "activate", json=resource_data)
+        return await self._resource(resource_id).post("activate", json=resource_data)
 
     async def disable(
         self, resource_id: str, resource_data: ResourceData | None = None
@@ -137,4 +137,4 @@ class AsyncPricingPoliciesService(
         Returns:
             Disabled pricing policy.
         """
-        return await self._resource_action(resource_id, "POST", "disable", json=resource_data)
+        return await self._resource(resource_id).post("disable", json=resource_data)

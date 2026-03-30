@@ -17,14 +17,13 @@ class DownloadFileMixin[Model]:
         Returns:
             File model containing the downloaded file.
         """
+        accessor = self._resource(resource_id)  # type: ignore[attr-defined]
         if not accept:
-            resource: Model = self._resource_action(resource_id, method="GET")  # type: ignore[attr-defined]
+            resource: Model = accessor.get()
             accept = resource.content_type  # type: ignore[attr-defined]
             if not accept:
                 raise MPTError("Unable to download file. Content type not found in resource")
-        response: Response = self._resource_do_request(  # type: ignore[attr-defined]
-            resource_id, method="GET", headers={"Accept": accept}
-        )
+        response: Response = accessor.do_request("GET", headers={"Accept": accept})
         return FileModel(response)
 
 
@@ -42,12 +41,11 @@ class AsyncDownloadFileMixin[Model]:
         Returns:
             File model containing the downloaded file.
         """
+        accessor = self._resource(resource_id)  # type: ignore[attr-defined]
         if not accept:
-            resource: Model = await self._resource_action(resource_id, method="GET")  # type: ignore[attr-defined]
+            resource: Model = await accessor.get()
             accept = resource.content_type  # type: ignore[attr-defined]
             if not accept:
                 raise MPTError("Unable to download file. Content type not found in resource")
-        response = await self._resource_do_request(  # type: ignore[attr-defined]
-            resource_id, method="GET", headers={"Accept": accept}
-        )
+        response = await accessor.do_request("GET", headers={"Accept": accept})
         return FileModel(response)

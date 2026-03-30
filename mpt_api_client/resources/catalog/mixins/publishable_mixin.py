@@ -11,9 +11,7 @@ class PublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "review", json=resource_data
-        )
+        return self._resource(resource_id).post("review", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Published.
@@ -22,9 +20,7 @@ class PublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "publish", json=resource_data
-        )
+        return self._resource(resource_id).post("publish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Unpublished.
@@ -33,9 +29,7 @@ class PublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "unpublish", json=resource_data
-        )
+        return self._resource(resource_id).post("unpublish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncPublishableMixin[Model]:
@@ -48,9 +42,7 @@ class AsyncPublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "review", json=resource_data
-        )
+        return await self._resource(resource_id).post("review", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Published.
@@ -59,9 +51,7 @@ class AsyncPublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "publish", json=resource_data
-        )
+        return await self._resource(resource_id).post("publish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Update state to Unpublished.
@@ -70,6 +60,4 @@ class AsyncPublishableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "unpublish", json=resource_data
-        )
+        return await self._resource(resource_id).post("unpublish", json=resource_data)  # type: ignore[attr-defined, no-any-return]

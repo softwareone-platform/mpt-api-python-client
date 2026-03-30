@@ -1,6 +1,5 @@
 import pathlib
 from typing import cast
-from urllib.parse import urljoin
 
 from mpt_api_client.constants import MIMETYPE_EXCEL_XLSX
 from mpt_api_client.http import AsyncService, Service
@@ -11,6 +10,7 @@ from mpt_api_client.http.mixins import (
     ManagedResourceMixin,
 )
 from mpt_api_client.http.types import FileContent, FileTypes
+from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models import Model
 from mpt_api_client.resources.billing.custom_ledger_attachments import (
     AsyncCustomLedgerAttachmentsService,
@@ -68,7 +68,7 @@ class CustomLedgersService(
         )  # UNUSED type: ignore[attr-defined]
         files[self._upload_data_key] = custom_ledger_id  # UNUSED type: ignore
 
-        path = urljoin(f"{self.path}/", f"{custom_ledger_id}/upload")
+        path = join_url_path(self.path, custom_ledger_id, "upload")
 
         response = self.http_client.request(  # UNUSED type: ignore[attr-defined]
             "post",
@@ -127,7 +127,7 @@ class AsyncCustomLedgersService(
         )  # UNUSED type: ignore[attr-defined]
         files[self._upload_data_key] = custom_ledger_id  # UNUSED type: ignore
 
-        path = urljoin(f"{self.path}/", f"{custom_ledger_id}/upload")
+        path = join_url_path(self.path, custom_ledger_id, "upload")
 
         response = await self.http_client.request(  # UNUSED type: ignore[attr-defined]
             "post",

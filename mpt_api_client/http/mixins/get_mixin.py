@@ -14,7 +14,7 @@ class GetMixin[Model]:
         if isinstance(select, list):
             select = ",".join(select) if select else None
 
-        return self._resource_action(resource_id=resource_id, query_params={"select": select})  # type: ignore[attr-defined, no-any-return]
+        return self._resource(resource_id).get(query_params={"select": select})  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncGetMixin[Model]:
@@ -32,4 +32,4 @@ class AsyncGetMixin[Model]:
         """
         if isinstance(select, list):
             select = ",".join(select) if select else None
-        return await self._resource_action(resource_id=resource_id, query_params={"select": select})  # type: ignore[attr-defined, no-any-return]
+        return await self._resource(resource_id).get(query_params={"select": select})  # type: ignore[attr-defined, no-any-return]

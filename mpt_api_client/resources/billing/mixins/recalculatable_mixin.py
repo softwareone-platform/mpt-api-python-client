@@ -11,9 +11,7 @@ class RecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "recalculate", json=resource_data
-        )
+        return self._resource(resource_id).post("recalculate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def accept(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Accept resource.
@@ -22,9 +20,7 @@ class RecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "accept", json=resource_data
-        )
+        return self._resource(resource_id).post("accept", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def queue(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Queue resource.
@@ -33,9 +29,7 @@ class RecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "queue", json=resource_data
-        )
+        return self._resource(resource_id).post("queue", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncRecalculatableMixin[Model]:
@@ -50,9 +44,7 @@ class AsyncRecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "recalculate", json=resource_data
-        )
+        return await self._resource(resource_id).post("recalculate", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def accept(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Accept resource.
@@ -61,9 +53,7 @@ class AsyncRecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "accept", json=resource_data
-        )
+        return await self._resource(resource_id).post("accept", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def queue(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
         """Queue resource.
@@ -72,6 +62,4 @@ class AsyncRecalculatableMixin[Model]:
             resource_id: Resource ID
             resource_data: Resource data will be updated
         """
-        return await self._resource_action(  # type: ignore[attr-defined, no-any-return]
-            resource_id, "POST", "queue", json=resource_data
-        )
+        return await self._resource(resource_id).post("queue", json=resource_data)  # type: ignore[attr-defined, no-any-return]

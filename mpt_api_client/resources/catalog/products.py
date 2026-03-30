@@ -151,7 +151,7 @@ class ProductsService(
 
     def update_settings(self, product_id: str, settings: ResourceData) -> Product:
         """Update product settings."""
-        return self._resource_action(product_id, "PUT", "settings", settings)
+        return self._resource(product_id).put("settings", json=settings)
 
 
 class AsyncProductsService(
@@ -216,4 +216,4 @@ class AsyncProductsService(
 
     async def update_settings(self, product_id: str, settings: ResourceData) -> Product:
         """Update product settings."""
-        return await self._resource_action(product_id, "PUT", "settings", settings)
+        return await self._resource(product_id).put("settings", json=settings)

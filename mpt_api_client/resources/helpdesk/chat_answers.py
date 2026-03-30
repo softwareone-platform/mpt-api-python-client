@@ -31,19 +31,19 @@ class ChatAnswersService(
 
     def submit(self, resource_id: str, resource_data: ResourceData | None = None) -> ChatAnswer:
         """Switch answer to submitted state."""
-        return self._resource_action(resource_id, "POST", "submit", json=resource_data)
+        return self._resource(resource_id).post("submit", json=resource_data)
 
     def accept(self, resource_id: str, resource_data: ResourceData | None = None) -> ChatAnswer:
         """Switch answer to accepted state."""
-        return self._resource_action(resource_id, "POST", "accept", json=resource_data)
+        return self._resource(resource_id).post("accept", json=resource_data)
 
     def query(self, resource_id: str, resource_data: ResourceData | None = None) -> ChatAnswer:
         """Switch answer to query state."""
-        return self._resource_action(resource_id, "POST", "query", json=resource_data)
+        return self._resource(resource_id).post("query", json=resource_data)
 
     def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> ChatAnswer:
         """Validate answer."""
-        return self._resource_action(resource_id, "POST", "validate", json=resource_data)
+        return self._resource(resource_id).post("validate", json=resource_data)
 
     def parameters(self, answer_id: str) -> ChatAnswerParametersService:  # noqa: WPS110
         """Return chat answer parameters service."""
@@ -73,7 +73,7 @@ class AsyncChatAnswersService(
         resource_data: ResourceData | None = None,
     ) -> ChatAnswer:
         """Switch answer to submitted state."""
-        return await self._resource_action(resource_id, "POST", "submit", json=resource_data)
+        return await self._resource(resource_id).post("submit", json=resource_data)
 
     async def accept(
         self,
@@ -81,7 +81,7 @@ class AsyncChatAnswersService(
         resource_data: ResourceData | None = None,
     ) -> ChatAnswer:
         """Switch answer to accepted state."""
-        return await self._resource_action(resource_id, "POST", "accept", json=resource_data)
+        return await self._resource(resource_id).post("accept", json=resource_data)
 
     async def query(
         self,
@@ -89,7 +89,7 @@ class AsyncChatAnswersService(
         resource_data: ResourceData | None = None,
     ) -> ChatAnswer:
         """Switch answer to query state."""
-        return await self._resource_action(resource_id, "POST", "query", json=resource_data)
+        return await self._resource(resource_id).post("query", json=resource_data)
 
     async def validate(
         self,
@@ -97,7 +97,7 @@ class AsyncChatAnswersService(
         resource_data: ResourceData | None = None,
     ) -> ChatAnswer:
         """Validate answer."""
-        return await self._resource_action(resource_id, "POST", "validate", json=resource_data)
+        return await self._resource(resource_id).post("validate", json=resource_data)
 
     def parameters(self, answer_id: str) -> AsyncChatAnswerParametersService:  # noqa: WPS110
         """Return async chat answer parameters service."""

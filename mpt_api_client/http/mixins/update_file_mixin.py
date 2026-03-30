@@ -1,6 +1,5 @@
-from urllib.parse import urljoin
-
 from mpt_api_client.http.types import FileTypes
+from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models import ResourceData
 
 
@@ -27,7 +26,7 @@ class UpdateFileMixin[Model]:
         """
         files = {}
 
-        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+        url = join_url_path(self.path, resource_id)  # type: ignore[attr-defined]
 
         if file:
             files[self._upload_file_key] = file  # type: ignore[attr-defined]
@@ -67,7 +66,7 @@ class AsyncUpdateFileMixin[Model]:
         """
         files = {}
 
-        url = urljoin(f"{self.path}/", resource_id)  # type: ignore[attr-defined]
+        url = join_url_path(self.path, resource_id)  # type: ignore[attr-defined]
 
         if file:
             files[self._upload_file_key] = file  # type: ignore[attr-defined]
