@@ -8,14 +8,12 @@ from mpt_api_client.resources.helpdesk.forms import Form
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_get_form(mpt_ops, created_form):
     result = mpt_ops.helpdesk.forms.get(created_form.id)
 
     assert result.id == created_form.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_list_forms(mpt_ops):
     result = mpt_ops.helpdesk.forms.fetch_page(limit=1)
 
@@ -23,14 +21,12 @@ def test_list_forms(mpt_ops):
     assert all(isinstance(form, Form) for form in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_create_form(created_form):
     result = created_form
 
     assert result is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_update_form(mpt_ops, created_form, short_uuid):
     update_data = {"description": f"e2e update {short_uuid}"}
 
@@ -40,21 +36,18 @@ def test_update_form(mpt_ops, created_form, short_uuid):
     assert result.to_dict().get("description") == update_data["description"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_publish_form(mpt_ops, created_form):
     result = mpt_ops.helpdesk.forms.publish(created_form.id)
 
     assert result is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-def test_unpublish_form(mpt_ops, created_form):
-    result = mpt_ops.helpdesk.forms.unpublish(created_form.id)
+def test_unpublish_form(mpt_ops, created_published_form):
+    result = mpt_ops.helpdesk.forms.unpublish(created_published_form.id)
 
-    assert result is not None
+    assert result.status == "Unpublished"
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_delete_form(mpt_ops, created_form):
     mpt_ops.helpdesk.forms.delete(created_form.id)  # act
 
