@@ -42,7 +42,6 @@ async def test_delete_chat_link(async_chat_links_service, async_created_chat_lin
     await async_chat_links_service.delete(result.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_link_not_found(async_chat_links_service, invalid_chat_link_id):
     with pytest.raises(MPTAPIError) as error:
         await async_chat_links_service.update(
@@ -52,7 +51,6 @@ async def test_update_chat_link_not_found(async_chat_links_service, invalid_chat
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_link_not_found(async_chat_links_service, invalid_chat_link_id):
     with pytest.raises(MPTAPIError) as error:
         await async_chat_links_service.delete(invalid_chat_link_id)

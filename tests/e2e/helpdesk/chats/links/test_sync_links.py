@@ -39,7 +39,6 @@ def test_delete_chat_link(chat_links_service, created_chat_link):
     chat_links_service.delete(result.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_update_chat_link_not_found(chat_links_service, invalid_chat_link_id):
     with pytest.raises(MPTAPIError) as error:
         chat_links_service.update(invalid_chat_link_id, {"name": "updated name"})
@@ -47,7 +46,6 @@ def test_update_chat_link_not_found(chat_links_service, invalid_chat_link_id):
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_delete_chat_link_not_found(chat_links_service, invalid_chat_link_id):
     with pytest.raises(MPTAPIError) as error:
         chat_links_service.delete(invalid_chat_link_id)
