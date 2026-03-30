@@ -20,49 +20,49 @@ def api_timeout():
     return float(os.getenv("MPT_API_TIMEOUT", "60.0"))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mpt_vendor(base_url, api_timeout):
     return MPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def async_mpt_vendor(base_url, api_timeout):
     return AsyncMPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mpt_ops(base_url, api_timeout):
     return MPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def async_mpt_ops(base_url, api_timeout):
     return AsyncMPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mpt_client(base_url, api_timeout):
     return MPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def async_mpt_client(base_url, api_timeout):
     return AsyncMPTClient.from_config(
         api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url, timeout=api_timeout
     )  # type: ignore
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def rp_logger():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
