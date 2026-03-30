@@ -26,8 +26,20 @@ def created_form(mpt_ops, form_data):
 
 
 @pytest.fixture
+def created_published_form(mpt_ops, created_form):
+    mpt_ops.helpdesk.forms.publish(created_form.id)
+    return created_form
+
+
+@pytest.fixture
 async def async_created_form(async_mpt_ops, form_data):
     async with async_create_fixture_resource_and_delete(
         async_mpt_ops.helpdesk.forms, form_data
     ) as form:
         yield form
+
+
+@pytest.fixture
+async def async_created_published_form(async_mpt_ops, async_created_form):
+    await async_mpt_ops.helpdesk.forms.publish(async_created_form.id)
+    return async_created_form
