@@ -7,16 +7,14 @@ def invalid_case_id():
 
 
 @pytest.fixture
-def case_factory(short_uuid):
+def case_factory(short_uuid, created_queue):
     def factory(
         title: str = "E2E Created Helpdesk Case",
         description: str = "E2E Created Helpdesk Case Description",
     ):
         return {
-            "title": f"{title} {short_uuid}",
-            "description": description,
-            "priority": "Low",
-            "type": "General",
+            "queue": {"id": created_queue.id},
+            "chat": {"lastMessage": {"content": "E2E testing!!!"}},
         }
 
     return factory
