@@ -31,14 +31,14 @@ def test_create_case(async_created_case):
     assert result is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_case(async_mpt_ops, async_created_case, short_uuid):
-    update_data = {"description": f"e2e update {short_uuid}"}
+    assert async_created_case.to_dict().get("awaiting") is False
+    update_data = {"awaiting": True}
 
     result = await async_mpt_ops.helpdesk.cases.update(async_created_case.id, update_data)
 
     assert result.id == async_created_case.id
-    assert result.to_dict().get("description") == update_data["description"]
+    assert result.to_dict().get("awaiting") is True
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")
@@ -48,15 +48,12 @@ async def test_process_case(async_mpt_ops, async_created_case):
     assert result is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-async def test_query_case(async_mpt_ops, async_created_case):
-    processed_case = await async_mpt_ops.helpdesk.cases.process(async_created_case.id)
-
+async def test_query_case(async_mpt_ops, async_created_case, short_uuid):
     result = await async_mpt_ops.helpdesk.cases.query(
-        processed_case.id, {"queryPrompt": "Could you provide more details?"}
+        async_created_case.id, {"queryPrompt": f"e2e update {short_uuid}"}
     )
 
-    assert result is not None
+    assert result.to_dict().get("queryPrompt") == f"e2e update {short_uuid}"
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")
