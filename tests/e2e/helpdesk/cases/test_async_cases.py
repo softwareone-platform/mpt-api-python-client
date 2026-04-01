@@ -8,7 +8,6 @@ from mpt_api_client.resources.helpdesk.cases import Case
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_get_case(async_mpt_ops, async_created_case):
     result = await async_mpt_ops.helpdesk.cases.get(async_created_case.id)
 
@@ -24,7 +23,6 @@ async def test_list_cases(async_mpt_ops):
     assert all(isinstance(case, Case) for case in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_create_case(async_created_case):
     result = async_created_case
 
@@ -41,28 +39,22 @@ async def test_update_case(async_mpt_ops, async_created_case, short_uuid):
     assert result.to_dict().get("awaiting") is True
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-async def test_process_case(async_mpt_ops, async_created_case):
-    result = await async_mpt_ops.helpdesk.cases.process(async_created_case.id)
+def test_process_case(async_mpt_ops, async_processed_case):
+    result = async_processed_case.to_dict().get("status")
 
-    assert result is not None
-
-
-async def test_query_case(async_mpt_ops, async_created_case, short_uuid):
-    result = await async_mpt_ops.helpdesk.cases.query(
-        async_created_case.id, {"queryPrompt": f"e2e update {short_uuid}"}
-    )
-
-    assert result.to_dict().get("queryPrompt") == f"e2e update {short_uuid}"
+    assert result == "Processing"
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-async def test_complete_case(async_mpt_ops, async_created_case):
-    processed_case = await async_mpt_ops.helpdesk.cases.process(async_created_case.id)
+def test_query_case(async_mpt_ops, async_queried_case):
+    result = async_queried_case.to_dict().get("status")
 
-    result = await async_mpt_ops.helpdesk.cases.complete(processed_case.id)
+    assert result == "Querying"
 
-    assert result is not None
+
+async def test_complete_case(async_mpt_ops, async_processed_case):
+    result = await async_mpt_ops.helpdesk.cases.complete(async_processed_case.id)
+
+    assert result.to_dict().get("status") == "Completed"
 
 
 async def test_not_found(async_mpt_ops, invalid_case_id):
