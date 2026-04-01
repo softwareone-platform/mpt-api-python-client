@@ -8,21 +8,18 @@ from mpt_api_client.resources.helpdesk.chat_links import ChatLink
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
-async def test_list_chat_links(async_chat_links_service):
-    result = await async_chat_links_service.fetch_page(limit=1)
+async def test_list_chat_links(async_created_chat_link_service):
+    result = await async_created_chat_link_service.fetch_page(limit=1)
 
     assert len(result) > 0
     assert all(isinstance(link, ChatLink) for link in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
-def test_create_chat_link(async_created_chat_link, chat_link_data):
+def test_create_chat_link(async_created_chat_link, chat_link_data):  # noqa: AAA01
     assert async_created_chat_link.id is not None
     assert async_created_chat_link.to_dict().get("uri") == chat_link_data["uri"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_link_name(async_chat_links_service, async_created_chat_link, short_uuid):
     new_name = f"e2e updated link - {short_uuid}"
 
@@ -35,7 +32,6 @@ async def test_update_chat_link_name(async_chat_links_service, async_created_cha
     assert result.to_dict().get("name") == new_name
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_link(async_chat_links_service, async_created_chat_link):
     result = async_created_chat_link
 
