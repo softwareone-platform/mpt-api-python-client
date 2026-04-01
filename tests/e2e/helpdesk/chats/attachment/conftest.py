@@ -4,13 +4,13 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-def chat_attachments_service(mpt_ops, chat_id):
-    return mpt_ops.helpdesk.chats.attachments(chat_id)
+def chat_attachments_service(mpt_ops, created_chat):
+    return mpt_ops.helpdesk.chats.attachments(created_chat.id)
 
 
 @pytest.fixture
-def async_chat_attachments_service(async_mpt_ops, chat_id):
-    return async_mpt_ops.helpdesk.chats.attachments(chat_id)
+def async_chat_attachments_service(async_mpt_ops, created_chat):
+    return async_mpt_ops.helpdesk.chats.attachments(created_chat.id)
 
 
 @pytest.fixture

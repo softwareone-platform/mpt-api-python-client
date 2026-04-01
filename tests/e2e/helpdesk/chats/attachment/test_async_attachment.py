@@ -8,7 +8,6 @@ from mpt_api_client.resources.helpdesk.chat_attachments import ChatAttachment
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_list_chat_attachments(async_chat_attachments_service, async_created_chat_attachment):
     result = await async_chat_attachments_service.fetch_page(limit=1)
 
@@ -16,20 +15,17 @@ async def test_list_chat_attachments(async_chat_attachments_service, async_creat
     assert all(isinstance(attachment, ChatAttachment) for attachment in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
-def test_create_chat_attachment(async_created_chat_attachment, chat_attachment_data):
+def test_create_chat_attachment(async_created_chat_attachment, chat_attachment_data):  # noqa: AAA01
     assert async_created_chat_attachment.id is not None
     assert async_created_chat_attachment.to_dict().get("name") == chat_attachment_data["name"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_get_chat_attachment(async_chat_attachments_service, async_created_chat_attachment):
     result = await async_chat_attachments_service.get(async_created_chat_attachment.id)
 
     assert result.id == async_created_chat_attachment.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_attachment(
     async_chat_attachments_service, async_created_chat_attachment, short_uuid
 ):
@@ -44,7 +40,6 @@ async def test_update_chat_attachment(
     assert result.to_dict().get("name") == updated_name
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_download_chat_attachment(
     async_chat_attachments_service, async_created_chat_attachment
 ):
@@ -56,11 +51,12 @@ async def test_download_chat_attachment(
     assert result.file_contents is not None
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_attachment(async_chat_attachments_service, chat_attachment_data, pdf_fd):
     created = await async_chat_attachments_service.create(chat_attachment_data, file=pdf_fd)
 
-    await async_chat_attachments_service.delete(created.id)
+    result = await async_chat_attachments_service.delete(created.id)
+
+    assert result is None
 
 
 async def test_get_chat_attachment_not_found(
