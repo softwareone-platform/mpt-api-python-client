@@ -9,12 +9,14 @@ from mpt_api_client.resources import (
     AsyncBilling,
     AsyncCatalog,
     AsyncCommerce,
+    AsyncExchange,
     AsyncHelpdesk,
     AsyncNotifications,
     Audit,
     Billing,
     Catalog,
     Commerce,
+    Exchange,
     Helpdesk,
     Notifications,
 )
@@ -35,6 +37,7 @@ def get_mpt_client():
         ("accounts", Accounts),
         ("notifications", Notifications),
         ("helpdesk", Helpdesk),
+        ("exchange", Exchange),
     ],
 )
 def test_mpt_client(resource_name: str, expected_type: type) -> None:
@@ -66,6 +69,7 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
         ("accounts", AsyncAccounts),
         ("notifications", AsyncNotifications),
         ("helpdesk", AsyncHelpdesk),
+        ("exchange", AsyncExchange),
     ],
 )
 def test_async_mpt_client(resource_name: str, expected_type: type) -> None:

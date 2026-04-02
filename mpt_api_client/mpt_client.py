@@ -8,12 +8,14 @@ from mpt_api_client.resources import (
     AsyncBilling,
     AsyncCatalog,
     AsyncCommerce,
+    AsyncExchange,
     AsyncHelpdesk,
     AsyncNotifications,
     Audit,
     Billing,
     Catalog,
     Commerce,
+    Exchange,
     Helpdesk,
     Notifications,
 )
@@ -82,6 +84,11 @@ class AsyncMPTClient:
     def helpdesk(self) -> AsyncHelpdesk:
         """Helpdesk MPT API Client."""
         return AsyncHelpdesk(http_client=self.http_client)
+
+    @property
+    def exchange(self) -> AsyncExchange:
+        """Exchange MPT API Client."""
+        return AsyncExchange(http_client=self.http_client)
 
 
 class MPTClient:
@@ -152,3 +159,8 @@ class MPTClient:
     def helpdesk(self) -> Helpdesk:
         """Helpdesk MPT API Client."""
         return Helpdesk(http_client=self.http_client)
+
+    @property
+    def exchange(self) -> Exchange:
+        """Exchange MPT API Client."""
+        return Exchange(http_client=self.http_client)

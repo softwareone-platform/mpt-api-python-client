@@ -122,6 +122,7 @@ per-file-ignores = [
   "mpt_api_client/resources/catalog/*.py: WPS110 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/catalog/products.py: WPS204 WPS214 WPS215 WPS235",
   "mpt_api_client/resources/commerce/*.py: WPS235 WPS215",
+  "mpt_api_client/resources/exchange/*.py: WPS235 WPS215",
   "mpt_api_client/resources/helpdesk/*.py: WPS204 WPS215 WPS214",
   "mpt_api_client/rql/query_builder.py: WPS110 WPS115 WPS210 WPS214",
   "tests/e2e/accounts/*.py: WPS430 WPS202",
@@ -144,6 +145,7 @@ per-file-ignores = [
   "tests/unit/resources/commerce/*.py: WPS202 WPS204",
   "tests/unit/test_mpt_client.py: WPS235",
   "tests/*: WPS432 WPS202",
+  "tests/unit/resources/exchange/*.py: WPS202 WPS204 WPS210",
 ]
 
 [tool.ruff]
