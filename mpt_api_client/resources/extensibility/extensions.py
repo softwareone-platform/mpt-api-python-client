@@ -1,0 +1,93 @@
+from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.mixins import (
+    AsyncCollectionMixin,
+    AsyncCreateFileMixin,
+    AsyncDeleteMixin,
+    AsyncGetMixin,
+    AsyncUpdateFileMixin,
+    CollectionMixin,
+    CreateFileMixin,
+    DeleteMixin,
+    GetMixin,
+    UpdateFileMixin,
+)
+from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel
+from mpt_api_client.resources.extensibility.mixins import (
+    AsyncExtensionMixin,
+    ExtensionMixin,
+)
+
+
+class Extension(Model):
+    """Extension resource.
+
+    Attributes:
+        name: Display name of the extension.
+        icon: URL or identifier for the extension icon.
+        revision: Revision number.
+        status: Extension status (Draft, Private, Public, Deleted).
+        website: Extension website URL.
+        short_description: Short description of the extension.
+        long_description: Long description of the extension.
+        vendor: Reference to the vendor account.
+        categories: Categories assigned to the extension.
+        modules: Modules referenced by the extension.
+        statistics: Extension usage statistics.
+        configuration: Extension configuration data.
+        meta: Metadata reference.
+        service: Service details.
+        audit: Audit information (created, updated events).
+    """
+
+    name: str | None
+    icon: str | None
+    revision: int | None
+    status: str | None
+    website: str | None
+    short_description: str | None
+    long_description: str | None
+    vendor: BaseModel | None
+    categories: list[BaseModel] | None
+    modules: list[BaseModel] | None
+    statistics: BaseModel | None
+    configuration: BaseModel | None
+    meta: BaseModel | None
+    service: BaseModel | None
+    audit: BaseModel | None
+
+
+class ExtensionsServiceConfig:
+    """Extensions service configuration."""
+
+    _endpoint = "/public/v1/extensibility/extensions"
+    _model_class = Extension
+    _collection_key = "data"
+    _upload_file_key = "icon"
+    _upload_data_key = "extension"
+
+
+class ExtensionsService(
+    ExtensionMixin[Extension],
+    CreateFileMixin[Extension],
+    UpdateFileMixin[Extension],
+    GetMixin[Extension],
+    DeleteMixin,
+    CollectionMixin[Extension],
+    Service[Extension],
+    ExtensionsServiceConfig,
+):
+    """Sync service for the /public/v1/extensibility/extensions endpoint."""
+
+
+class AsyncExtensionsService(
+    AsyncExtensionMixin[Extension],
+    AsyncCreateFileMixin[Extension],
+    AsyncUpdateFileMixin[Extension],
+    AsyncGetMixin[Extension],
+    AsyncDeleteMixin,
+    AsyncCollectionMixin[Extension],
+    AsyncService[Extension],
+    ExtensionsServiceConfig,
+):
+    """Async service for the /public/v1/extensibility/extensions endpoint."""
