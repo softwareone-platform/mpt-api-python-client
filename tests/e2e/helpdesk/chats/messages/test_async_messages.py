@@ -15,13 +15,11 @@ async def test_list_chat_messages(async_chat_messages_service):
     assert all(isinstance(message, ChatMessage) for message in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
-def test_create_chat_message(async_created_chat_message, chat_message_data):
+def test_create_chat_message(async_created_chat_message, chat_message_data):  # noqa: AAA01
     assert async_created_chat_message.id is not None
     assert async_created_chat_message.to_dict().get("content") == chat_message_data["content"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_update_chat_message_visibility(
     async_chat_messages_service, async_created_chat_message
 ):
@@ -33,7 +31,6 @@ async def test_update_chat_message_visibility(
     assert result.id == async_created_chat_message.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 async def test_delete_chat_message(async_chat_messages_service, async_created_chat_message):
     result = async_created_chat_message
 
