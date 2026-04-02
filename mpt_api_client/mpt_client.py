@@ -9,6 +9,7 @@ from mpt_api_client.resources import (
     AsyncCatalog,
     AsyncCommerce,
     AsyncExchange,
+    AsyncExtensibility,
     AsyncHelpdesk,
     AsyncNotifications,
     Audit,
@@ -16,6 +17,7 @@ from mpt_api_client.resources import (
     Catalog,
     Commerce,
     Exchange,
+    Extensibility,
     Helpdesk,
     Notifications,
 )
@@ -89,6 +91,11 @@ class AsyncMPTClient:
     def exchange(self) -> AsyncExchange:
         """Exchange MPT API Client."""
         return AsyncExchange(http_client=self.http_client)
+
+    @property
+    def extensibility(self) -> AsyncExtensibility:
+        """Extensibility MPT API Client."""
+        return AsyncExtensibility(http_client=self.http_client)
 
 
 class MPTClient:
@@ -164,3 +171,8 @@ class MPTClient:
     def exchange(self) -> Exchange:
         """Exchange MPT API Client."""
         return Exchange(http_client=self.http_client)
+
+    @property
+    def extensibility(self) -> Extensibility:
+        """Extensibility MPT API Client."""
+        return Extensibility(http_client=self.http_client)
