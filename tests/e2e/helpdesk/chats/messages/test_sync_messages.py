@@ -15,20 +15,17 @@ def test_list_chat_messages(chat_messages_service):
     assert all(isinstance(message, ChatMessage) for message in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
-def test_create_chat_message(created_chat_message, chat_message_data):
+def test_create_chat_message(created_chat_message, chat_message_data):  # noqa: AAA01
     assert created_chat_message.id is not None
     assert created_chat_message.to_dict().get("content") == chat_message_data["content"]
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_update_chat_message_visibility(chat_messages_service, created_chat_message):
     result = chat_messages_service.update(created_chat_message.id, {"visibility": "Public"})
 
     assert result.id == created_chat_message.id
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
 def test_delete_chat_message(chat_messages_service, created_chat_message):
     result = created_chat_message
 
