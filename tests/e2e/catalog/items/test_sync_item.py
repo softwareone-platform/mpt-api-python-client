@@ -32,13 +32,13 @@ def test_update_item(mpt_vendor, created_item):
     assert result.name == "please delete me"
 
 
-@pytest.mark.skip(reason="Leaves test items in the catalog")  # noqa: AAA01
 def test_review_and_publish_item(mpt_vendor, mpt_ops, created_item):
     item = mpt_vendor.catalog.items.review(created_item.id)
     assert item.status == "Pending"
 
-    item = mpt_ops.catalog.items.publish(created_item.id)
-    assert item.status == "Published"
+    result = mpt_ops.catalog.items.publish(created_item.id)
+
+    assert result.status == "Published"
 
 
 def test_get_item(mpt_vendor, item_id):

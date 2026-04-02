@@ -32,13 +32,13 @@ async def test_update_item(async_mpt_vendor, async_created_item):
     assert result.name == "e2e - delete me (updated)"
 
 
-@pytest.mark.skip(reason="Leaves test items in the catalog")
 async def test_review_and_publish_item(async_mpt_vendor, async_mpt_ops, async_created_item):
     item = await async_mpt_vendor.catalog.items.review(async_created_item.id)
     assert item.status == "Pending"
 
-    item = await async_mpt_ops.catalog.items.publish(async_created_item.id)
-    assert item.status == "Published"
+    result = await async_mpt_ops.catalog.items.publish(async_created_item.id)
+
+    assert result.status == "Published"
 
 
 async def test_get_item(async_mpt_vendor, item_id):
