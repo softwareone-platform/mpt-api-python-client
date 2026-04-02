@@ -11,7 +11,6 @@ def async_units_of_measure_service(async_mpt_ops):
     return async_mpt_ops.catalog.units_of_measure
 
 
-@pytest.mark.skip(reason="Not implemented yet")
 async def test_create(async_units_of_measure_service, short_uuid):
     await async_units_of_measure_service.create({
         "name": f"e2e-delete {short_uuid}",

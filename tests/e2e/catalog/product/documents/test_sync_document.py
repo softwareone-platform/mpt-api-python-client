@@ -76,19 +76,17 @@ def test_filter_documents(vendor_document_service, created_document_from_file):
     assert result[0].id == created_document_from_file.id
 
 
-@pytest.mark.skip(reason="Leaves test documents in published state")  # noqa: AAA01
 def test_review_and_publish_document(mpt_vendor, mpt_ops, created_document_from_file, product_id):
     vendor_service = mpt_vendor.catalog.products.documents(product_id)
     ops_service = mpt_ops.catalog.products.documents(product_id)
-
     document = vendor_service.review(created_document_from_file.id)
     assert document.status == "Pending"
-
     document = ops_service.publish(created_document_from_file.id)
     assert document.status == "Published"
 
-    document = ops_service.unpublish(created_document_from_file.id)
-    assert document.status == "Unpublished"
+    result = ops_service.unpublish(created_document_from_file.id)
+
+    assert result.status == "Unpublished"
 
 
 def test_not_found(vendor_document_service):

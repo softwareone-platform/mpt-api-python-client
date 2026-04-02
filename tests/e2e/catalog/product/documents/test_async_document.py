@@ -81,21 +81,19 @@ async def test_filter_documents_async(async_document_service, created_document_f
     assert documents[0].id == created_document_from_file_async.id
 
 
-@pytest.mark.skip(reason="Leaves test documents in published state")
 async def test_review_and_publish_document_async(
     async_mpt_vendor, async_mpt_ops, created_document_from_file_async, product_id
 ):
     vendor_service = async_mpt_vendor.catalog.products.documents(product_id)
     ops_service = async_mpt_ops.catalog.products.documents(product_id)
-
     document = await vendor_service.review(created_document_from_file_async.id)
     assert document.status == "Pending"
-
     document = await ops_service.publish(created_document_from_file_async.id)
     assert document.status == "Published"
 
-    document = await ops_service.unpublish(created_document_from_file_async.id)
-    assert document.status == "Unpublished"
+    result = await ops_service.unpublish(created_document_from_file_async.id)
+
+    assert result.status == "Unpublished"
 
 
 async def test_not_found_async(async_document_service):

@@ -6,7 +6,6 @@ from tests.e2e.helper import assert_service_filter_with_iterate
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="Not implemented yet")
 def test_create(units_of_measure_service, short_uuid):
     units_of_measure_service.create({
         "name": f"e2e-delete {short_uuid}",
