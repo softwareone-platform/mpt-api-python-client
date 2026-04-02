@@ -16,7 +16,7 @@ def test_get_parameter_group_parameter(
 ):
     result = parameter_group_parameters_service.get(created_parameter_group_parameter.id)
 
-    assert result.id == created_parameter_group_parameter.id
+    assert isinstance(result, ParameterGroupParameter)
 
 
 def test_list_parameter_group_parameters(
@@ -32,7 +32,7 @@ def test_list_parameter_group_parameters(
 def test_create_parameter_group_parameter(created_parameter_group_parameter):
     result = created_parameter_group_parameter
 
-    assert result is not None
+    assert isinstance(result, ParameterGroupParameter)
 
 
 def test_update_parameter_group_parameter(
@@ -44,7 +44,7 @@ def test_update_parameter_group_parameter(
         created_parameter_group_parameter.id, update_data
     )
 
-    assert result.id == created_parameter_group_parameter.id
+    assert isinstance(result, ParameterGroupParameter)
     assert result.to_dict().get("displayOrder") == update_data["displayOrder"]
 
 

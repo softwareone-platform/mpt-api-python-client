@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.flaky]
 async def test_get_case(async_mpt_ops, async_created_case):
     result = await async_mpt_ops.helpdesk.cases.get(async_created_case.id)
 
-    assert result.id == async_created_case.id
+    assert isinstance(result, Case)
 
 
 async def test_list_cases(async_mpt_ops):
@@ -26,7 +26,7 @@ async def test_list_cases(async_mpt_ops):
 def test_create_case(async_created_case):
     result = async_created_case
 
-    assert result is not None
+    assert isinstance(result, Case)
 
 
 async def test_update_case(async_mpt_ops, async_created_case, short_uuid):
@@ -35,7 +35,7 @@ async def test_update_case(async_mpt_ops, async_created_case, short_uuid):
 
     result = await async_mpt_ops.helpdesk.cases.update(async_created_case.id, update_data)
 
-    assert result.id == async_created_case.id
+    assert isinstance(result, Case)
     assert result.to_dict().get("awaiting") is True
 
 

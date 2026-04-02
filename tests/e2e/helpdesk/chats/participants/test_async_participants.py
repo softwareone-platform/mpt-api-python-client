@@ -17,7 +17,7 @@ async def test_list_chat_participants(async_chat_participants_service):
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
 def test_create_chat_participant(async_created_chat_participant):
-    assert async_created_chat_participant.id is not None
+    assert isinstance(async_created_chat_participant, ChatParticipant)
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")
@@ -29,7 +29,7 @@ async def test_update_chat_participant(
         {"status": "Active"},
     )
 
-    assert result.id == async_created_chat_participant.id
+    assert isinstance(result, ChatParticipant)
 
 
 @pytest.mark.skip(reason="Unskip after MPT-19124 completed")

@@ -23,7 +23,7 @@ def test_iterate_chat_answer_parameters(chat_answer_parameters_service):
 
     result = next(iterator, None)
 
-    assert result is None or result.id is not None
+    assert isinstance(result, ChatAnswerParameter)
 
 
 def test_not_found(mpt_ops, chat_id):

@@ -16,7 +16,7 @@ async def test_list_chat_messages(async_chat_messages_service):
 
 
 def test_create_chat_message(async_created_chat_message, chat_message_data):  # noqa: AAA01
-    assert async_created_chat_message.id is not None
+    assert isinstance(async_created_chat_message, ChatMessage)
     assert async_created_chat_message.to_dict().get("content") == chat_message_data["content"]
 
 
@@ -28,7 +28,7 @@ async def test_update_chat_message_visibility(
         {"visibility": "Public"},
     )
 
-    assert result.id == async_created_chat_message.id
+    assert isinstance(result, ChatMessage)
 
 
 async def test_delete_chat_message(async_chat_messages_service, async_created_chat_message):

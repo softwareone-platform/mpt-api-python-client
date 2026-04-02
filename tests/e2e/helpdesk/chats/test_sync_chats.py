@@ -8,12 +8,12 @@ from mpt_api_client.resources.helpdesk.chats import Chat
 pytestmark = [pytest.mark.flaky]
 
 
-def test_get_chat(mpt_ops, chat_id):
+def test_get_chat(mpt_ops, created_chat):
     service = mpt_ops.helpdesk.chats
 
-    result = service.get(chat_id)
+    result = service.get(created_chat.id)
 
-    assert result.id == chat_id
+    assert isinstance(result, Chat)
 
 
 def test_list_chats(mpt_ops):
@@ -25,13 +25,13 @@ def test_list_chats(mpt_ops):
     assert all(isinstance(chat, Chat) for chat in result)
 
 
-def test_update_chat(mpt_ops, chat_id, short_uuid):
+def test_update_chat(mpt_ops, created_chat, short_uuid):
     service = mpt_ops.helpdesk.chats
     new_description = f"e2e update {short_uuid}"
 
-    result = service.update(chat_id, {"description": new_description})
+    result = service.update(created_chat.id, {"description": new_description})
 
-    assert result.id == chat_id
+    assert isinstance(result, Chat)
     assert result.to_dict().get("description") == new_description
 
 

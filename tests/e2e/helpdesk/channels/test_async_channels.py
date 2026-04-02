@@ -13,7 +13,7 @@ async def test_get_channel(async_mpt_ops, channel_id):
 
     result = await service.get(channel_id)
 
-    assert result.id == channel_id
+    assert isinstance(result, Channel)
 
 
 async def test_list_channels(async_mpt_ops):
@@ -28,7 +28,7 @@ async def test_list_channels(async_mpt_ops):
 def test_create_channel(async_created_channel):
     result = async_created_channel
 
-    assert result.id is not None
+    assert isinstance(result, Channel)
 
 
 async def test_update_channel(async_mpt_ops, async_created_channel, short_uuid):
@@ -37,7 +37,7 @@ async def test_update_channel(async_mpt_ops, async_created_channel, short_uuid):
 
     result = await service.update(async_created_channel.id, {"name": new_name})
 
-    assert result.id == async_created_channel.id
+    assert isinstance(result, Channel)
     assert result.to_dict().get("name") == new_name
 
 

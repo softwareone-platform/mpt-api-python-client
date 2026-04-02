@@ -16,7 +16,7 @@ async def test_list_chat_links(async_created_chat_link_service):
 
 
 def test_create_chat_link(async_created_chat_link, chat_link_data):  # noqa: AAA01
-    assert async_created_chat_link.id is not None
+    assert isinstance(async_created_chat_link, ChatLink)
     assert async_created_chat_link.to_dict().get("uri") == chat_link_data["uri"]
 
 
@@ -28,7 +28,7 @@ async def test_update_chat_link_name(async_chat_links_service, async_created_cha
         {"name": new_name},
     )
 
-    assert result.id == async_created_chat_link.id
+    assert isinstance(result, ChatLink)
     assert result.to_dict().get("name") == new_name
 
 

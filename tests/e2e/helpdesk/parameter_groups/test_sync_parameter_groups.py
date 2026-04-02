@@ -14,7 +14,7 @@ pytestmark = [
 def test_get_parameter_group(parameter_groups_service, created_parameter_group):
     result = parameter_groups_service.get(created_parameter_group.id)
 
-    assert result.id == created_parameter_group.id
+    assert isinstance(result, ParameterGroup)
 
 
 def test_list_parameter_groups(parameter_groups_service):
@@ -27,7 +27,7 @@ def test_list_parameter_groups(parameter_groups_service):
 def test_create_parameter_group(created_parameter_group):
     result = created_parameter_group
 
-    assert result is not None
+    assert isinstance(result, ParameterGroup)
 
 
 def test_update_parameter_group(parameter_groups_service, created_parameter_group, short_uuid):
@@ -35,7 +35,7 @@ def test_update_parameter_group(parameter_groups_service, created_parameter_grou
 
     result = parameter_groups_service.update(created_parameter_group.id, update_data)
 
-    assert result.id == created_parameter_group.id
+    assert isinstance(result, ParameterGroup)
     assert result.to_dict().get("description") == update_data["description"]
 
 

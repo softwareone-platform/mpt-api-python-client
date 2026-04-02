@@ -7,13 +7,13 @@ from tests.e2e.helper import (
 
 
 @pytest.fixture
-def chat_participants_service(mpt_ops, chat_id):
-    return mpt_ops.helpdesk.chats.participants(chat_id)
+def chat_participants_service(mpt_ops, created_chat):
+    return mpt_ops.helpdesk.chats.participants(created_chat.id)
 
 
 @pytest.fixture
-def async_chat_participants_service(async_mpt_ops, chat_id):
-    return async_mpt_ops.helpdesk.chats.participants(chat_id)
+def async_chat_participants_service(async_mpt_ops, created_chat):
+    return async_mpt_ops.helpdesk.chats.participants(created_chat.id)
 
 
 @pytest.fixture

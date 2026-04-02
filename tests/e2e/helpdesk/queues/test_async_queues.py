@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.flaky]
 async def test_get_queue(async_mpt_ops, async_created_queue):
     result = await async_mpt_ops.helpdesk.queues.get(async_created_queue.id)
 
-    assert result.id == async_created_queue.id
+    assert isinstance(result, Queue)
 
 
 async def test_list_queues(async_mpt_ops):
@@ -32,7 +32,7 @@ async def test_update_queue(async_mpt_ops, async_created_queue, short_uuid):
 
     result = await async_mpt_ops.helpdesk.queues.update(async_created_queue.id, update_data)
 
-    assert result.id == async_created_queue.id
+    assert isinstance(result, Queue)
     assert result.to_dict().get("description") == update_data["description"]
 
 

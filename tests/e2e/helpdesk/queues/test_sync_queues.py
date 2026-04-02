@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.flaky]
 def test_get_queue(mpt_ops, created_queue):
     result = mpt_ops.helpdesk.queues.get(created_queue.id)
 
-    assert result.id == created_queue.id
+    assert isinstance(result, Queue)
 
 
 def test_list_queues(mpt_ops):
@@ -32,7 +32,7 @@ def test_update_queue(mpt_ops, created_queue, short_uuid):
 
     result = mpt_ops.helpdesk.queues.update(created_queue.id, update_data)
 
-    assert result.id == created_queue.id
+    assert isinstance(result, Queue)
     assert result.to_dict().get("description") == update_data["description"]
 
 

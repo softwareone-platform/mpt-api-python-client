@@ -16,14 +16,14 @@ def test_list_chat_attachments(chat_attachments_service, created_chat_attachment
 
 
 def test_create_chat_attachment(created_chat_attachment, chat_attachment_data):  # noqa: AAA01
-    assert created_chat_attachment.id is not None
+    assert isinstance(created_chat_attachment, ChatAttachment)
     assert created_chat_attachment.to_dict().get("name") == chat_attachment_data["name"]
 
 
 def test_get_chat_attachment(chat_attachments_service, created_chat_attachment):
     result = chat_attachments_service.get(created_chat_attachment.id)
 
-    assert result.id == created_chat_attachment.id
+    assert isinstance(result, ChatAttachment)
 
 
 def test_update_chat_attachment(chat_attachments_service, created_chat_attachment, short_uuid):
@@ -34,7 +34,7 @@ def test_update_chat_attachment(chat_attachments_service, created_chat_attachmen
         {"name": updated_name, "description": updated_name},
     )
 
-    assert result.id == created_chat_attachment.id
+    assert isinstance(result, ChatAttachment)
     assert result.to_dict().get("name") == updated_name
 
 

@@ -22,7 +22,7 @@ async def test_iterate_chat_answer_parameters(async_chat_answer_parameters_servi
     iterator = async_chat_answer_parameters_service.iterate(limit=20)
     result = await anext(iterator, None)
 
-    assert result is None or result.id is not None
+    assert isinstance(result, ChatAnswerParameter)
 
 
 async def test_not_found(async_mpt_ops, chat_id):
