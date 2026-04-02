@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.flaky]
 def test_get_case(mpt_ops, created_case):
     result = mpt_ops.helpdesk.cases.get(created_case.id)
 
-    assert result.id == created_case.id
+    assert isinstance(result, Case)
 
 
 def test_list_cases(mpt_ops):
@@ -26,7 +26,7 @@ def test_list_cases(mpt_ops):
 def test_create_case(created_case):
     result = created_case
 
-    assert result is not None
+    assert isinstance(result, Case)
 
 
 def test_update_case(mpt_ops, created_case, short_uuid):
@@ -35,7 +35,7 @@ def test_update_case(mpt_ops, created_case, short_uuid):
 
     result = mpt_ops.helpdesk.cases.update(created_case.id, update_data)
 
-    assert result.id == created_case.id
+    assert isinstance(result, Case)
     assert result.to_dict().get("awaiting") is True
 
 

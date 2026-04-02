@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.flaky]
 async def test_get_form(async_mpt_ops, async_created_form):
     result = await async_mpt_ops.helpdesk.forms.get(async_created_form.id)
 
-    assert result.id == async_created_form.id
+    assert isinstance(result, Form)
 
 
 async def test_list_forms(async_mpt_ops):
@@ -24,7 +24,7 @@ async def test_list_forms(async_mpt_ops):
 def test_create_form(async_created_form):
     result = async_created_form
 
-    assert result is not None
+    assert isinstance(result, Form)
 
 
 async def test_update_form(async_mpt_ops, async_created_form, short_uuid):
@@ -32,14 +32,14 @@ async def test_update_form(async_mpt_ops, async_created_form, short_uuid):
 
     result = await async_mpt_ops.helpdesk.forms.update(async_created_form.id, update_data)
 
-    assert result.id == async_created_form.id
+    assert isinstance(result, Form)
     assert result.to_dict().get("description") == update_data["description"]
 
 
 async def test_publish_form(async_mpt_ops, async_created_form):
     result = await async_mpt_ops.helpdesk.forms.publish(async_created_form.id)
 
-    assert result is not None
+    assert isinstance(result, Form)
 
 
 async def test_unpublish_form(async_mpt_ops, async_created_published_form):

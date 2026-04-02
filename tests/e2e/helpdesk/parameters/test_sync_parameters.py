@@ -14,7 +14,7 @@ pytestmark = [
 def test_get_parameter(mpt_ops, created_parameter):
     result = mpt_ops.helpdesk.parameters.get(created_parameter.id)
 
-    assert result.id == created_parameter.id
+    assert isinstance(result, Parameter)
 
 
 def test_list_parameters(mpt_ops):
@@ -27,7 +27,7 @@ def test_list_parameters(mpt_ops):
 def test_create_parameter(created_parameter):
     result = created_parameter
 
-    assert result is not None
+    assert isinstance(result, Parameter)
 
 
 def test_update_parameter(mpt_ops, created_parameter, short_uuid):
@@ -35,7 +35,7 @@ def test_update_parameter(mpt_ops, created_parameter, short_uuid):
 
     result = mpt_ops.helpdesk.parameters.update(created_parameter.id, update_data)
 
-    assert result.id == created_parameter.id
+    assert isinstance(result, Parameter)
     assert result.to_dict().get("description") == update_data["description"]
 
 

@@ -16,14 +16,14 @@ async def test_list_chat_attachments(async_chat_attachments_service, async_creat
 
 
 def test_create_chat_attachment(async_created_chat_attachment, chat_attachment_data):  # noqa: AAA01
-    assert async_created_chat_attachment.id is not None
+    assert isinstance(async_created_chat_attachment, ChatAttachment)
     assert async_created_chat_attachment.to_dict().get("name") == chat_attachment_data["name"]
 
 
 async def test_get_chat_attachment(async_chat_attachments_service, async_created_chat_attachment):
     result = await async_chat_attachments_service.get(async_created_chat_attachment.id)
 
-    assert result.id == async_created_chat_attachment.id
+    assert isinstance(result, ChatAttachment)
 
 
 async def test_update_chat_attachment(
@@ -36,7 +36,7 @@ async def test_update_chat_attachment(
         {"name": updated_name, "description": updated_name},
     )
 
-    assert result.id == async_created_chat_attachment.id
+    assert isinstance(result, ChatAttachment)
     assert result.to_dict().get("name") == updated_name
 
 

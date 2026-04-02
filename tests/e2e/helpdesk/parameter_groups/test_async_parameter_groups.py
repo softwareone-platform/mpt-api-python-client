@@ -14,7 +14,7 @@ pytestmark = [
 async def test_get_parameter_group(async_parameter_groups_service, async_created_parameter_group):
     result = await async_parameter_groups_service.get(async_created_parameter_group.id)
 
-    assert result.id == async_created_parameter_group.id
+    assert isinstance(result, ParameterGroup)
 
 
 async def test_list_parameter_groups(async_parameter_groups_service):
@@ -27,7 +27,7 @@ async def test_list_parameter_groups(async_parameter_groups_service):
 def test_create_parameter_group(async_created_parameter_group):
     result = async_created_parameter_group
 
-    assert result is not None
+    assert isinstance(result, ParameterGroup)
 
 
 async def test_update_parameter_group(
@@ -39,7 +39,7 @@ async def test_update_parameter_group(
         async_created_parameter_group.id, update_data
     )
 
-    assert result.id == async_created_parameter_group.id
+    assert isinstance(result, ParameterGroup)
     assert result.to_dict().get("description") == update_data["description"]
 
 

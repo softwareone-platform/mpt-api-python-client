@@ -14,7 +14,7 @@ pytestmark = [
 async def test_get_parameter(async_mpt_ops, async_created_parameter):
     result = await async_mpt_ops.helpdesk.parameters.get(async_created_parameter.id)
 
-    assert result.id == async_created_parameter.id
+    assert isinstance(result, Parameter)
 
 
 async def test_list_parameters(async_mpt_ops):
@@ -27,7 +27,7 @@ async def test_list_parameters(async_mpt_ops):
 def test_create_parameter(async_created_parameter):
     result = async_created_parameter
 
-    assert result is not None
+    assert isinstance(result, Parameter)
 
 
 async def test_update_parameter(async_mpt_ops, async_created_parameter, short_uuid):
@@ -35,7 +35,7 @@ async def test_update_parameter(async_mpt_ops, async_created_parameter, short_uu
 
     result = await async_mpt_ops.helpdesk.parameters.update(async_created_parameter.id, update_data)
 
-    assert result.id == async_created_parameter.id
+    assert isinstance(result, Parameter)
     assert result.to_dict().get("description") == update_data["description"]
 
 

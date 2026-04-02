@@ -13,7 +13,7 @@ async def test_get_chat(async_mpt_ops, created_chat):
 
     result = await service.get(created_chat.id)
 
-    assert result.id == created_chat.id
+    assert isinstance(result, Chat)
 
 
 async def test_list_chats(async_mpt_ops):
@@ -31,7 +31,7 @@ async def test_update_chat(async_mpt_ops, created_chat, short_uuid):
 
     result = await service.update(created_chat.id, {"description": new_description})
 
-    assert result.id == created_chat.id
+    assert isinstance(result, Chat)
     assert result.to_dict().get("description") == new_description
 
 

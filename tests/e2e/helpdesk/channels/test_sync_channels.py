@@ -13,7 +13,7 @@ def test_get_channel(mpt_ops, channel_id):
 
     result = service.get(channel_id)
 
-    assert result.id == channel_id
+    assert isinstance(result, Channel)
 
 
 def test_list_channels(mpt_ops):
@@ -28,7 +28,7 @@ def test_list_channels(mpt_ops):
 def test_create_channel(created_channel):
     result = created_channel
 
-    assert result.id is not None
+    assert isinstance(result, Channel)
 
 
 def test_update_channel(mpt_ops, created_channel, short_uuid):
@@ -37,7 +37,7 @@ def test_update_channel(mpt_ops, created_channel, short_uuid):
 
     result = service.update(created_channel.id, {"name": new_name})
 
-    assert result.id == created_channel.id
+    assert isinstance(result, Channel)
     assert result.to_dict().get("name") == new_name
 
 

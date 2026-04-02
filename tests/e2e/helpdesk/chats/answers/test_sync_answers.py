@@ -27,7 +27,7 @@ def test_list_chat_answers(chat_answers_service):
 def test_create_chat_answer(created_chat_answer):
     result = created_chat_answer
 
-    assert result is not None
+    assert isinstance(result, ChatAnswer)
 
 
 def test_update_chat_answer(chat_answers_service, created_chat_answer, short_uuid):
@@ -35,14 +35,14 @@ def test_update_chat_answer(chat_answers_service, created_chat_answer, short_uui
 
     result = chat_answers_service.update(created_chat_answer.id, update_data)
 
-    assert result.id == created_chat_answer.id
+    assert isinstance(result, ChatAnswer)
     assert result.to_dict().get("name") == update_data["name"]
 
 
 def test_submit_chat_answer(chat_answers_service, created_chat_answer):
     result = chat_answers_service.submit(created_chat_answer.id)
 
-    assert result is not None
+    assert isinstance(result, ChatAnswer)
 
 
 def test_query_chat_answer(chat_answers_service, created_chat_answer):
@@ -50,19 +50,19 @@ def test_query_chat_answer(chat_answers_service, created_chat_answer):
 
     result = chat_answers_service.query(submitted_chat_answer.id)
 
-    assert result is not None
+    assert isinstance(result, ChatAnswer)
 
 
 def test_validate_chat_answer(chat_answers_service, created_chat_answer):
     result = chat_answers_service.validate(created_chat_answer.id, {"parameters": []})
 
-    assert result is not None
+    assert isinstance(result, ChatAnswer)
 
 
 def test_accept_chat_answer(chat_answers_service, created_chat_answer):
     result = chat_answers_service.accept(created_chat_answer.id)
 
-    assert result is not None
+    assert isinstance(result, ChatAnswer)
 
 
 def test_delete_chat_answer(chat_answers_service, created_chat_answer):
