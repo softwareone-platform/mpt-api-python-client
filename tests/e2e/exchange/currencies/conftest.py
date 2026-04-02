@@ -1,3 +1,5 @@
+import string
+
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
@@ -19,10 +21,12 @@ def currency_id(e2e_config):
 
 
 @pytest.fixture
-def currency_data():
+def currency_data(short_uuid):
+    digit_to_alpha = str.maketrans(string.digits, "GHIJKLMNOP")
+    code = short_uuid[:3].translate(digit_to_alpha).upper()
     return {
-        "name": "e2e - please delete",
-        "code": "E2E",
+        "name": f"e2e - please delete {short_uuid}",
+        "code": code,
         "precision": 2,
     }
 
