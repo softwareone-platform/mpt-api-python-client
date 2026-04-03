@@ -66,5 +66,6 @@
   "notifications.batch.id": "MST-3638-2460-4825",
   "notifications.category.id": "NTC-6157-0397",
   "notifications.message.id": "MSG-0000-6215-1019-0139",
-  "notifications.subscriber.id": "NTS-0829-7123-7123"
+  "notifications.subscriber.id": "NTS-0829-7123-7123",
+  "extensibility.extension.id": "EXT-XXXX-XXXX"
 }
