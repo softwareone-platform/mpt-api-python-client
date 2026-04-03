@@ -1,4 +1,4 @@
-from mpt_api_client.resources.extensibility.mixins.extension_mixin import (
+from mpt_api_client.resources.integration.mixins.extension_mixin import (
     AsyncExtensionMixin,
     ExtensionMixin,
 )

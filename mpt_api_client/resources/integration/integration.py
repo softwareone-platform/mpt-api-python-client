@@ -1,12 +1,12 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
-from mpt_api_client.resources.extensibility.extensions import (
+from mpt_api_client.resources.integration.extensions import (
     AsyncExtensionsService,
     ExtensionsService,
 )
 
 
-class Extensibility:
-    """Extensibility MPT API Module."""
+class Integration:
+    """Integration MPT API Module."""
 
     def __init__(self, *, http_client: HTTPClient):
         self.http_client = http_client
@@ -17,8 +17,8 @@ class Extensibility:
         return ExtensionsService(http_client=self.http_client)
 
 
-class AsyncExtensibility:
-    """Async Extensibility MPT API Module."""
+class AsyncIntegration:
+    """Async Integration MPT API Module."""
 
     def __init__(self, *, http_client: AsyncHTTPClient):
         self.http_client = http_client

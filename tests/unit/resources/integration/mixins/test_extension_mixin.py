@@ -5,7 +5,7 @@ import respx
 from mpt_api_client.http.async_service import AsyncService
 from mpt_api_client.http.service import Service
 from mpt_api_client.models import FileModel
-from mpt_api_client.resources.extensibility.mixins import (
+from mpt_api_client.resources.integration.mixins import (
     AsyncExtensionMixin,
     ExtensionMixin,
 )
@@ -16,7 +16,7 @@ class DummyExtensionService(
     ExtensionMixin[DummyModel],
     Service[DummyModel],
 ):
-    _endpoint = "/public/v1/extensibility/extensions"
+    _endpoint = "/public/v1/integration/extensions"
     _model_class = DummyModel
     _collection_key = "data"
 
@@ -25,7 +25,7 @@ class DummyAsyncExtensionService(
     AsyncExtensionMixin[DummyModel],
     AsyncService[DummyModel],
 ):
-    _endpoint = "/public/v1/extensibility/extensions"
+    _endpoint = "/public/v1/integration/extensions"
     _model_class = DummyModel
     _collection_key = "data"
 
@@ -49,7 +49,7 @@ def test_post_actions(extension_service, action):
     expected_response = {"id": extension_id, "status": "updated"}
     with respx.mock:
         mock_route = respx.post(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}/{action}"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}/{action}"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
@@ -71,7 +71,7 @@ def test_download_icon(extension_service):
     icon_bytes = b"\x89PNG\r\n\x1a\n"
     with respx.mock:
         mock_route = respx.get(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}/icon"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}/icon"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
@@ -97,7 +97,7 @@ async def test_async_post_actions(async_extension_service, action):
     expected_response = {"id": extension_id, "status": "updated"}
     with respx.mock:
         mock_route = respx.post(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}/{action}"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}/{action}"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
@@ -119,7 +119,7 @@ async def test_async_download_icon(async_extension_service):
     icon_bytes = b"\x89PNG\r\n\x1a\n"
     with respx.mock:
         mock_route = respx.get(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}/icon"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}/icon"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
