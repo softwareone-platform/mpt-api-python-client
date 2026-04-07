@@ -17,13 +17,13 @@ from mpt_api_client.resources.integration.extension_documents import (
     AsyncExtensionDocumentsService,
     ExtensionDocumentsService,
 )
-from mpt_api_client.resources.integration.extension_instances import (
-    AsyncExtensionInstancesService,
-    ExtensionInstancesService,
-)
 from mpt_api_client.resources.integration.extension_installations import (
     AsyncExtensionInstallationsService,
     ExtensionInstallationsService,
+)
+from mpt_api_client.resources.integration.extension_instances import (
+    AsyncExtensionInstancesService,
+    ExtensionInstancesService,
 )
 from mpt_api_client.resources.integration.extension_media import (
     AsyncExtensionMediaService,
