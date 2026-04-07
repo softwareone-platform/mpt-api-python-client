@@ -9,7 +9,6 @@ pytestmark = [
 ]
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 def test_create_extension(created_extension, extension_data):
     result = created_extension.name
 
@@ -29,7 +28,6 @@ def test_get_extension_not_found(extensions_service):
         extensions_service.get(bogus_id)
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 def test_update_extension(extensions_service, created_extension, logo_fd, short_uuid):
     update_data = {"name": f"e2e - please delete {short_uuid}"}
 
@@ -38,7 +36,6 @@ def test_update_extension(extensions_service, created_extension, logo_fd, short_
     assert result.name == update_data["name"]
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 def test_delete_extension(extensions_service, created_extension):
     extensions_service.delete(created_extension.id)  # act
 

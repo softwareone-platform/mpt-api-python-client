@@ -27,10 +27,7 @@ def async_installations_service(async_http_client):
         "create",
         "update",
         "delete",
-        "invite",
-        "install",
-        "uninstall",
-        "expire",
+        "redeem",
         "iterate",
     ],
 )
@@ -47,10 +44,7 @@ def test_mixins_present(installations_service, method):
         "create",
         "update",
         "delete",
-        "invite",
-        "install",
-        "uninstall",
-        "expire",
+        "redeem",
         "iterate",
     ],
 )
