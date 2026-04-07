@@ -13,7 +13,7 @@ def parameter_data(short_uuid):
         "description": "E2E Created Helpdesk Group Parameter",
         "scope": "Case",
         "phase": "Request",
-        "type": "String",
+        "type": "SingleLineText",
         "multiple": False,
         "constraints": {
             "required": False,
