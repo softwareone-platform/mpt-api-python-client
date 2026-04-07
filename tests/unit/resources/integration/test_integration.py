@@ -1,5 +1,9 @@
 import pytest
 
+from mpt_api_client.resources.integration.categories import (
+    AsyncCategoriesService,
+    CategoriesService,
+)
 from mpt_api_client.resources.integration.extensions import (
     AsyncExtensionsService,
     ExtensionsService,
@@ -38,6 +42,7 @@ def test_async_integration_initialization(async_http_client):
     ("property_name", "expected_service_class"),
     [
         ("extensions", ExtensionsService),
+        ("categories", CategoriesService),
     ],
 )
 def test_integration_properties(integration, property_name, expected_service_class):
@@ -51,6 +56,7 @@ def test_integration_properties(integration, property_name, expected_service_cla
     ("property_name", "expected_service_class"),
     [
         ("extensions", AsyncExtensionsService),
+        ("categories", AsyncCategoriesService),
     ],
 )
 def test_async_integration_properties(async_integration, property_name, expected_service_class):
