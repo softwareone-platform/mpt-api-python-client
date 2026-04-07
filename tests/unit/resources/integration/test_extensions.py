@@ -3,7 +3,7 @@ import pytest
 import respx
 
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.extensibility.extensions import (
+from mpt_api_client.resources.integration.extensions import (
     AsyncExtensionsService,
     Extension,
     ExtensionsService,
@@ -68,7 +68,7 @@ def test_extension_create(extensions_service, tmp_path):
     icon_path = tmp_path / "icon.png"
     icon_path.write_bytes(b"fake image data")
     with icon_path.open("rb") as icon_file, respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/extensibility/extensions").mock(
+        mock_route = respx.post("https://api.example.com/public/v1/integration/extensions").mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
         )
 
@@ -85,7 +85,7 @@ async def test_async_extension_create(async_extensions_service, tmp_path):
     icon_path = tmp_path / "icon.png"
     icon_path.write_bytes(b"fake image data")
     with icon_path.open("rb") as icon_file, respx.mock:
-        mock_route = respx.post("https://api.example.com/public/v1/extensibility/extensions").mock(
+        mock_route = respx.post("https://api.example.com/public/v1/integration/extensions").mock(
             return_value=httpx.Response(httpx.codes.CREATED, json=expected_response)
         )
 
@@ -104,7 +104,7 @@ def test_extension_update(extensions_service, tmp_path):
     icon_path.write_bytes(b"new icon data")
     with icon_path.open("rb") as icon_file, respx.mock:
         mock_route = respx.put(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}"
         ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
 
         result = extensions_service.update(extension_id, update_data, file=icon_file)
@@ -122,7 +122,7 @@ async def test_async_extension_update(async_extensions_service, tmp_path):
     icon_path.write_bytes(b"new async icon data")
     with icon_path.open("rb") as icon_file, respx.mock:
         mock_route = respx.put(
-            f"https://api.example.com/public/v1/extensibility/extensions/{extension_id}"
+            f"https://api.example.com/public/v1/integration/extensions/{extension_id}"
         ).mock(return_value=httpx.Response(httpx.codes.OK, json=expected_response))
 
         result = await async_extensions_service.update(extension_id, update_data, file=icon_file)

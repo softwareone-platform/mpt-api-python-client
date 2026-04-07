@@ -13,7 +13,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.extensibility.mixins import (
+from mpt_api_client.resources.integration.mixins import (
     AsyncExtensionMixin,
     ExtensionMixin,
 )
@@ -60,7 +60,7 @@ class Extension(Model):
 class ExtensionsServiceConfig:
     """Extensions service configuration."""
 
-    _endpoint = "/public/v1/extensibility/extensions"
+    _endpoint = "/public/v1/integration/extensions"
     _model_class = Extension
     _collection_key = "data"
     _upload_file_key = "icon"
@@ -77,7 +77,7 @@ class ExtensionsService(
     Service[Extension],
     ExtensionsServiceConfig,
 ):
-    """Sync service for the /public/v1/extensibility/extensions endpoint."""
+    """Sync service for the /public/v1/integration/extensions endpoint."""
 
 
 class AsyncExtensionsService(
@@ -90,4 +90,4 @@ class AsyncExtensionsService(
     AsyncService[Extension],
     ExtensionsServiceConfig,
 ):
-    """Async service for the /public/v1/extensibility/extensions endpoint."""
+    """Async service for the /public/v1/integration/extensions endpoint."""

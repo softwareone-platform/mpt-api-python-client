@@ -10,16 +10,16 @@ from mpt_api_client.resources import (
     AsyncCatalog,
     AsyncCommerce,
     AsyncExchange,
-    AsyncExtensibility,
     AsyncHelpdesk,
+    AsyncIntegration,
     AsyncNotifications,
     Audit,
     Billing,
     Catalog,
     Commerce,
     Exchange,
-    Extensibility,
     Helpdesk,
+    Integration,
     Notifications,
 )
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -40,7 +40,7 @@ def get_mpt_client():
         ("notifications", Notifications),
         ("helpdesk", Helpdesk),
         ("exchange", Exchange),
-        ("extensibility", Extensibility),
+        ("integration", Integration),
     ],
 )
 def test_mpt_client(resource_name: str, expected_type: type) -> None:
@@ -73,7 +73,7 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
         ("notifications", AsyncNotifications),
         ("helpdesk", AsyncHelpdesk),
         ("exchange", AsyncExchange),
-        ("extensibility", AsyncExtensibility),
+        ("integration", AsyncIntegration),
     ],
 )
 def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
