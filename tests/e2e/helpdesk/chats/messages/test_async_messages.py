@@ -37,7 +37,7 @@ async def test_delete_chat_message(async_chat_messages_service, async_created_ch
     await async_chat_messages_service.delete(result.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-19964 completed")
 async def test_update_chat_message_not_found(async_chat_messages_service, invalid_chat_message_id):
     with pytest.raises(MPTAPIError) as error:
         await async_chat_messages_service.update(
@@ -47,7 +47,7 @@ async def test_update_chat_message_not_found(async_chat_messages_service, invali
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-19964 completed")
 async def test_delete_chat_message_not_found(async_chat_messages_service, invalid_chat_message_id):
     with pytest.raises(MPTAPIError) as error:
         await async_chat_messages_service.delete(invalid_chat_message_id)

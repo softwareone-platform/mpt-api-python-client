@@ -32,7 +32,7 @@ def test_delete_chat_message(chat_messages_service, created_chat_message):
     chat_messages_service.delete(result.id)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-19964 completed")
 def test_update_chat_message_not_found(chat_messages_service, invalid_chat_message_id):
     with pytest.raises(MPTAPIError) as error:
         chat_messages_service.update(invalid_chat_message_id, {"visibility": "Public"})
@@ -40,7 +40,7 @@ def test_update_chat_message_not_found(chat_messages_service, invalid_chat_messa
     assert error.value.status_code == HTTPStatus.NOT_FOUND
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-19964 completed")
 def test_delete_chat_message_not_found(chat_messages_service, invalid_chat_message_id):
     with pytest.raises(MPTAPIError) as error:
         chat_messages_service.delete(invalid_chat_message_id)
