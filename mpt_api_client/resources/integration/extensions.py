@@ -17,6 +17,10 @@ from mpt_api_client.resources.integration.extension_documents import (
     AsyncExtensionDocumentsService,
     ExtensionDocumentsService,
 )
+from mpt_api_client.resources.integration.extension_instances import (
+    AsyncExtensionInstancesService,
+    ExtensionInstancesService,
+)
 from mpt_api_client.resources.integration.extension_installations import (
     AsyncExtensionInstallationsService,
     ExtensionInstallationsService,
@@ -133,6 +137,12 @@ class ExtensionsService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
 
+    def instances(self, extension_id: str) -> ExtensionInstancesService:
+        """Return extension instances service."""
+        return ExtensionInstancesService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
 
 class AsyncExtensionsService(
     AsyncExtensionMixin[Extension],
@@ -181,5 +191,11 @@ class AsyncExtensionsService(
     def installations(self, extension_id: str) -> AsyncExtensionInstallationsService:
         """Return extension installations service."""
         return AsyncExtensionInstallationsService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
+    def instances(self, extension_id: str) -> AsyncExtensionInstancesService:
+        """Return extension instances service."""
+        return AsyncExtensionInstancesService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
