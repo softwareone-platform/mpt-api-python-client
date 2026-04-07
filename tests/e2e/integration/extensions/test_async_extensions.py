@@ -7,7 +7,7 @@ from tests.e2e.helper import assert_async_service_filter_with_iterate
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
+
 def test_create_extension(async_created_extension, extension_data):
     result = async_created_extension.name
 
@@ -27,7 +27,6 @@ async def test_get_extension_not_found(async_extensions_service):
         await async_extensions_service.get(bogus_id)
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 async def test_update_extension(
     async_extensions_service, async_created_extension, logo_fd, short_uuid
 ):
@@ -40,7 +39,6 @@ async def test_update_extension(
     assert result.name == update_data["name"]
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 async def test_delete_extension(async_extensions_service, async_created_extension):
     await async_extensions_service.delete(async_created_extension.id)  # act
 
@@ -51,7 +49,6 @@ async def test_filter_extensions(async_extensions_service, extension_id):
     )  # act
 
 
-@pytest.mark.skip(reason="unable to create extensions for testing")
 async def test_download_icon(async_extensions_service, async_created_extension):
     result = await async_extensions_service.download_icon(async_created_extension.id)
 

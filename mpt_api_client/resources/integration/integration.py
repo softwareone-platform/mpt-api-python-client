@@ -3,6 +3,10 @@ from mpt_api_client.resources.integration.extensions import (
     AsyncExtensionsService,
     ExtensionsService,
 )
+from mpt_api_client.resources.integration.installations import (
+    AsyncInstallationsService,
+    InstallationsService,
+)
 
 
 class Integration:
@@ -16,6 +20,11 @@ class Integration:
         """Extensions service."""
         return ExtensionsService(http_client=self.http_client)
 
+    @property
+    def installations(self) -> InstallationsService:
+        """Installations service."""
+        return InstallationsService(http_client=self.http_client)
+
 
 class AsyncIntegration:
     """Async Integration MPT API Module."""
@@ -27,3 +36,8 @@ class AsyncIntegration:
     def extensions(self) -> AsyncExtensionsService:
         """Extensions service."""
         return AsyncExtensionsService(http_client=self.http_client)
+
+    @property
+    def installations(self) -> AsyncInstallationsService:
+        """Installations service."""
+        return AsyncInstallationsService(http_client=self.http_client)
