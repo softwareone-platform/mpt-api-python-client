@@ -1,9 +1,5 @@
 from mpt_api_client.http import AsyncService, Service, mixins
 from mpt_api_client.models import Model, ResourceData
-from mpt_api_client.resources.helpdesk.chat_answer_parameters import (
-    AsyncChatAnswerParametersService,
-    ChatAnswerParametersService,
-)
 
 
 class ChatAnswer(Model):
@@ -44,16 +40,6 @@ class ChatAnswersService(
     def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> ChatAnswer:
         """Validate answer."""
         return self._resource(resource_id).post("validate", json=resource_data)
-
-    def parameters(self, answer_id: str) -> ChatAnswerParametersService:  # noqa: WPS110
-        """Return chat answer parameters service."""
-        return ChatAnswerParametersService(
-            http_client=self.http_client,
-            endpoint_params={
-                "chat_id": self.endpoint_params["chat_id"],
-                "answer_id": answer_id,
-            },
-        )
 
 
 class AsyncChatAnswersService(
@@ -98,13 +84,3 @@ class AsyncChatAnswersService(
     ) -> ChatAnswer:
         """Validate answer."""
         return await self._resource(resource_id).post("validate", json=resource_data)
-
-    def parameters(self, answer_id: str) -> AsyncChatAnswerParametersService:  # noqa: WPS110
-        """Return async chat answer parameters service."""
-        return AsyncChatAnswerParametersService(
-            http_client=self.http_client,
-            endpoint_params={
-                "chat_id": self.endpoint_params["chat_id"],
-                "answer_id": answer_id,
-            },
-        )

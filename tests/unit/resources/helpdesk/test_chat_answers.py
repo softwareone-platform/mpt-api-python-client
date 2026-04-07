@@ -2,10 +2,6 @@ import httpx
 import pytest
 import respx
 
-from mpt_api_client.resources.helpdesk.chat_answer_parameters import (
-    AsyncChatAnswerParametersService,
-    ChatAnswerParametersService,
-)
 from mpt_api_client.resources.helpdesk.chat_answers import (
     AsyncChatAnswersService,
     ChatAnswer,
@@ -55,7 +51,6 @@ def test_async_endpoint(async_chat_answers_service) -> None:
         "accept",
         "query",
         "validate",
-        "parameters",
     ],
 )
 def test_methods_present(chat_answers_service, method: str) -> None:
@@ -77,27 +72,12 @@ def test_methods_present(chat_answers_service, method: str) -> None:
         "accept",
         "query",
         "validate",
-        "parameters",
     ],
 )
 def test_async_methods_present(async_chat_answers_service, method: str) -> None:
     result = hasattr(async_chat_answers_service, method)
 
     assert result is True
-
-
-def test_parameters_service(chat_answers_service) -> None:
-    result = chat_answers_service.parameters("ANS-1234-5678")
-
-    assert isinstance(result, ChatAnswerParametersService)
-    assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001", "answer_id": "ANS-1234-5678"}
-
-
-def test_async_parameters_service(async_chat_answers_service) -> None:
-    result = async_chat_answers_service.parameters("ANS-1234-5678")
-
-    assert isinstance(result, AsyncChatAnswerParametersService)
-    assert result.endpoint_params == {"chat_id": "CHT-0000-0000-0001", "answer_id": "ANS-1234-5678"}
 
 
 @pytest.mark.parametrize("action", ["submit", "accept", "query", "validate"])
