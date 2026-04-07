@@ -5,7 +5,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.resources.helpdesk.channels import Channel
 
-pytestmark = [pytest.mark.flaky, pytest.mark.skip(reason="Unskip after MPT-19124 completed")]
+pytestmark = [pytest.mark.flaky, pytest.mark.skip(reason="Unskip when MPT-19696 unblocked")]
 
 
 async def test_get_channel(async_mpt_ops, channel_id):
