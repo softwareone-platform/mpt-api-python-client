@@ -5,10 +5,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.resources.helpdesk.chat_answers import ChatAnswer
 
-pytestmark = [
-    pytest.mark.flaky,
-    pytest.mark.skip(reason="Unskip after MPT-19124 completed"),
-]
+pytestmark = [pytest.mark.flaky]
 
 
 async def test_get_chat_answer(async_chat_answers_service, async_created_chat_answer):
@@ -17,6 +14,7 @@ async def test_get_chat_answer(async_chat_answers_service, async_created_chat_an
     assert isinstance(result, ChatAnswer)
 
 
+@pytest.mark.usefixtures("async_created_chat_answer")
 async def test_list_chat_answers(async_chat_answers_service):
     result = await async_chat_answers_service.fetch_page(limit=1)
 
@@ -64,8 +62,8 @@ async def test_validate_chat_answer(async_chat_answers_service, async_created_ch
     assert isinstance(result, ChatAnswer)
 
 
-async def test_accept_chat_answer(async_chat_answers_service, async_created_chat_answer):
-    result = await async_chat_answers_service.accept(async_created_chat_answer.id)
+async def test_accept_chat_answer(async_chat_answers_service, async_submitted_chat_answer):
+    result = await async_chat_answers_service.accept(async_submitted_chat_answer.id)
 
     assert isinstance(result, ChatAnswer)
 

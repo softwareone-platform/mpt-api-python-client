@@ -5,10 +5,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.resources.helpdesk.chat_answers import ChatAnswer
 
-pytestmark = [
-    pytest.mark.flaky,
-    pytest.mark.skip(reason="Unskip after MPT-19124 completed"),
-]
+pytestmark = [pytest.mark.flaky]
 
 
 def test_get_chat_answer(chat_answers_service, created_chat_answer):
@@ -17,6 +14,7 @@ def test_get_chat_answer(chat_answers_service, created_chat_answer):
     assert result.id == created_chat_answer.id
 
 
+@pytest.mark.usefixtures("created_chat_answer")
 def test_list_chat_answers(chat_answers_service):
     result = chat_answers_service.fetch_page(limit=1)
 
@@ -59,8 +57,8 @@ def test_validate_chat_answer(chat_answers_service, created_chat_answer):
     assert isinstance(result, ChatAnswer)
 
 
-def test_accept_chat_answer(chat_answers_service, created_chat_answer):
-    result = chat_answers_service.accept(created_chat_answer.id)
+def test_accept_chat_answer(chat_answers_service, submitted_chat_answer):
+    result = chat_answers_service.accept(submitted_chat_answer.id)
 
     assert isinstance(result, ChatAnswer)
 
