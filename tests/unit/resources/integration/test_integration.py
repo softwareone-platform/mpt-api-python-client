@@ -8,6 +8,10 @@ from mpt_api_client.resources.integration.extensions import (
     AsyncExtensionsService,
     ExtensionsService,
 )
+from mpt_api_client.resources.integration.installations import (
+    AsyncInstallationsService,
+    InstallationsService,
+)
 from mpt_api_client.resources.integration.integration import (
     AsyncIntegration,
     Integration,
@@ -43,6 +47,7 @@ def test_async_integration_initialization(async_http_client):
     [
         ("extensions", ExtensionsService),
         ("categories", CategoriesService),
+        ("installations", InstallationsService),
     ],
 )
 def test_integration_properties(integration, property_name, expected_service_class):
@@ -57,6 +62,7 @@ def test_integration_properties(integration, property_name, expected_service_cla
     [
         ("extensions", AsyncExtensionsService),
         ("categories", AsyncCategoriesService),
+        ("installations", AsyncInstallationsService),
     ],
 )
 def test_async_integration_properties(async_integration, property_name, expected_service_class):
