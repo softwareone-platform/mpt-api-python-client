@@ -4,13 +4,13 @@ from mpt_api_client.exceptions import MPTAPIError
 
 
 @pytest.fixture
-def extensions_service(mpt_ops):
-    return mpt_ops.integration.extensions
+def extensions_service(mpt_vendor):
+    return mpt_vendor.integration.extensions
 
 
 @pytest.fixture
-def async_extensions_service(async_mpt_ops):
-    return async_mpt_ops.integration.extensions
+def async_extensions_service(async_mpt_vendor):
+    return async_mpt_vendor.integration.extensions
 
 
 @pytest.fixture(scope="session")
