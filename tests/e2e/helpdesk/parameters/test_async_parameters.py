@@ -5,10 +5,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.resources.helpdesk.parameters import Parameter
 
-pytestmark = [
-    pytest.mark.flaky,
-    pytest.mark.skip(reason="Skipped per MPT-18373 request"),
-]
+pytestmark = [pytest.mark.flaky, pytest.mark.skip(reason="Unskip after MPT-19967 fixed")]
 
 
 async def test_get_parameter(async_mpt_ops, async_created_parameter):
