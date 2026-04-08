@@ -15,19 +15,19 @@ def test_list_chat_participants(chat_participants_service):
     assert all(isinstance(participant, ChatParticipant) for participant in result)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")  # noqa: AAA01
+@pytest.mark.skip(reason="Unskip after MPT-20015 completed")  # noqa: AAA01
 def test_create_chat_participant(created_chat_participant):
     assert isinstance(created_chat_participant, ChatParticipant)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-20015 completed")
 def test_update_chat_participant(chat_participants_service, created_chat_participant):
     result = chat_participants_service.update(created_chat_participant.id, {"status": "Active"})
 
     assert isinstance(result, ChatParticipant)
 
 
-@pytest.mark.skip(reason="Unskip after MPT-19124 completed")
+@pytest.mark.skip(reason="Unskip after MPT-20015 completed")
 def test_delete_chat_participant(chat_participants_service, created_chat_participant):
     result = created_chat_participant
 
