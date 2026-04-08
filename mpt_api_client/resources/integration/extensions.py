@@ -13,6 +13,10 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
+from mpt_api_client.resources.integration.extension_installations import (
+    AsyncExtensionInstallationsService,
+    ExtensionInstallationsService,
+)
 from mpt_api_client.resources.integration.mixins import (
     AsyncExtensionMixin,
     ExtensionMixin,
@@ -79,6 +83,12 @@ class ExtensionsService(
 ):
     """Sync service for the /public/v1/integration/extensions endpoint."""
 
+    def installations(self, extension_id: str) -> ExtensionInstallationsService:
+        """Return extension installations service."""
+        return ExtensionInstallationsService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
 
 class AsyncExtensionsService(
     AsyncExtensionMixin[Extension],
@@ -91,3 +101,9 @@ class AsyncExtensionsService(
     ExtensionsServiceConfig,
 ):
     """Async service for the /public/v1/integration/extensions endpoint."""
+
+    def installations(self, extension_id: str) -> AsyncExtensionInstallationsService:
+        """Return extension installations service."""
+        return AsyncExtensionInstallationsService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
