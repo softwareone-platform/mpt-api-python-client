@@ -76,7 +76,7 @@ def test_async_endpoint(async_extension_documents_service) -> None:
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "publish", "unpublish", "iterate"],
+    ["get", "create", "update", "delete", "download", "publish", "unpublish", "iterate"],
 )
 def test_mixins_present(extension_documents_service, method: str) -> None:
     result = hasattr(extension_documents_service, method)
@@ -86,7 +86,7 @@ def test_mixins_present(extension_documents_service, method: str) -> None:
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "publish", "unpublish", "iterate"],
+    ["get", "create", "update", "delete", "download", "publish", "unpublish", "iterate"],
 )
 def test_async_mixins_present(async_extension_documents_service, method: str) -> None:
     result = hasattr(async_extension_documents_service, method)

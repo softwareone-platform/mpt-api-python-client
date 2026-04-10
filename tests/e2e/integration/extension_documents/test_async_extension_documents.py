@@ -39,6 +39,14 @@ async def test_publish_extension_document(
     assert result.status == "Published"
 
 
+async def test_download_extension_document(
+    async_extension_documents_service, async_created_document
+):
+    result = await async_extension_documents_service.download(async_created_document.id)
+
+    assert result.file_contents is not None
+
+
 async def test_unpublish_extension_document(
     async_extension_documents_service, async_created_document
 ):

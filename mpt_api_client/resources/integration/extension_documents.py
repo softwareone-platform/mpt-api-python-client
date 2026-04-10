@@ -2,9 +2,11 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncCreateFileMixin,
+    AsyncDownloadFileMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
     CreateFileMixin,
+    DownloadFileMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
@@ -59,6 +61,7 @@ class ExtensionDocumentsServiceConfig:
 
 class ExtensionDocumentsService(
     PublishableMixin[ExtensionDocument],
+    DownloadFileMixin[ExtensionDocument],
     CreateFileMixin[ExtensionDocument],
     ModifiableResourceMixin[ExtensionDocument],
     CollectionMixin[ExtensionDocument],
@@ -70,6 +73,7 @@ class ExtensionDocumentsService(
 
 class AsyncExtensionDocumentsService(
     AsyncPublishableMixin[ExtensionDocument],
+    AsyncDownloadFileMixin[ExtensionDocument],
     AsyncCreateFileMixin[ExtensionDocument],
     AsyncModifiableResourceMixin[ExtensionDocument],
     AsyncCollectionMixin[ExtensionDocument],

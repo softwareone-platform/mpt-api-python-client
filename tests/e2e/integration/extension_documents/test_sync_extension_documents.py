@@ -33,6 +33,12 @@ def test_publish_extension_document(extension_documents_service, created_documen
     assert result.status == "Published"
 
 
+def test_download_extension_document(extension_documents_service, created_document):
+    result = extension_documents_service.download(created_document.id)
+
+    assert result.file_contents is not None
+
+
 def test_unpublish_extension_document(extension_documents_service, created_document):
     extension_documents_service.publish(created_document.id)
 
