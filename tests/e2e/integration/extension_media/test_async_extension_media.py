@@ -35,6 +35,12 @@ async def test_publish_extension_media_async(async_extension_media_service, asyn
     assert result.status == "Published"
 
 
+async def test_download_extension_media_async(async_extension_media_service, async_created_media):
+    result = await async_extension_media_service.download(async_created_media.id)
+
+    assert result.file_contents is not None
+
+
 async def test_unpublish_extension_media_async(async_extension_media_service, async_created_media):
     await async_extension_media_service.publish(async_created_media.id)
 

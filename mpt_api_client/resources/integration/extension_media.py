@@ -3,10 +3,12 @@ from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncCreateFileMixin,
     AsyncDeleteMixin,
+    AsyncDownloadFileMixin,
     AsyncModifiableResourceMixin,
     CollectionMixin,
     CreateFileMixin,
     DeleteMixin,
+    DownloadFileMixin,
     ModifiableResourceMixin,
 )
 from mpt_api_client.models import Model
@@ -64,6 +66,7 @@ class ExtensionMediaServiceConfig:
 class ExtensionMediaService(
     MediaMixin[ExtensionMedia],
     PublishableMixin[ExtensionMedia],
+    DownloadFileMixin[ExtensionMedia],
     CreateFileMixin[ExtensionMedia],
     ModifiableResourceMixin[ExtensionMedia],
     DeleteMixin,
@@ -77,6 +80,7 @@ class ExtensionMediaService(
 class AsyncExtensionMediaService(
     AsyncMediaMixin[ExtensionMedia],
     AsyncPublishableMixin[ExtensionMedia],
+    AsyncDownloadFileMixin[ExtensionMedia],
     AsyncCreateFileMixin[ExtensionMedia],
     AsyncModifiableResourceMixin[ExtensionMedia],
     AsyncDeleteMixin,

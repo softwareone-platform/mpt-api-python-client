@@ -52,7 +52,17 @@ def media_data():
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "publish", "unpublish", "upload_image", "iterate"],
+    [
+        "get",
+        "create",
+        "update",
+        "delete",
+        "download",
+        "publish",
+        "unpublish",
+        "upload_image",
+        "iterate",
+    ],
 )
 def test_mixins_present(media_service, method: str) -> None:
     result = hasattr(media_service, method)
@@ -62,7 +72,17 @@ def test_mixins_present(media_service, method: str) -> None:
 
 @pytest.mark.parametrize(
     "method",
-    ["get", "create", "update", "delete", "publish", "unpublish", "upload_image", "iterate"],
+    [
+        "get",
+        "create",
+        "update",
+        "delete",
+        "download",
+        "publish",
+        "unpublish",
+        "upload_image",
+        "iterate",
+    ],
 )
 def test_async_mixins_present(async_media_service, method: str) -> None:
     result = hasattr(async_media_service, method)
@@ -105,6 +125,46 @@ def test_extension_media_create(media_service, tmp_path) -> None:
     assert mock_route.call_count == 1
     assert mock_route.calls[0].request.method == "POST"
     assert result.to_dict() == expected_response
+
+
+def test_extension_media_download(media_service) -> None:
+    image_bytes = b"\x89PNG\r\n\x1a\n"
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/public/v1/integration/extensions/EXT-001/media/MED-001"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "image/png"},
+                content=image_bytes,
+            )
+        )
+
+        result = media_service.download("MED-001", accept="image/png")
+
+    assert mock_route.call_count == 1
+    assert mock_route.calls[0].request.method == "GET"
+    assert result.file_contents == image_bytes
+
+
+async def test_async_extension_media_download(async_media_service) -> None:
+    image_bytes = b"\x89PNG\r\n\x1a\n"
+    with respx.mock:
+        mock_route = respx.get(
+            "https://api.example.com/public/v1/integration/extensions/EXT-001/media/MED-001"
+        ).mock(
+            return_value=httpx.Response(
+                status_code=httpx.codes.OK,
+                headers={"content-type": "image/png"},
+                content=image_bytes,
+            )
+        )
+
+        result = await async_media_service.download("MED-001", accept="image/png")
+
+    assert mock_route.call_count == 1
+    assert mock_route.calls[0].request.method == "GET"
+    assert result.file_contents == image_bytes
 
 
 def test_extensions_media_accessor(http_client) -> None:

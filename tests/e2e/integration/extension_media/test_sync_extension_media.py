@@ -31,6 +31,12 @@ def test_publish_extension_media(extension_media_service, created_media):
     assert result.status == "Published"
 
 
+def test_download_extension_media(extension_media_service, created_media):
+    result = extension_media_service.download(created_media.id)
+
+    assert result.file_contents is not None
+
+
 def test_unpublish_extension_media(extension_media_service, created_media):
     extension_media_service.publish(created_media.id)
 
