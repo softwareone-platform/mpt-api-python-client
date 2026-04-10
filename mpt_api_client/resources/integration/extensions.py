@@ -13,6 +13,10 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
+from mpt_api_client.resources.integration.extension_media import (
+    AsyncExtensionMediaService,
+    ExtensionMediaService,
+)
 from mpt_api_client.resources.integration.extension_terms import (
     AsyncExtensionTermsService,
     ExtensionTermsService,
@@ -89,6 +93,19 @@ class ExtensionsService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
 
+    def media(self, extension_id: str) -> ExtensionMediaService:
+        """Return the media service for the given extension.
+
+        Args:
+            extension_id: Extension ID.
+
+        Returns:
+            ExtensionMediaService instance.
+        """
+        return ExtensionMediaService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
 
 class AsyncExtensionsService(
     AsyncExtensionMixin[Extension],
@@ -105,5 +122,18 @@ class AsyncExtensionsService(
     def terms(self, extension_id: str) -> AsyncExtensionTermsService:
         """Return async extension terms service."""
         return AsyncExtensionTermsService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
+    def media(self, extension_id: str) -> AsyncExtensionMediaService:
+        """Return the async media service for the given extension.
+
+        Args:
+            extension_id: Extension ID.
+
+        Returns:
+            AsyncExtensionMediaService instance.
+        """
+        return AsyncExtensionMediaService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
