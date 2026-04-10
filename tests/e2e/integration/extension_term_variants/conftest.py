@@ -14,29 +14,29 @@ def term_id(e2e_config):
 
 
 @pytest.fixture
-def extension_term_variants_service(mpt_ops, extension_id, term_id):
-    return mpt_ops.integration.extensions.terms(extension_id).variants(term_id)
+def extension_term_variants_service(mpt_vendor, extension_id, term_id):
+    return mpt_vendor.integration.extensions.terms(extension_id).variants(term_id)
 
 
 @pytest.fixture
-def async_extension_term_variants_service(async_mpt_ops, extension_id, term_id):
-    return async_mpt_ops.integration.extensions.terms(extension_id).variants(term_id)
+def async_extension_term_variants_service(async_mpt_vendor, extension_id, term_id):
+    return async_mpt_vendor.integration.extensions.terms(extension_id).variants(term_id)
 
 
 @pytest.fixture
 def variant_data(short_uuid):
     return {
-        "type": "Online",
-        "assetUrl": "https://example.com/terms",
-        "languageCode": "en",
+        "type": "File",
+        "assetUrl": "",
+        "languageCode": "en-US",
         "name": f"e2e - please delete {short_uuid}",
         "description": "Created by automated E2E tests. Safe to delete.",
     }
 
 
 @pytest.fixture
-def created_variant(extension_term_variants_service, variant_data):
-    variant = extension_term_variants_service.create(variant_data)
+def created_variant(extension_term_variants_service, variant_data, pdf_fd):
+    variant = extension_term_variants_service.create(variant_data, file=pdf_fd)
 
     yield variant
 
@@ -47,8 +47,8 @@ def created_variant(extension_term_variants_service, variant_data):
 
 
 @pytest.fixture
-async def async_created_variant(async_extension_term_variants_service, variant_data):
-    variant = await async_extension_term_variants_service.create(variant_data)
+async def async_created_variant(async_extension_term_variants_service, variant_data, pdf_fd):
+    variant = await async_extension_term_variants_service.create(variant_data, file=pdf_fd)
 
     yield variant
 

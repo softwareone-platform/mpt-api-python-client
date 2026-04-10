@@ -7,18 +7,18 @@ pytestmark = [
 ]
 
 
-@pytest.mark.skip(reason="creates real resources; run manually only")
 def test_create_extension_term_variant(created_variant, variant_data):
     result = created_variant.name
 
     assert result == variant_data["name"]
 
 
-def test_filter_extension_term_variants(extension_term_variants_service, term_id):
-    assert_service_filter_with_iterate(extension_term_variants_service, term_id, None)  # act
+def test_filter_extension_term_variants(extension_term_variants_service, created_variant):
+    assert_service_filter_with_iterate(
+        extension_term_variants_service, created_variant.id, None
+    )  # act
 
 
-@pytest.mark.skip(reason="modifies real resources; run manually only")
 def test_update_extension_term_variant(
     extension_term_variants_service, created_variant, short_uuid
 ):
@@ -29,14 +29,12 @@ def test_update_extension_term_variant(
     assert result.name == update_data["name"]
 
 
-@pytest.mark.skip(reason="modifies real resources; run manually only")
 def test_publish_extension_term_variant(extension_term_variants_service, created_variant):
     result = extension_term_variants_service.publish(created_variant.id)
 
     assert result.status == "Published"
 
 
-@pytest.mark.skip(reason="modifies real resources; run manually only")
 def test_unpublish_extension_term_variant(extension_term_variants_service, created_variant):
     extension_term_variants_service.publish(created_variant.id)
 
@@ -45,6 +43,5 @@ def test_unpublish_extension_term_variant(extension_term_variants_service, creat
     assert result.status == "Unpublished"
 
 
-@pytest.mark.skip(reason="deletes real resources; run manually only")
 def test_delete_extension_term_variant(extension_term_variants_service, created_variant):
     extension_term_variants_service.delete(created_variant.id)  # act
