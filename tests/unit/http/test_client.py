@@ -7,6 +7,7 @@ from httpx import ConnectTimeout, Response, codes
 
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http.client import HTTPClient
+from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
 
 
@@ -107,3 +108,27 @@ def test_http_call_force_multipart(mocker, http_client):
     payload_tuple = sent_files["_attachment_data"]
     assert payload_tuple[2] == "application/json"
     assert payload_tuple[1].decode() == '{"foo":"bar"}'
+
+
+def test_request_with_render(mocker, http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+    http_client.request("GET", "/", options=QueryOptions(render=True))
+
+    result = parent_request.call_args[1]
+
+    assert result["params"] == "render()"
+
+
+def test_request_with_render_and_query_params(mocker, http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+    http_client.request(
+        "GET", "/", query_params={"select": "id,name"}, options=QueryOptions(render=True)
+    )
+
+    result = parent_request.call_args[1]
+
+    assert result["params"] == "select=id%2Cname&render()"
