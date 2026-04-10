@@ -1,5 +1,8 @@
 import re
-from urllib.parse import SplitResult, urlsplit, urlunparse
+from typing import Any
+from urllib.parse import SplitResult, urlencode, urlsplit, urlunparse
+
+from mpt_api_client.http.query_options import QueryOptions
 
 INVALID_ENV_URL_MESSAGE = (
     "Base URL is required. "
@@ -45,3 +48,20 @@ def validate_base_url(base_url: str | None) -> str:
         raise ValueError(INVALID_ENV_URL_MESSAGE)
 
     return _build_sanitized_base_url(split_result)
+
+
+def get_query_params(
+    query_params: dict[str, Any] | None, options: QueryOptions | None = None
+) -> str:
+    """Get query params string from dict."""
+    filtered_params = {
+        query_param: query_value
+        for query_param, query_value in (query_params or {}).items()
+        if query_value is not None
+    }
+
+    query_params_str = urlencode(filtered_params) if filtered_params else ""
+    if options and options.render:
+        query_params_str += "&render()" if query_params_str else "render()"
+
+    return query_params_str

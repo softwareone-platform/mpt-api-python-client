@@ -14,7 +14,8 @@ from mpt_api_client.exceptions import (
     MPTError,
     transform_http_status_exception,
 )
-from mpt_api_client.http.client_utils import validate_base_url
+from mpt_api_client.http.client_utils import get_query_params, validate_base_url
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.types import (
     HeaderTypes,
     QueryParam,
@@ -76,6 +77,7 @@ class HTTPClient:
         headers: HeaderTypes | None = None,
         json_file_key: str = "_attachment_data",
         force_multipart: bool = False,
+        options: QueryOptions | None = None,
     ) -> Response:
         """Perform an HTTP request.
 
@@ -88,6 +90,7 @@ class HTTPClient:
             headers: Request headers.
             json_file_key: json file name for data when sending a multipart request.
             force_multipart: force multipart request even if file is not provided.
+            options: Additional options for the request.
 
         Returns:
             Response object.
@@ -101,13 +104,14 @@ class HTTPClient:
         if force_multipart or (files and json):
             files[json_file_key] = (None, json_to_file_payload(json), APPLICATION_JSON)
             json = None
+        params_str = get_query_params(query_params, options)
         try:
             response = self.httpx_client.request(
                 method,
                 url,
                 files=files,
                 json=json,
-                params=query_params,
+                params=params_str or None,
                 headers=headers,
             )
         except HTTPError as err:

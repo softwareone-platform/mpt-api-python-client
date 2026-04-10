@@ -1,5 +1,6 @@
 from typing import Any
 
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.rql import RQLQuery
 
 
@@ -18,7 +19,7 @@ class QueryState:
         order_by: list[str] | None = None,
         select: list[str] | None = None,
         *,
-        render: bool = False,
+        options: QueryOptions | None = None,
     ) -> None:
         """Initialize the query state with optional filter, ordering, and selection criteria.
 
@@ -26,12 +27,12 @@ class QueryState:
             rql: RQL query for filtering data.
             order_by: List of fields to order by (prefix with '-' for descending).
             select: List of fields to select in the response.
-            render: Whether to include the render() parameter in the query string.
+            options: Query options for the request.
         """
         self._filter = rql
         self._order_by = order_by
         self._select = select
-        self._render = render
+        self._options = options or QueryOptions()
 
     @property
     def filter(self) -> RQLQuery | None:
@@ -49,9 +50,9 @@ class QueryState:
         return self._select
 
     @property
-    def render(self) -> bool:
-        """Get the current render state."""
-        return self._render
+    def options(self) -> QueryOptions:
+        """Get the current query options."""
+        return self._options
 
     def build(self, query_params: dict[str, Any] | None = None) -> str:
         """Build a query string from the current state and additional parameters.
@@ -75,7 +76,7 @@ class QueryState:
         if self._filter:
             query_parts.append(str(self._filter))
 
-        if self._render:
+        if self._options.render:
             query_parts.append("render()")
 
         if query_parts:
