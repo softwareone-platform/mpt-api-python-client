@@ -24,14 +24,13 @@ def document_data(short_uuid):
         "name": f"e2e - please delete {short_uuid}",
         "description": "Created by automated E2E tests. Safe to delete.",
         "language": "en-US",
-        "documentType": "Online",
-        "url": "https://example.com/terms",
+        "documentType": "File",
     }
 
 
 @pytest.fixture
-def created_document(extension_documents_service, document_data):
-    document = extension_documents_service.create(document_data)
+def created_document(extension_documents_service, document_data, pdf_fd):
+    document = extension_documents_service.create(document_data, file=pdf_fd)
 
     yield document
 
@@ -42,8 +41,8 @@ def created_document(extension_documents_service, document_data):
 
 
 @pytest.fixture
-async def async_created_document(async_extension_documents_service, document_data):
-    document = await async_extension_documents_service.create(document_data)
+async def async_created_document(async_extension_documents_service, document_data, pdf_fd):
+    document = await async_extension_documents_service.create(document_data, file=pdf_fd)
 
     yield document
 
