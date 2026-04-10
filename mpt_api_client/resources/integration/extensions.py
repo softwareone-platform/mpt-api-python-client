@@ -13,6 +13,10 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
+from mpt_api_client.resources.integration.extension_documents import (
+    AsyncExtensionDocumentsService,
+    ExtensionDocumentsService,
+)
 from mpt_api_client.resources.integration.extension_media import (
     AsyncExtensionMediaService,
     ExtensionMediaService,
@@ -106,6 +110,19 @@ class ExtensionsService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
 
+    def documents(self, extension_id: str) -> ExtensionDocumentsService:
+        """Return extension documents service.
+
+        Args:
+            extension_id: Extension ID.
+
+        Returns:
+            ExtensionDocumentsService instance.
+        """
+        return ExtensionDocumentsService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
 
 class AsyncExtensionsService(
     AsyncExtensionMixin[Extension],
@@ -135,5 +152,18 @@ class AsyncExtensionsService(
             AsyncExtensionMediaService instance.
         """
         return AsyncExtensionMediaService(
+            http_client=self.http_client, endpoint_params={"extension_id": extension_id}
+        )
+
+    def documents(self, extension_id: str) -> AsyncExtensionDocumentsService:
+        """Return async extension documents service.
+
+        Args:
+            extension_id: Extension ID.
+
+        Returns:
+            AsyncExtensionDocumentsService instance.
+        """
+        return AsyncExtensionDocumentsService(
             http_client=self.http_client, endpoint_params={"extension_id": extension_id}
         )
