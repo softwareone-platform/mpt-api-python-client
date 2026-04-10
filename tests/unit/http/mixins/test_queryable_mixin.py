@@ -84,6 +84,6 @@ def test_queryable_mixin_options_render(dummy_service: DummyService) -> None:
     result = dummy_service.options(render=True)
 
     assert result != dummy_service
-    assert not dummy_service.query_state.render
-    assert result.query_state.render
-    assert result.select("id").query_state.render
+    assert not dummy_service.query_state.options.render
+    assert result.query_state.options.render
+    assert result.select("id").query_state.options.render
