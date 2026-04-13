@@ -5,7 +5,7 @@ import pytest
 from mpt_api_client.exceptions import MPTAPIError
 from mpt_api_client.resources.helpdesk.parameter_groups import ParameterGroup
 
-pytestmark = [pytest.mark.flaky, pytest.mark.skip(reason="Unskip after MPT-19967 fixed")]
+pytestmark = [pytest.mark.flaky]
 
 
 async def test_get_parameter_group(async_parameter_groups_service, async_created_parameter_group):

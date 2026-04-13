@@ -7,24 +7,6 @@ from tests.e2e.helper import (
 
 
 @pytest.fixture
-def parameter_data(short_uuid):
-    return {
-        "name": f"E2E Helpdesk Group Parameter {short_uuid}",
-        "description": "E2E Created Helpdesk Group Parameter",
-        "scope": "Case",
-        "phase": "Request",
-        "type": "SingleLineText",
-        "multiple": False,
-        "constraints": {
-            "required": False,
-            "readonly": False,
-            "hidden": False,
-            "visibility": "All",
-        },
-    }
-
-
-@pytest.fixture
 def created_parameter_definition(mpt_ops, parameter_data):
     with create_fixture_resource_and_delete(
         mpt_ops.helpdesk.parameters, parameter_data
@@ -54,11 +36,9 @@ def parameter_group_parameter_data(created_parameter_definition):
 
 
 @pytest.fixture
-def created_parameter_group_parameter(
-    parameter_group_parameters_service, parameter_group_parameter_data
-):
+def created_parameter_group_parameter(parameter_group_parameters_service, created_parameter):
     with create_fixture_resource_and_delete(
-        parameter_group_parameters_service, parameter_group_parameter_data
+        parameter_group_parameters_service, {"id": created_parameter.id, "displayOrder": 1}
     ) as parameter_group_parameter:
         yield parameter_group_parameter
 
@@ -83,9 +63,10 @@ def async_parameter_group_parameter_data(async_created_parameter_definition):
 
 @pytest.fixture
 async def async_created_parameter_group_parameter(
-    async_parameter_group_parameters_service, async_parameter_group_parameter_data
+    async_parameter_group_parameters_service, async_created_parameter
 ):
     async with async_create_fixture_resource_and_delete(
-        async_parameter_group_parameters_service, async_parameter_group_parameter_data
+        async_parameter_group_parameters_service,
+        {"id": async_created_parameter.id, "displayOrder": 1},
     ) as parameter_group_parameter:
         yield parameter_group_parameter
