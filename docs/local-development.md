@@ -1,14 +1,14 @@
 # Local Development
 
-This document describes how to set up and run `mpt-api-python-client` locally.
+This document describes the Docker-only local setup for `mpt-api-python-client`.
 
-Make sure you have read the [Contributing guidelines](./contributing.md)
+Read [contributing.md](./contributing.md) for the repository workflow and
+[usage.md](./usage.md) for installation and runtime examples.
 
 ## Prerequisites
 
 - **Docker** and **Docker Compose** plugin (`docker compose` CLI)
 - **Make**
-- [CodeRabbit CLI](https://www.coderabbit.ai/cli) (optional — used for running review checks locally)
 
 ## Setup
 
@@ -33,7 +33,7 @@ Edit `.env` with your actual values. See [Environment Variables](#environment-va
 make build
 ```
 
-This creates the Docker images with all required dependencies and the virtual environment.
+This builds the `app` image defined in [`compose.yaml`](../compose.yaml).
 
 ### 4. Verify the setup
 
@@ -41,35 +41,22 @@ This creates the Docker images with all required dependencies and the virtual en
 make test
 ```
 
-## Running the Client
+## Working In Docker
 
-Start an interactive IPython session with the client available:
+Use the repository make targets instead of ad hoc local Python commands.
+For the full command catalog, see [usage.md](./usage.md) and [testing.md](./testing.md).
 
 ```bash
-make run
+make bash      # open a shell in the app container
+make run       # start an IPython session in the app container
 ```
-
-Ensure your `.env` file is populated with valid `MPT_API_BASE_URL` and `MPT_API_TOKEN` values.
 
 ## Environment Variables
 
-### Application
+Docker Compose loads environment variables from `.env`.
 
-| Variable           | Default | Example                              | Description                       |
-|--------------------|---------|--------------------------------------|-----------------------------------|
-| `MPT_API_BASE_URL` | —       | `https://portal.softwareone.com/mpt` | SoftwareONE Marketplace API URL   |
-| `MPT_API_TOKEN`    | —       | `eyJhbGciOiJSUzI1N...`               | SoftwareONE Marketplace API Token |
-
-### End-to-End Testing
-
-| Variable                   | Default | Example                            | Description              |
-|----------------------------|---------|------------------------------------|--------------------------|
-| `MPT_API_TOKEN_CLIENT`     | —       | `eyJhbGciOiJSUzI1N...`             | Client API token         |
-| `MPT_API_TOKEN_OPERATIONS` | —       | `eyJhbGciOiJSUzI1N...`             | Operations API token     |
-| `MPT_API_TOKEN_VENDOR`     | —       | `eyJhbGciOiJSUzI1N...`             | Vendor API token         |
-| `RP_API_KEY`               | —       | `pytest_XXXX`                      | ReportPortal API key     |
-| `RP_ENDPOINT`              | —       | `https://reportportal.example.com` | ReportPortal endpoint    |
-| `RP_LAUNCH`                | —       | `dev-env`                          | ReportPortal launch name |
+- Client variables are documented in [usage.md](./usage.md#configuration).
+- E2E-specific variables are documented in [e2e_tests.md](./e2e_tests.md#environment-variables).
 
 ## Docker
 
@@ -77,31 +64,15 @@ The development environment runs entirely inside Docker:
 
 - **Base image**: `ghcr.io/astral-sh/uv:python3.12-bookworm-slim`
 - **Package manager**: [uv](https://docs.astral.sh/uv/)
-- **Services**: defined in `compose.yaml` — a single `app` service that mounts the project directory.
+- **Service**: `app`, defined in [`compose.yaml`](../compose.yaml), with the repository mounted at `/mpt_api_client`
 
 ## Make Targets
 
-Common development workflows are wrapped in the Makefile. Run `make help` to see all available
-commands.
+Run `make help` to see all available commands.
 
-[Read make targets for additional information](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/knowledge/make-targets.md)
+Shared references:
 
-### How the Makefile Works
-
-[Read the makefile architecture for python repositories](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/makefiles.md)
-
-# Additional Resources
-- [Package architecture](./architecture.md)
-- [Python coding standards](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/python-coding.md)
-- [Extensions best practices](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/extensions-best-practices.md)
-- [Packages and dependencies](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/packages-and-dependencies.md)
-- [Testing](./testing.md)
-  - [Unit tests](./unit_tests.md)
-  - [E2E tests](./e2e_tests.md)
-- [Pull requests](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/pull-requests.md)
-- [Makefiles](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/makefiles.md)
-  - [Makefile targets](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/knowledge/make-targets.md)
-
-
+- [knowledge/make-targets.md](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/knowledge/make-targets.md)
+- [standards/makefiles.md](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/makefiles.md)
 
 

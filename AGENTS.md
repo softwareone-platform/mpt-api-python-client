@@ -1,31 +1,34 @@
 # AGENTS.md
 
-This file is the AI assistant entry point for `mpt-api-python-client`.
-
-## Repository Purpose
-
 Python API client for the SoftwareONE Marketplace Platform (MPT) API. Provides synchronous
 (`MPTClient`) and asynchronous (`AsyncMPTClient`) clients built on httpx, with typed
 resource services, mixin-based HTTP operations, and an RQL query builder.
 
 ## Documentation Reading Order
 
-1. `README.md` — project overview and quick start
-2. `docs/architecture.md` — layered architecture, directory structure, key abstractions
-3. `docs/testing.md` — test structure, tooling, conventions, how to run tests
-4. `docs/contributing.md` — development workflow, coding conventions, linting setup
-5. `docs/local-development.md` — Docker setup, Make targets, environment variables
+1. `README.md` — repository overview, quick start, and documentation map
+2. `docs/usage.md` — installation, configuration, Python usage examples, and supported Docker-based commands
+3. `docs/architecture.md` — layered architecture, directory structure, and key abstractions
+4. `docs/local-development.md` — Docker-only setup and execution model
+5. `docs/testing.md` — repository-specific testing strategy and command mapping
+6. `docs/contributing.md` — repository-specific workflow and links to shared standards
+7. `docs/documentation.md` — repository-specific documentation rules
 
-## Library Usage
+Then inspect the code paths relevant to the task:
 
-See `docs/PROJECT_DESCRIPTION.md` for installation and usage examples (sync and async).
+- `mpt_api_client/mpt_client.py` — public sync and async client entry points
+- `mpt_api_client/http/` — HTTP clients, services, query state, and reusable mixins
+- `mpt_api_client/resources/` — domain resource groups such as catalog, commerce, billing, and integration
+- `mpt_api_client/models/` — response model layer and collection wrappers
+- `mpt_api_client/rql/` — fluent RQL query builder
+- `tests/unit/` — unit coverage for transport, resources, models, and query builder
+- `tests/e2e/` — live API coverage by domain
+- `make/` and `compose.yaml` — Docker-based local command entry points
 
 ## API Reference
 
-The upstream MPT API is described by the OpenAPI spec:
+The upstream API contract is the MPT OpenAPI spec:
 https://api.s1.show/public/v1/openapi.json
-
-Use this to understand available endpoints, request/response schemas, and field names.
 
 ## Key Commands
 
@@ -36,6 +39,15 @@ Use this to understand available endpoints, request/response schemas, and field 
 | `make check`     | Run all linting and type checks          |
 | `make check-all` | Run checks + tests                       |
 | `make format`    | Auto-format code                         |
+| `make bash`      | Open a shell in the Docker container     |
+| `make run`       | Start an IPython session in Docker       |
+
+## Repository Rules
+
+- Prefer Docker-based `make` targets over ad hoc local Python commands.
+- Keep `README.md` concise and navigational.
+- Put topic-specific documentation under `docs/` instead of expanding `README.md`.
+- Link shared engineering rules from `mpt-extension-skills` instead of duplicating them locally.
 
 ## Project Structure
 
@@ -48,16 +60,3 @@ mpt_api_client/
 ├── rql/                # RQL query builder
 └── exceptions.py       # Error hierarchy
 ```
-
-## Shared Standards
-
-This repository follows shared engineering standards from
-[mpt-extension-skills](https://github.com/softwareone-platform/mpt-extension-skills):
-
-- `standards/python-style-guide.md`
-- `standards/testing-standard.md`
-- `standards/contributing-standard.md`
-- `standards/pull-request-guidelines.md`
-
-
-
