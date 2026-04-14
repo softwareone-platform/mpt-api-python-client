@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "SoftwareOne Marketplace API Client for Python"
 authors = [{ name = "SoftwareOne AG" }]
 requires-python = ">=3.12,<4"
-readme = "docs/PROJECT_DESCRIPTION.md"
+readme = "README.md"
 license = { text = "Apache-2.0 license" }
 keywords = [
   "openapi",
@@ -53,10 +53,10 @@ dev = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["mpt_api_client", "docs/PROJECT_DESCRIPTION.md"]
+include = ["mpt_api_client", "README.md"]
 
 [tool.hatch.build.targets.wheel]
-include = ["mpt_api_client"]
+include = ["mpt_api_client", "README.md"]
 
 [build-system]
 requires = ["hatchling"]

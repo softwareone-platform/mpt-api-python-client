@@ -1,30 +1,55 @@
 # Testing
 
-This document provides a high-level overview of the testing strategy for
-`mpt-api-python-client` and points to the detailed guides for each test type.
+Shared test rules live in
+[standards/unittests.md](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/unittests.md).
+This document covers repository-specific testing behavior only.
 
-## Guides
+## Test Scope
 
-- [Unit test guide](unit_tests.md) — structure, conventions, tooling, and examples.
-- [E2E test guide](e2e_tests.md) — directory layout, execution instructions, and environment setup.
+The repository has two main test layers:
 
-For a quick validation run: `make check && make test`.
+- [Unit tests](unit_tests.md) under [`tests/unit/`](../tests/unit) for transport, models,
+  resources, and the RQL builder
+- [End-to-end tests](e2e_tests.md) under [`tests/e2e/`](../tests/e2e) for live API coverage
 
-## Coverage
+`make test` runs the unit suite by default. E2E tests are opt-in and require live credentials.
 
-Coverage is collected automatically via `pytest-cov` with the following defaults:
+## Commands
+
+Run all test commands through Docker-based make targets:
+
+```bash
+make test
+make test args="tests/unit/http"
+make test args="tests/e2e"
+make check
+make check-all
+```
+
+Repository command mapping:
+
+- `make test` runs `pytest` against `tests/unit` unless `args` overrides the path
+- `make check` runs `ruff format --check`, `ruff check`, `flake8`, `mypy`, and `uv lock --check`
+- `make check-all` runs both `check` and `test`
+
+## Pytest And Coverage
 
 - Source: `mpt_api_client/`
 - Reports: terminal (missing lines) + XML (`coverage.xml`)
 - Branch coverage enabled
-- `__init__.py` files excluded
+- `__init__.py` files omitted from coverage reports
 
 Results are reported to SonarCloud via `sonar-project.properties`.
 
-## Shared Standards
+Repository-specific pytest settings live in [`pyproject.toml`](../pyproject.toml), including:
 
-This repository follows the shared testing standard from
-[mpt-extension-skills](https://github.com/softwareone-platform/mpt-extension-skills):
+- discovery under `tests`
+- repository root on `pythonpath`
+- import mode `importlib`
+- async fixture loop scope and warning filters
 
-- `standards/testing-standard.md`
+## Repository Constraints
 
+- E2E suites require configured MPT credentials and optional ReportPortal settings; see [e2e_tests.md](e2e_tests.md).
+- Keep live API coverage in `tests/e2e/` separate from unit-only behavior in `tests/unit/`.
+- When changing public client behavior, service mixins, resource modules, or query building, update the matching unit coverage.
