@@ -56,3 +56,34 @@ def test_get_records_with_render(mpt_vendor: MPTClient, product_id) -> None:
     for record in result:
         assert record.object.id == product_id
         assert not any(char in record.details for char in template_chars)
+
+
+def test_get_record_with_render(mpt_vendor: MPTClient, audit_record_id) -> None:
+    template_chars = ["{{", "}}"]
+    service = mpt_vendor.audit.records.options(render=True)
+
+    result = service.get(audit_record_id)
+
+    assert result.id == audit_record_id
+    assert not any(char in result.details for char in template_chars)
+
+
+def test_get_record_with_select(mpt_vendor: MPTClient, audit_record_id) -> None:
+    service = mpt_vendor.audit.records
+
+    result = service.get(audit_record_id, select=["object", "actor"])
+
+    assert result.id == audit_record_id
+    assert result.object is not None
+    assert result.actor is not None
+
+
+def test_get_record_with_render_and_select(mpt_vendor: MPTClient, audit_record_id) -> None:
+    template_chars = ["{{", "}}"]
+    service = mpt_vendor.audit.records.options(render=True)
+
+    result = service.get(audit_record_id, select=["object", "actor", "details"])
+
+    assert result.id == audit_record_id
+    assert result.object is not None
+    assert not any(char in result.details for char in template_chars)

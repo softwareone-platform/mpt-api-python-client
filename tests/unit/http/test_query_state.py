@@ -1,5 +1,6 @@
 import pytest
 
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.query_state import QueryState
 
 
@@ -23,7 +24,7 @@ def test_build_url(filter_status_active):
         rql=filter_status_active,
         select=["-audit", "product.agreements", "-product.agreements.product"],
         order_by=["-created", "name"],
-        render=False,
+        options=QueryOptions(render=False),
     )
 
     result = query_state.build()
@@ -40,7 +41,7 @@ def test_build_url_with_render(filter_status_active):
         rql=filter_status_active,
         select=["-audit", "product.agreements", "-product.agreements.product"],
         order_by=["-created", "name"],
-        render=True,
+        options=QueryOptions(render=True),
     )
 
     result = query_state.build()

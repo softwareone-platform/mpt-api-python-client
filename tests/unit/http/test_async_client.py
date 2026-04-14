@@ -7,6 +7,7 @@ from httpx import ConnectTimeout, Request, Response, codes
 
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http.async_client import AsyncHTTPClient
+from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
 
 
@@ -118,3 +119,27 @@ async def test_http_call_force_multipart(mocker, async_http_client, mock_httpx_r
     payload_tuple = sent_files["_attachment_data"]
     assert payload_tuple[2] == "application/json"
     assert payload_tuple[1].decode() == '{"foo":"bar"}'
+
+
+async def test_request_with_render(mocker, async_http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    await async_http_client.request("GET", "/", options=QueryOptions(render=True))
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["params"] == "render()"
+
+
+async def test_request_with_render_and_query_params(mocker, async_http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    await async_http_client.request(
+        "GET", "/", query_params={"select": "id,name"}, options=QueryOptions(render=True)
+    )
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["params"] == "select=id%2Cname&render()"

@@ -1,6 +1,28 @@
 import pytest
 
-from mpt_api_client.http.client_utils import validate_base_url
+from mpt_api_client.http.client_utils import get_query_params, validate_base_url
+from mpt_api_client.http.query_options import QueryOptions
+
+
+@pytest.mark.parametrize(
+    ("query_params", "options", "expected"),
+    [
+        (None, None, ""),
+        ({}, None, ""),
+        ({"select": None}, None, ""),
+        ({"select": "id,name"}, None, "select=id%2Cname"),
+        ({"select": "id", "order": "asc"}, None, "select=id&order=asc"),
+        (None, QueryOptions(render=True), "render()"),
+        ({}, QueryOptions(render=True), "render()"),
+        ({"select": "id"}, QueryOptions(render=True), "select=id&render()"),
+        ({"select": None}, QueryOptions(render=True), "render()"),
+        (None, QueryOptions(render=False), ""),
+    ],
+)
+def test_get_query_params(query_params, options, expected):
+    result = get_query_params(query_params, options)
+
+    assert result == expected
 
 
 @pytest.mark.parametrize(

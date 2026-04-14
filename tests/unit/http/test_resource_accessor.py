@@ -4,6 +4,7 @@ import httpx
 import pytest
 import respx
 
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.resource_accessor import AsyncResourceAccessor, ResourceAccessor
 from tests.unit.conftest import API_URL, DummyModel
 
@@ -240,3 +241,31 @@ async def test_async_delete(async_http_client):  # noqa: AAA01
 
     assert mock_route.call_count == 1
     assert mock_route.calls[0].request.method == "DELETE"
+
+
+async def test_async_get_with_render(async_http_client):
+    response_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(f"{FULL_URL}?render()").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=response_data)
+        )
+        accessor = AsyncResourceAccessor(async_http_client, RESOURCE_URL, DummyModel)
+
+        result = await accessor.get(options=QueryOptions(render=True))
+
+    assert result.to_dict() == response_data
+    assert mock_route.call_count == 1
+
+
+def test_get_with_render(http_client):
+    response_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(f"{FULL_URL}?render()").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=response_data)
+        )
+        accessor = ResourceAccessor(http_client, RESOURCE_URL, DummyModel)
+
+        result = accessor.get(options=QueryOptions(render=True))
+
+    assert result.to_dict() == response_data
+    assert mock_route.call_count == 1

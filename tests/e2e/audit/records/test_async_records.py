@@ -54,3 +54,40 @@ async def test_get_records_with_render(async_mpt_vendor: AsyncMPTClient, product
     for record in records:
         assert record.object.id == product_id
         assert not any(char in record.details for char in template_chars)
+
+
+async def test_get_record_with_render(
+    async_mpt_vendor: AsyncMPTClient, audit_record_id: str
+) -> None:
+    template_chars = ["{{", "}}"]
+    service = async_mpt_vendor.audit.records.options(render=True)
+
+    result = await service.get(audit_record_id)
+
+    assert result.id == audit_record_id
+    assert not any(char in result.details for char in template_chars)
+
+
+async def test_get_record_with_select(
+    async_mpt_vendor: AsyncMPTClient, audit_record_id: str
+) -> None:
+    service = async_mpt_vendor.audit.records
+
+    result = await service.get(audit_record_id, select=["object", "actor"])
+
+    assert result.id == audit_record_id
+    assert result.object is not None
+    assert result.actor is not None
+
+
+async def test_get_record_with_render_and_select(
+    async_mpt_vendor: AsyncMPTClient, audit_record_id: str
+) -> None:
+    template_chars = ["{{", "}}"]
+    service = async_mpt_vendor.audit.records.options(render=True)
+
+    result = await service.get(audit_record_id, select=["object", "actor", "details"])
+
+    assert result.id == audit_record_id
+    assert result.object is not None
+    assert not any(char in result.details for char in template_chars)

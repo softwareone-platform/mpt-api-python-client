@@ -1,6 +1,7 @@
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.client import HTTPClient
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.types import QueryParam, Response
 from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models.collection import ResourceList
@@ -37,6 +38,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
         headers: dict[str, str] | None = None,
+        options: QueryOptions | None = None,
     ) -> Response:
         """Perform an HTTP request and return the raw ``Response``.
 
@@ -46,10 +48,11 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
             json: JSON body payload.
             query_params: Query-string parameters.
             headers: Extra HTTP headers.
+            options: Query options.
         """
         url = join_url_path(self._resource_url, action) if action else self._resource_url
         return self._http_client.request(
-            method, url, json=json, query_params=query_params, headers=headers
+            method, url, json=json, query_params=query_params, headers=headers, options=options
         )
 
     # -- model-returning helpers ---------------------------------------------
@@ -59,9 +62,10 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         action: str | None = None,
         *,
         query_params: QueryParam | None = None,
+        options: QueryOptions | None = None,
     ) -> ResourceModel:
         """``GET`` the resource (optionally with a sub-action)."""
-        return self._action("GET", action, query_params=query_params)
+        return self._action("GET", action, query_params=query_params, options=options)
 
     def post(
         self,
@@ -94,6 +98,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         *,
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
+        options: QueryOptions | None = None,
     ) -> ResourceModel:
         response = self.do_request(
             method,
@@ -101,6 +106,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
             json=json,
             query_params=query_params,
             headers={"Accept": APPLICATION_JSON},
+            options=options,
         )
         return self._model_class.from_response(response)
 
@@ -131,6 +137,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
         headers: dict[str, str] | None = None,
+        options: QueryOptions | None = None,
     ) -> Response:
         """Perform an HTTP request and return the raw ``Response``.
 
@@ -140,10 +147,11 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
             json: JSON body payload.
             query_params: Query-string parameters.
             headers: Extra HTTP headers.
+            options: Additional options for the request.
         """
         url = join_url_path(self._resource_url, action) if action else self._resource_url
         return await self._http_client.request(
-            method, url, json=json, query_params=query_params, headers=headers
+            method, url, json=json, query_params=query_params, headers=headers, options=options
         )
 
     # -- model-returning helpers ---------------------------------------------
@@ -153,9 +161,10 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         action: str | None = None,
         *,
         query_params: QueryParam | None = None,
+        options: QueryOptions | None = None,
     ) -> ResourceModel:
         """``GET`` the resource (optionally with a sub-action)."""
-        return await self._action("GET", action, query_params=query_params)
+        return await self._action("GET", action, query_params=query_params, options=options)
 
     async def post(
         self,
@@ -188,6 +197,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         *,
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
+        options: QueryOptions | None = None,
     ) -> ResourceModel:
         response = await self.do_request(
             method,
@@ -195,5 +205,6 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
             json=json,
             query_params=query_params,
             headers={"Accept": APPLICATION_JSON},
+            options=options,
         )
         return self._model_class.from_response(response)

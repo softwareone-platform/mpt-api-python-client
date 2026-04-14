@@ -1,5 +1,6 @@
 from typing import Self
 
+from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.query_state import QueryState
 from mpt_api_client.rql import RQLQuery
 
@@ -23,7 +24,7 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=list(fields),
                 select=self.query_state.select,  # type: ignore[attr-defined]
-                render=self.query_state.render,  # type: ignore[attr-defined]
+                options=self.query_state.options,  # type: ignore[attr-defined]
             )
         )
 
@@ -40,7 +41,7 @@ class QueryableMixin:
                 rql=combined_filter,
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=self.query_state.select,  # type: ignore[attr-defined]
-                render=self.query_state.render,  # type: ignore[attr-defined]
+                options=self.query_state.options,  # type: ignore[attr-defined]
             )
         )
 
@@ -62,7 +63,7 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=list(fields),
-                render=self.query_state.render,  # type: ignore[attr-defined]
+                options=self.query_state.options,  # type: ignore[attr-defined]
             ),
         )
 
@@ -77,7 +78,7 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=self.query_state.select,  # type: ignore[attr-defined]
-                render=render,
+                options=QueryOptions(render=render),
             ),
         )
 
