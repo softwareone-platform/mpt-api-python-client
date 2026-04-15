@@ -1,0 +1,94 @@
+from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.mixins.collection_mixin import AsyncCollectionMixin, CollectionMixin
+from mpt_api_client.http.mixins.create_file_mixin import AsyncCreateFileMixin, CreateFileMixin
+from mpt_api_client.http.mixins.delete_mixin import AsyncDeleteMixin, DeleteMixin
+from mpt_api_client.http.mixins.get_mixin import AsyncGetMixin, GetMixin
+from mpt_api_client.http.mixins.update_file_mixin import AsyncUpdateFileMixin, UpdateFileMixin
+from mpt_api_client.models import Model
+from mpt_api_client.models.model import BaseModel, ResourceData
+from mpt_api_client.resources.program.mixins import (
+    AsyncPublishableMixin,
+    PublishableMixin,
+)
+
+
+class Program(Model):
+    """Program resource.
+
+    Attributes:
+        name: Program name.
+        website: Program website.
+        eligibility: Eligibility criteria for the program.
+        applicable_to: Applicable products or services for the program.
+        icon: Program icon URL.
+        status: Program status.
+        vendor: Reference to the vendor account associated with the program.
+        settings: Program settings.
+        statistics: Program statistics and performance metrics.
+        audit: Audit information related to the program (created, updated events).
+    """
+
+    name: str | None
+    website: str | None
+    eligibility: BaseModel | None
+    applicable_to: str | None
+    icon: str | None
+    status: str | None
+    vendor: BaseModel | None
+    settings: BaseModel | None
+    statistics: BaseModel | None
+    audit: BaseModel | None
+
+
+class ProgramsServiceConfig:
+    """Programs service configuration."""
+
+    _endpoint = "/public/v1/program/programs"
+    _model_class = Program
+    _collection_key = "data"
+    _upload_file_key = "icon"
+    _upload_data_key = "program"
+
+
+class ProgramsService(
+    GetMixin[Program],
+    CreateFileMixin[Program],
+    UpdateFileMixin[Program],
+    DeleteMixin,
+    PublishableMixin[Program],
+    CollectionMixin[Program],
+    Service[Program],
+    ProgramsServiceConfig,
+):
+    """Programs service."""
+
+    def update_settings(self, program_id: str, settings: ResourceData) -> Program:
+        """Update program settings.
+
+        Args:
+            program_id: Program ID
+            settings: Settings data to be updated
+        """
+        return self._resource(program_id).put("settings", json=settings)
+
+
+class AsyncProgramsService(
+    AsyncGetMixin[Program],
+    AsyncCreateFileMixin[Program],
+    AsyncUpdateFileMixin[Program],
+    AsyncDeleteMixin,
+    AsyncPublishableMixin[Program],
+    AsyncCollectionMixin[Program],
+    AsyncService[Program],
+    ProgramsServiceConfig,
+):
+    """Async programs service."""
+
+    async def update_settings(self, program_id: str, settings: ResourceData) -> Program:
+        """Update program settings.
+
+        Args:
+            program_id: Program ID
+            settings: Settings data to be updated
+        """
+        return await self._resource(program_id).put("settings", json=settings)
