@@ -51,7 +51,7 @@ class ServiceBase[Client, Model: BaseModel]:  # noqa: WPS214
         meta = Meta.from_response(response)
         return Collection(
             resources=[
-                cls._model_class.new(resource, meta)
+                cls._model_class(resource, meta)
                 for resource in response.json().get(cls._collection_key)
             ],
             meta=meta,

@@ -231,11 +231,6 @@ class Model(BaseModel):
         return f"<{class_name} {self.id}>"
 
     @classmethod
-    def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:
-        """Creates a new resource from ResourceData and Meta."""
-        return cls(resource_data, meta=meta)
-
-    @classmethod
     def from_response(cls, response: Response) -> Self:
         """Creates a Model from a response.
 
@@ -248,4 +243,4 @@ class Model(BaseModel):
         if not isinstance(response_data, dict):
             raise TypeError("Response data must be a dict.")
         meta = Meta.from_response(response)
-        return cls.new(response_data, meta)
+        return cls(response_data, meta)
