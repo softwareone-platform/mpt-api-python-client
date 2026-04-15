@@ -67,7 +67,7 @@ class QueryableMixin:
             ),
         )
 
-    def options(self, *, render: bool = False) -> Self:
+    def options(self, *, render: bool = False, metadata: bool = False) -> Self:
         """Set query options.
 
         Returns:
@@ -78,7 +78,7 @@ class QueryableMixin:
                 rql=self.query_state.filter,  # type: ignore[attr-defined]
                 order_by=self.query_state.order_by,  # type: ignore[attr-defined]
                 select=self.query_state.select,  # type: ignore[attr-defined]
-                options=QueryOptions(render=render),
+                options=QueryOptions(render=render, metadata=metadata),
             ),
         )
 

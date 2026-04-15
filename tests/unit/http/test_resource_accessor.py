@@ -269,3 +269,31 @@ def test_get_with_render(http_client):
 
     assert result.to_dict() == response_data
     assert mock_route.call_count == 1
+
+
+async def test_async_get_with_metadata(async_http_client):
+    response_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(f"{FULL_URL}?metadata").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=response_data)
+        )
+        accessor = AsyncResourceAccessor(async_http_client, RESOURCE_URL, DummyModel)
+
+        result = await accessor.get(options=QueryOptions(metadata=True))
+
+    assert result.to_dict() == response_data
+    assert mock_route.call_count == 1
+
+
+def test_get_with_metadata(http_client):
+    response_data = {"id": "RES-123", "name": "Test Resource"}
+    with respx.mock:
+        mock_route = respx.get(f"{FULL_URL}?metadata").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=response_data)
+        )
+        accessor = ResourceAccessor(http_client, RESOURCE_URL, DummyModel)
+
+        result = accessor.get(options=QueryOptions(metadata=True))
+
+    assert result.to_dict() == response_data
+    assert mock_route.call_count == 1

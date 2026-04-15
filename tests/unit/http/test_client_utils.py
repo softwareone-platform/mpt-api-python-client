@@ -17,6 +17,11 @@ from mpt_api_client.http.query_options import QueryOptions
         ({"select": "id"}, QueryOptions(render=True), "select=id&render()"),
         ({"select": None}, QueryOptions(render=True), "render()"),
         (None, QueryOptions(render=False), ""),
+        (None, QueryOptions(metadata=True), "metadata"),
+        ({}, QueryOptions(metadata=True), "metadata"),
+        ({"select": "id"}, QueryOptions(metadata=True), "select=id&metadata"),
+        ({"select": None}, QueryOptions(metadata=True), "metadata"),
+        (None, QueryOptions(metadata=False), ""),
     ],
 )
 def test_get_query_params(query_params, options, expected):

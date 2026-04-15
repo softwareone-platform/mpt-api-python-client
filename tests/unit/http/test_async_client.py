@@ -143,3 +143,29 @@ async def test_request_with_render_and_query_params(mocker, async_http_client, m
 
     called_kwargs = parent_request.call_args[1]
     assert called_kwargs["params"] == "select=id%2Cname&render()"
+
+
+async def test_request_with_metadata(mocker, async_http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    await async_http_client.request("GET", "/", options=QueryOptions(metadata=True))
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["params"] == "metadata"
+
+
+async def test_request_with_metadata_and_query_params(
+    mocker, async_http_client, mock_httpx_response
+):
+    parent_request = mocker.patch.object(
+        async_http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+
+    await async_http_client.request(
+        "GET", "/", query_params={"select": "id,name"}, options=QueryOptions(metadata=True)
+    )
+
+    called_kwargs = parent_request.call_args[1]
+    assert called_kwargs["params"] == "select=id%2Cname&metadata"

@@ -96,3 +96,39 @@ async def test_async_get_with_render(async_http_client) -> None:
 
     assert result.to_dict() == resource_data
     assert mock_route.call_count == 1
+
+
+def test_sync_get_with_metadata(http_client) -> None:
+    """Test getting a resource synchronously with metadata=True."""
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    service = DummyService(
+        http_client=http_client,
+        query_state=QueryState(options=QueryOptions(metadata=True)),
+    )
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test/RES-123?metadata").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=resource_data)
+        )
+
+        result = service.get("RES-123")
+
+    assert result.to_dict() == resource_data
+    assert mock_route.call_count == 1
+
+
+async def test_async_get_with_metadata(async_http_client) -> None:
+    """Test getting a resource asynchronously with metadata=True."""
+    resource_data = {"id": "RES-123", "name": "Test Resource"}
+    service = AsyncDummyService(
+        http_client=async_http_client,
+        query_state=QueryState(options=QueryOptions(metadata=True)),
+    )
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test/RES-123?metadata").mock(
+            return_value=httpx.Response(httpx.codes.OK, json=resource_data)
+        )
+
+        result = await service.get("RES-123")
+
+    assert result.to_dict() == resource_data
+    assert mock_route.call_count == 1

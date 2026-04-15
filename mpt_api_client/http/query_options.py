@@ -6,3 +6,4 @@ class QueryOptions:
     """Options for query state."""
 
     render: bool = False
+    metadata: bool = False

@@ -132,3 +132,27 @@ def test_request_with_render_and_query_params(mocker, http_client, mock_httpx_re
     result = parent_request.call_args[1]
 
     assert result["params"] == "select=id%2Cname&render()"
+
+
+def test_request_with_metadata(mocker, http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+    http_client.request("GET", "/", options=QueryOptions(metadata=True))
+
+    result = parent_request.call_args[1]
+
+    assert result["params"] == "metadata"
+
+
+def test_request_with_metadata_and_query_params(mocker, http_client, mock_httpx_response):
+    parent_request = mocker.patch.object(
+        http_client.httpx_client, "request", autospec=True, return_value=mock_httpx_response
+    )
+    http_client.request(
+        "GET", "/", query_params={"select": "id,name"}, options=QueryOptions(metadata=True)
+    )
+
+    result = parent_request.call_args[1]
+
+    assert result["params"] == "select=id%2Cname&metadata"

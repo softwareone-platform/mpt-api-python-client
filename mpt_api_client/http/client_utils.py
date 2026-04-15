@@ -50,6 +50,10 @@ def validate_base_url(base_url: str | None) -> str:
     return _build_sanitized_base_url(split_result)
 
 
+def _append_option(params_str: str, flag: str) -> str:
+    return f"{params_str}&{flag}" if params_str else flag
+
+
 def get_query_params(
     query_params: dict[str, Any] | None, options: QueryOptions | None = None
 ) -> str:
@@ -61,7 +65,11 @@ def get_query_params(
     }
 
     query_params_str = urlencode(filtered_params) if filtered_params else ""
-    if options and options.render:
-        query_params_str += "&render()" if query_params_str else "render()"
+
+    if options:
+        if options.render:
+            query_params_str = _append_option(query_params_str, "render()")
+        if options.metadata:
+            query_params_str = _append_option(query_params_str, "metadata")
 
     return query_params_str

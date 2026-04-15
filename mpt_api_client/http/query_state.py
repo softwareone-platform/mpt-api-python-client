@@ -76,11 +76,18 @@ class QueryState:
         if self._filter:
             query_parts.append(str(self._filter))
 
-        if self._options.render:
-            query_parts.append("render()")
+        query_parts.extend(self._options_query_parts())
 
         if query_parts:
             query = "&".join(query_parts)
             return f"{query}"
 
         return ""
+
+    def _options_query_parts(self) -> list[str]:
+        parts = []
+        if self._options.render:
+            parts.append("render()")
+        if self._options.metadata:
+            parts.append("metadata")
+        return parts

@@ -54,6 +54,24 @@ def test_build_url_with_render(filter_status_active):
     )
 
 
+def test_build_url_with_metadata(filter_status_active):
+    query_state = QueryState(
+        rql=filter_status_active,
+        select=["-audit", "product.agreements", "-product.agreements.product"],
+        order_by=["-created", "name"],
+        options=QueryOptions(metadata=True),
+    )
+
+    result = query_state.build()
+
+    assert result == (
+        "order=-created,name"
+        "&select=-audit,product.agreements,-product.agreements.product"
+        "&eq(status,'active')"
+        "&metadata"
+    )
+
+
 def test_empty_build(query_state):
     result = query_state.build()
 
