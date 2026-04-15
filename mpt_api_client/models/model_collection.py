@@ -1,12 +1,15 @@
 from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from mpt_api_client.models.meta import Meta
-from mpt_api_client.models.model import Model, ResourceData
 
-ResourceList = list[ResourceData]
+if TYPE_CHECKING:
+    from mpt_api_client.models.model import Model, ResourceData
+
+ResourceList = list["ResourceData"]
 
 
-class ModelCollection[ItemType: Model]:
+class ModelCollection[ItemType: "Model"]:
     """Provides a collection to interact with api collection data using fluent interfaces."""
 
     def __init__(self, resources: list[ItemType] | None = None, meta: Meta | None = None) -> None:

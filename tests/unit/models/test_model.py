@@ -1,7 +1,7 @@
 import pytest
 from httpx import Response
 
-from mpt_api_client.models import Meta, Model
+from mpt_api_client.models import Meta, Model, ModelCollection
 from mpt_api_client.models.model import (  # noqa: WPS347
     BaseModel,
     ModelList,
@@ -86,10 +86,22 @@ def test_attribute_id(meta_data):
     assert resource.to_dict() == {"id": "R-1", "name": {"given": "Albert", "family": "Einstein"}}
 
 
+def test_from_response_list():
+    response_data = [{"id": "1"}, {"id": "2"}]
+    response = Response(200, json=response_data)
+
+    result = Model.from_response(response)
+
+    assert isinstance(result, ModelCollection)
+    for model in result:
+        assert isinstance(model, Model)
+    assert result.to_list() == response_data
+
+
 def test_wrong_data_type():
     response = Response(200, json=1)
 
-    with pytest.raises(TypeError, match=r"Response data must be a dict."):
+    with pytest.raises(TypeError, match=r"Incompatible response data type 'int'."):
         Model.from_response(response)
 
 

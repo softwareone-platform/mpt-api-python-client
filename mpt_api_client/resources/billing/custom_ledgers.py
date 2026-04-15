@@ -12,6 +12,7 @@ from mpt_api_client.http.mixins import (
 from mpt_api_client.http.types import FileContent, FileTypes
 from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models import Model
+from mpt_api_client.models.model_collection import ModelCollection
 from mpt_api_client.resources.billing.custom_ledger_attachments import (
     AsyncCustomLedgerAttachmentsService,
     CustomLedgerAttachmentsService,
@@ -46,7 +47,9 @@ class CustomLedgersService(
 ):
     """Custom Ledgers service."""
 
-    def upload(self, custom_ledger_id: str, file: FileTypes) -> CustomLedger:
+    def upload(
+        self, custom_ledger_id: str, file: FileTypes
+    ) -> CustomLedger | ModelCollection[CustomLedger]:
         """Upload custom ledger file.
 
         Args:
@@ -54,7 +57,9 @@ class CustomLedgersService(
             file: Custom Ledger file.
 
         Returns:
-            CustomLedger: Created resource.
+            CustomLedger | ModelCollection[CustomLedger]: The uploaded resource as a single
+            CustomLedger instance, or a ModelCollection[CustomLedger] when the response contains
+            multiple records.
         """
         files: dict[str, FileTypes] = {}
 
@@ -105,7 +110,9 @@ class AsyncCustomLedgersService(
 ):
     """Async Custom Ledgers service."""
 
-    async def upload(self, custom_ledger_id: str, file: FileTypes) -> CustomLedger:
+    async def upload(
+        self, custom_ledger_id: str, file: FileTypes
+    ) -> CustomLedger | ModelCollection[CustomLedger]:
         """Upload custom ledger file.
 
         Args:
@@ -113,7 +120,9 @@ class AsyncCustomLedgersService(
             file: Custom Ledger file.
 
         Returns:
-            CustomLedger: Created resource.
+            CustomLedger | ModelCollection[CustomLedger]: The uploaded resource as a single
+            CustomLedger instance, or a ModelCollection[CustomLedger] when the response contains
+            multiple records.
         """
         files: dict[str, FileTypes] = {}
 

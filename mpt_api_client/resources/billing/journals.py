@@ -8,6 +8,7 @@ from mpt_api_client.http.mixins import (
 from mpt_api_client.http.types import FileTypes
 from mpt_api_client.http.url_utils import join_url_path
 from mpt_api_client.models import Model
+from mpt_api_client.models.model_collection import ModelCollection
 from mpt_api_client.resources.billing.journal_attachments import (
     AsyncJournalAttachmentsService,
     JournalAttachmentsService,
@@ -46,7 +47,9 @@ class JournalsService(
 ):
     """Journals service."""
 
-    def upload(self, journal_id: str, file: FileTypes | None = None) -> Journal:  # noqa: WPS110
+    def upload(
+        self, journal_id: str, file: FileTypes | None = None
+    ) -> Journal | ModelCollection[Journal]:  # noqa: WPS110
         """Upload journal file.
 
         Args:
@@ -54,7 +57,8 @@ class JournalsService(
             file: journal file.
 
         Returns:
-            Journal: Created resource.
+            Journal | ModelCollection[Journal]: The uploaded resource as a single Journal
+            instance, or a ModelCollection[Journal] when the response contains multiple records.
         """
         files = {}
 
@@ -104,7 +108,9 @@ class AsyncJournalsService(
 ):
     """Async Journals service."""
 
-    async def upload(self, journal_id: str, file: FileTypes | None = None) -> Journal:  # noqa: WPS110
+    async def upload(
+        self, journal_id: str, file: FileTypes | None = None
+    ) -> Journal | ModelCollection[Journal]:  # noqa: WPS110
         """Upload journal file.
 
         Args:
@@ -112,7 +118,8 @@ class AsyncJournalsService(
             file: journal file.
 
         Returns:
-            Journal: Created resource.
+            Journal | ModelCollection[Journal]: The uploaded resource as a single Journal
+            instance, or a ModelCollection[Journal] when the response contains multiple records.
         """
         files = {}
 
