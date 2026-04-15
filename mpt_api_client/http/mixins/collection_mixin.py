@@ -2,14 +2,14 @@ from collections.abc import AsyncIterator, Iterator
 
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import Response
-from mpt_api_client.models import Collection
 from mpt_api_client.models import Model as BaseModel
+from mpt_api_client.models import ModelCollection
 
 
 class CollectionMixin[Model: BaseModel](QueryableMixin):
     """Mixin providing collection functionality."""
 
-    def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[Model]:
+    def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:
         """Fetch one page of resources.
 
         Returns:
@@ -78,7 +78,7 @@ class CollectionMixin[Model: BaseModel](QueryableMixin):
 class AsyncCollectionMixin[Model: BaseModel](QueryableMixin):
     """Async mixin providing collection functionality."""
 
-    async def fetch_page(self, limit: int = 100, offset: int = 0) -> Collection[Model]:
+    async def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:
         """Fetch one page of resources.
 
         Returns:

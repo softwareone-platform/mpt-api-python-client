@@ -4,8 +4,8 @@ from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.types import QueryParam, Response
 from mpt_api_client.http.url_utils import join_url_path
-from mpt_api_client.models.collection import ResourceList
 from mpt_api_client.models.model import Model, ResourceData  # NOSONAR
+from mpt_api_client.models.model_collection import ResourceList
 
 _JsonPayload = ResourceData | ResourceList | None
 

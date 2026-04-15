@@ -6,7 +6,7 @@ from mpt_api_client.models.model import Model, ResourceData
 ResourceList = list[ResourceData]
 
 
-class Collection[ItemType: Model]:
+class ModelCollection[ItemType: Model]:
     """Provides a collection to interact with api collection data using fluent interfaces."""
 
     def __init__(self, resources: list[ItemType] | None = None, meta: Meta | None = None) -> None:
