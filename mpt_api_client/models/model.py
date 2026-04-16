@@ -8,7 +8,8 @@ from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
 from mpt_api_client.models.model_collection import ModelCollection
 
-ResourceData = dict[str, Any]
+Resource = dict[str, Any]
+ResourceData = Resource | list[Resource]
 
 
 _SNAKE_CASE_BOUNDARY = re.compile(r"([a-z0-9])([A-Z])")
@@ -158,7 +159,7 @@ class BaseModel:
         processed_value = self._process_value(value, target_class=target_class)
         object.__setattr__(self, snake_name, processed_value)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Resource:
         """Returns the resource as a dictionary with original API keys."""
         out_dict = {}
 
@@ -219,7 +220,7 @@ class Model(BaseModel):
     id: str
 
     def __init__(
-        self, resource_data: ResourceData | None = None, meta: Meta | None = None, **kwargs: Any
+        self, resource_data: Resource | None = None, meta: Meta | None = None, **kwargs: Any
     ) -> None:
         object.__setattr__(self, "meta", meta)
         data = dict(resource_data or {})
