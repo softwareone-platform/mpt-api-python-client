@@ -12,6 +12,7 @@ from mpt_api_client.resources import (
     AsyncHelpdesk,
     AsyncIntegration,
     AsyncNotifications,
+    AsyncProgram,
     Audit,
     Billing,
     Catalog,
@@ -20,6 +21,7 @@ from mpt_api_client.resources import (
     Helpdesk,
     Integration,
     Notifications,
+    Program,
 )
 
 
@@ -96,6 +98,11 @@ class AsyncMPTClient:
     def integration(self) -> AsyncIntegration:
         """Integration MPT API Client."""
         return AsyncIntegration(http_client=self.http_client)
+
+    @property
+    def program(self) -> AsyncProgram:
+        """Program MPT API Client."""
+        return AsyncProgram(http_client=self.http_client)
 
 
 class MPTClient:
@@ -176,3 +183,8 @@ class MPTClient:
     def integration(self) -> Integration:
         """Integration MPT API Client."""
         return Integration(http_client=self.http_client)
+
+    @property
+    def program(self) -> Program:
+        """Program MPT API Client."""
+        return Program(http_client=self.http_client)
