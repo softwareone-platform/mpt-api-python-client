@@ -11,6 +11,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
+from mpt_api_client.models.model_collection import ModelCollection
 
 
 class AccountsUserGroup(Model):
@@ -35,14 +36,17 @@ class AccountsUserGroupsService(
 ):
     """Account User Groups Service."""
 
-    def update(self, resource_data: ResourceData) -> AccountsUserGroup:
+    def update(
+        self, resource_data: ResourceData
+    ) -> AccountsUserGroup | ModelCollection[AccountsUserGroup]:
         """Update Account User Group.
 
         Args:
             resource_data (ResourceData): Resource data to update.
 
         Returns:
-            AccountsUserGroup: Updated Account User Group.
+            AccountsUserGroup | ModelCollection[AccountsUserGroup]: Updated Account User Group,
+            or a ModelCollection[AccountsUserGroup] when the service returns a list response.
         """
         response = self.http_client.request("put", self.path, json=resource_data)
 
@@ -59,7 +63,9 @@ class AsyncAccountsUserGroupsService(
 ):
     """Asynchronous Account User Groups Service."""
 
-    async def update(self, resource_data: ResourceData) -> AccountsUserGroup:
+    async def update(
+        self, resource_data: ResourceData
+    ) -> AccountsUserGroup | ModelCollection[AccountsUserGroup]:
         """Update Account User Group.
 
         Args:

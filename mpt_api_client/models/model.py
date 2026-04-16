@@ -6,6 +6,7 @@ from typing import Any, Self, get_args, get_origin, override
 
 from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
+from mpt_api_client.models.model_collection import ModelCollection
 
 ResourceData = dict[str, Any]
 
@@ -231,21 +232,19 @@ class Model(BaseModel):
         return f"<{class_name} {self.id}>"
 
     @classmethod
-    def new(cls, resource_data: ResourceData | None = None, meta: Meta | None = None) -> Self:
-        """Creates a new resource from ResourceData and Meta."""
-        return cls(resource_data, meta=meta)
-
-    @classmethod
-    def from_response(cls, response: Response) -> Self:
+    def from_response(cls, response: Response) -> Self | ModelCollection[Self]:
         """Creates a Model from a response.
 
         Args:
             response: The httpx response object.
         """
         response_data = response.json()
+
         if isinstance(response_data, dict):
+            meta = Meta.from_response(response)
             response_data.pop("$meta", None)
-        if not isinstance(response_data, dict):
-            raise TypeError("Response data must be a dict.")
-        meta = Meta.from_response(response)
-        return cls.new(response_data, meta)
+            return cls(response_data, meta)
+        if isinstance(response_data, list):
+            return ModelCollection([cls(data_item) for data_item in response_data])
+
+        raise TypeError(f"Incompatible response data type '{type(response_data).__name__}'.")

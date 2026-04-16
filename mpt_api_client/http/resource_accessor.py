@@ -4,8 +4,8 @@ from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.types import QueryParam, Response
 from mpt_api_client.http.url_utils import join_url_path
-from mpt_api_client.models.collection import ResourceList
 from mpt_api_client.models.model import Model, ResourceData  # NOSONAR
+from mpt_api_client.models.model_collection import ModelCollection, ResourceList
 
 _JsonPayload = ResourceData | ResourceList | None
 
@@ -65,7 +65,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         options: QueryOptions | None = None,
     ) -> ResourceModel:
         """``GET`` the resource (optionally with a sub-action)."""
-        return self._action("GET", action, query_params=query_params, options=options)
+        return self._action("GET", action, query_params=query_params, options=options)  # type: ignore[return-value]
 
     def post(
         self,
@@ -75,7 +75,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         query_params: QueryParam | None = None,
     ) -> ResourceModel:
         """``POST`` to the resource (optionally with a sub-action)."""
-        return self._action("POST", action, json=json, query_params=query_params)
+        return self._action("POST", action, json=json, query_params=query_params)  # type: ignore[return-value]
 
     def put(
         self,
@@ -85,7 +85,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         query_params: QueryParam | None = None,
     ) -> ResourceModel:
         """``PUT`` to the resource (optionally with a sub-action)."""
-        return self._action("PUT", action, json=json, query_params=query_params)
+        return self._action("PUT", action, json=json, query_params=query_params)  # type: ignore[return-value]
 
     def delete(self) -> None:
         """``DELETE`` the resource."""
@@ -99,7 +99,7 @@ class ResourceAccessor[ResourceModel: Model]:  # NOSONAR
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
         options: QueryOptions | None = None,
-    ) -> ResourceModel:
+    ) -> ResourceModel | ModelCollection[ResourceModel]:
         response = self.do_request(
             method,
             action,
@@ -164,7 +164,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         options: QueryOptions | None = None,
     ) -> ResourceModel:
         """``GET`` the resource (optionally with a sub-action)."""
-        return await self._action("GET", action, query_params=query_params, options=options)
+        return await self._action("GET", action, query_params=query_params, options=options)  # type: ignore[return-value]
 
     async def post(
         self,
@@ -174,7 +174,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         query_params: QueryParam | None = None,
     ) -> ResourceModel:
         """``POST`` to the resource (optionally with a sub-action)."""
-        return await self._action("POST", action, json=json, query_params=query_params)
+        return await self._action("POST", action, json=json, query_params=query_params)  # type: ignore[return-value]
 
     async def put(
         self,
@@ -184,7 +184,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         query_params: QueryParam | None = None,
     ) -> ResourceModel:
         """``PUT`` to the resource (optionally with a sub-action)."""
-        return await self._action("PUT", action, json=json, query_params=query_params)
+        return await self._action("PUT", action, json=json, query_params=query_params)  # type: ignore[return-value]
 
     async def delete(self) -> None:
         """``DELETE`` the resource."""
@@ -198,7 +198,7 @@ class AsyncResourceAccessor[ResourceModel: Model]:  # NOSONAR
         json: _JsonPayload = None,
         query_params: QueryParam | None = None,
         options: QueryOptions | None = None,
-    ) -> ResourceModel:
+    ) -> ResourceModel | ModelCollection[ResourceModel]:
         response = await self.do_request(
             method,
             action,

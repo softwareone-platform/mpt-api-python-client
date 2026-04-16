@@ -2,7 +2,7 @@ from typing import Any
 
 from mpt_api_client.http.query_state import QueryState
 from mpt_api_client.http.types import Response
-from mpt_api_client.models import Collection, Meta
+from mpt_api_client.models import Meta, ModelCollection
 from mpt_api_client.models import Model as BaseModel
 
 
@@ -42,16 +42,16 @@ class ServiceBase[Client, Model: BaseModel]:  # noqa: WPS214
         return f"{self.path}?{query}" if query else self.path
 
     @classmethod
-    def make_collection(cls, response: Response) -> Collection[Model]:
+    def make_collection(cls, response: Response) -> ModelCollection[Model]:
         """Builds a collection from a response.
 
         Args:
             response: The response object.
         """
         meta = Meta.from_response(response)
-        return Collection(
+        return ModelCollection(
             resources=[
-                cls._model_class.new(resource, meta)
+                cls._model_class(resource, meta)
                 for resource in response.json().get(cls._collection_key)
             ],
             meta=meta,

@@ -1,6 +1,6 @@
 import pytest
 
-from mpt_api_client.models import Collection
+from mpt_api_client.models import ModelCollection
 from tests.unit.conftest import DummyModel
 
 
@@ -15,7 +15,7 @@ def response_collection_data():
 
 @pytest.fixture
 def empty_collection():
-    return Collection()
+    return ModelCollection()
 
 
 @pytest.fixture
@@ -25,4 +25,4 @@ def collection_items(response_collection_data):
 
 @pytest.fixture
 def collection(collection_items):
-    return Collection(collection_items)
+    return ModelCollection(collection_items)

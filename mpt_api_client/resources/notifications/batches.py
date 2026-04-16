@@ -8,6 +8,7 @@ from mpt_api_client.http.mixins import (
     GetMixin,
 )
 from mpt_api_client.models import FileModel, Model
+from mpt_api_client.models.model_collection import ModelCollection
 
 
 class Batch(Model):
@@ -37,7 +38,9 @@ class BatchesService(
 ):
     """Notifications Batches service."""
 
-    def get_attachment(self, batch_id: str, attachment_id: str) -> BatchAttachment:
+    def get_attachment(
+        self, batch_id: str, attachment_id: str
+    ) -> BatchAttachment | ModelCollection[BatchAttachment]:
         """Get batch attachment.
 
         Args:
@@ -45,7 +48,9 @@ class BatchesService(
             attachment_id: Attachment ID.
 
         Returns:
-            BatchAttachment containing the attachment data.
+            BatchAttachment | ModelCollection[BatchAttachment]: A single BatchAttachment when
+            the response contains one record, or a ModelCollection[BatchAttachment] when the
+            response contains multiple attachments.
         """
         response = self.http_client.request(
             "get",
@@ -81,7 +86,9 @@ class AsyncBatchesService(
 ):
     """Async Notifications Batches service."""
 
-    async def get_attachment(self, batch_id: str, attachment_id: str) -> BatchAttachment:
+    async def get_attachment(
+        self, batch_id: str, attachment_id: str
+    ) -> BatchAttachment | ModelCollection[BatchAttachment]:
         """Get batch attachment.
 
         Args:
@@ -89,7 +96,9 @@ class AsyncBatchesService(
             attachment_id: Attachment ID.
 
         Returns:
-            BatchAttachment containing the attachment data.
+            BatchAttachment | ModelCollection[BatchAttachment]: A single BatchAttachment when
+            the response contains one record, or a ModelCollection[BatchAttachment] when the
+            response contains multiple attachments.
         """
         response = await self.http_client.request(
             "get",
