@@ -10,6 +10,10 @@ from mpt_api_client.resources.program.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.program.programs_documents import (
+    AsyncDocumentService,
+    DocumentService,
+)
 
 
 class Program(Model):
@@ -71,6 +75,12 @@ class ProgramsService(
         """
         return self._resource(program_id).put("settings", json=settings)
 
+    def documents(self, program_id: str) -> DocumentService:
+        """Return program documents service."""
+        return DocumentService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
 
 class AsyncProgramsService(
     AsyncGetMixin[Program],
@@ -92,3 +102,9 @@ class AsyncProgramsService(
             settings: Settings data to be updated
         """
         return await self._resource(program_id).put("settings", json=settings)
+
+    def documents(self, program_id: str) -> AsyncDocumentService:
+        """Return async program documents service."""
+        return AsyncDocumentService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )

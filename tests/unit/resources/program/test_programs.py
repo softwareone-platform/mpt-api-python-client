@@ -4,6 +4,10 @@ import respx
 
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.program.programs import AsyncProgramsService, Program, ProgramsService
+from mpt_api_client.resources.program.programs_documents import (
+    AsyncDocumentService,
+    DocumentService,
+)
 
 
 @pytest.fixture
@@ -74,6 +78,32 @@ def test_async_mixins_present(async_programs_service, method):
     result = hasattr(async_programs_service, method)
 
     assert result is True
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("documents", DocumentService),
+    ],
+)
+def test_property_services(programs_service, service_method, expected_service_class):
+    result = getattr(programs_service, service_method)("PRG-123")
+
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"program_id": "PRG-123"}
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("documents", AsyncDocumentService),
+    ],
+)
+def test_async_property_services(async_programs_service, service_method, expected_service_class):
+    result = getattr(async_programs_service, service_method)("PRG-123")
+
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"program_id": "PRG-123"}
 
 
 def test_update_settings(programs_service, program_settings_data):
