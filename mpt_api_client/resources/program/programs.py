@@ -14,6 +14,10 @@ from mpt_api_client.resources.program.programs_documents import (
     AsyncDocumentService,
     DocumentService,
 )
+from mpt_api_client.resources.program.programs_media import (
+    AsyncMediaService,
+    MediaService,
+)
 
 
 class Program(Model):
@@ -81,6 +85,12 @@ class ProgramsService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
 
+    def media(self, program_id: str) -> MediaService:
+        """Return program media service."""
+        return MediaService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
 
 class AsyncProgramsService(
     AsyncGetMixin[Program],
@@ -106,5 +116,11 @@ class AsyncProgramsService(
     def documents(self, program_id: str) -> AsyncDocumentService:
         """Return async program documents service."""
         return AsyncDocumentService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def media(self, program_id: str) -> AsyncMediaService:
+        """Return async program media service."""
+        return AsyncMediaService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )

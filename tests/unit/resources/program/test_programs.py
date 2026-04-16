@@ -8,6 +8,10 @@ from mpt_api_client.resources.program.programs_documents import (
     AsyncDocumentService,
     DocumentService,
 )
+from mpt_api_client.resources.program.programs_media import (
+    AsyncMediaService,
+    MediaService,
+)
 
 
 @pytest.fixture
@@ -84,6 +88,7 @@ def test_async_mixins_present(async_programs_service, method):
     ("service_method", "expected_service_class"),
     [
         ("documents", DocumentService),
+        ("media", MediaService),
     ],
 )
 def test_property_services(programs_service, service_method, expected_service_class):
@@ -97,6 +102,7 @@ def test_property_services(programs_service, service_method, expected_service_cl
     ("service_method", "expected_service_class"),
     [
         ("documents", AsyncDocumentService),
+        ("media", AsyncMediaService),
     ],
 )
 def test_async_property_services(async_programs_service, service_method, expected_service_class):
