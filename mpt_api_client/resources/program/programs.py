@@ -18,6 +18,10 @@ from mpt_api_client.resources.program.programs_media import (
     AsyncMediaService,
     MediaService,
 )
+from mpt_api_client.resources.program.programs_parameter_groups import (
+    AsyncParameterGroupsService,
+    ParameterGroupsService,
+)
 
 
 class Program(Model):
@@ -91,6 +95,12 @@ class ProgramsService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
 
+    def parameter_groups(self, program_id: str) -> ParameterGroupsService:
+        """Return program parameter groups service."""
+        return ParameterGroupsService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
 
 class AsyncProgramsService(
     AsyncGetMixin[Program],
@@ -122,5 +132,11 @@ class AsyncProgramsService(
     def media(self, program_id: str) -> AsyncMediaService:
         """Return async program media service."""
         return AsyncMediaService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def parameter_groups(self, program_id: str) -> AsyncParameterGroupsService:
+        """Return async program parameter groups service."""
+        return AsyncParameterGroupsService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
