@@ -1,10 +1,5 @@
 import pytest
 
-from tests.e2e.helper import (
-    async_create_fixture_resource_and_delete,
-    create_fixture_resource_and_delete,
-)
-
 
 @pytest.fixture
 def chat_participants_service(mpt_ops, created_chat):
@@ -17,27 +12,23 @@ def async_chat_participants_service(async_mpt_ops, created_chat):
 
 
 @pytest.fixture
-def chat_participant_data(account_id, user_id):
-    return {
-        "identity": {"id": user_id},
-        "account": {"id": account_id},
-    }
+def contact_id(e2e_config):
+    return e2e_config["notifications.contact.id"]
+
+
+@pytest.fixture
+def chat_participant_data(contact_id):
+    return {"contact": {"id": contact_id}}
 
 
 @pytest.fixture
 def created_chat_participant(chat_participants_service, chat_participant_data):
-    with create_fixture_resource_and_delete(
-        chat_participants_service, chat_participant_data
-    ) as chat_participant:
-        yield chat_participant
+    return chat_participants_service.create([chat_participant_data])
 
 
 @pytest.fixture
 async def async_created_chat_participant(async_chat_participants_service, chat_participant_data):
-    async with async_create_fixture_resource_and_delete(
-        async_chat_participants_service, chat_participant_data
-    ) as chat_participant:
-        yield chat_participant
+    return await async_chat_participants_service.create([chat_participant_data])
 
 
 @pytest.fixture(scope="session")
