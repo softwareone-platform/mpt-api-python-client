@@ -69,5 +69,6 @@
   "notifications.subscriber.id": "NTS-0829-7123-7123",
   "integration.extension.id": "EXT-6587-4477",
   "integration.term.id": "ETC-6587-4477-0062",
-  "program.program.id": "PRG-9643-3741"
+  "program.program.id": "PRG-9643-3741",
+  "notifications.contact.id": "CTT-0001-9158"
 }
