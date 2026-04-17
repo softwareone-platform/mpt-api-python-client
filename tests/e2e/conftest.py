@@ -98,6 +98,11 @@ def jpg_url():
 
 
 @pytest.fixture(scope="session")
+def video_url():
+    return "https://www.youtube.com/watch?v=DUMMY1_0000"
+
+
+@pytest.fixture(scope="session")
 def e2e_config(project_root_path):
     filename = os.getenv("TEST_CONFIG_FILE", "e2e_config.test.json")
     file_path = project_root_path.joinpath(filename)
