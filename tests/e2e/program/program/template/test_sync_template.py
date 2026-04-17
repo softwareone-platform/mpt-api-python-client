@@ -40,6 +40,11 @@ def test_get_template(mpt_vendor, program_id, template_id):
     assert result.id == template_id
 
 
+def test_get_template_invalid_id(mpt_vendor, program_id, invalid_template_id):
+    with pytest.raises(MPTAPIError):
+        mpt_vendor.program.programs.templates(program_id).get(invalid_template_id)
+
+
 def test_delete_template(mpt_vendor, program_id, created_template):
     template_data = created_template
 

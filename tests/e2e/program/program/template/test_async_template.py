@@ -40,6 +40,11 @@ async def test_get_template(async_mpt_vendor, program_id, template_id):
     assert result.id == template_id
 
 
+async def test_get_template_invalid_id(async_mpt_vendor, program_id, invalid_template_id):
+    with pytest.raises(MPTAPIError):
+        await async_mpt_vendor.program.programs.templates(program_id).get(invalid_template_id)
+
+
 async def test_delete_template(async_mpt_vendor, program_id, created_template):
     template_data = created_template
 
