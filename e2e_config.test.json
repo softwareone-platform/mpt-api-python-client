@@ -71,6 +71,7 @@
   "integration.extension.id": "EXT-6587-4477",
   "integration.term.id": "ETC-6587-4477-0062",
   "program.media.id": "PMD-9643-3741-0001",
+  "program.parameter.group.id": "PPG-9643-3741-0002",
   "program.program.id": "PRG-9643-3741",
   "program.document.file.id": "PDM-9643-3741-0001"
 }
