@@ -31,7 +31,6 @@ def test_get_category(mpt_client, category_id):
     assert result.id == category_id
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_update_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     update_data = {
@@ -54,7 +53,6 @@ def test_filter_categories(mpt_client, category_id):
     assert result[0].id == category_id
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_publish_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for testing"}
@@ -66,7 +64,6 @@ def test_publish_category(mpt_ops, created_category):
     assert result.id == created_category.id
 
 
-@pytest.mark.skip(reason="created_category kills performance due to MPT-13785")
 def test_unpublish_category(mpt_ops, created_category):
     service = mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for testing"}

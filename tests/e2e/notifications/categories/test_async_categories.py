@@ -52,7 +52,6 @@ async def test_filter_categories(async_mpt_vendor, category_id):
     assert result[0].id == category_id
 
 
-@pytest.mark.skip(reason="async_created_category kills performance due to MPT-13785")
 async def test_publish_category(async_mpt_ops, async_created_category):
     service = async_mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for async testing"}
@@ -64,7 +63,6 @@ async def test_publish_category(async_mpt_ops, async_created_category):
     assert result.id == async_created_category.id
 
 
-@pytest.mark.skip(reason="async_created_category kills performance due to MPT-13785")
 async def test_unpublish_category(async_mpt_ops, async_created_category):
     service = async_mpt_ops.notifications.categories
     unpublish_note_data = {"note": "Unpublishing category for async testing"}
