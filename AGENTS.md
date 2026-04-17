@@ -2,6 +2,16 @@
 
 This file is the AI assistant entry point for `mpt-api-python-client`.
 
+## Working Protocol
+
+For any task in this repository:
+
+1. Identify the task type and select only the local repository files that are relevant to that task.
+2. Read only those relevant local files before making changes.
+3. If any selected local file references shared standards or shared operational guidance that are relevant to the same task, read those shared documents too before proceeding.
+4. Treat repository-local documents as repository-specific additions, restrictions, or overrides to shared guidance.
+5. If a repository-local rule conflicts with a shared rule, the local repository rule takes precedence.
+
 ## Repository Purpose
 
 Python API client for the SoftwareONE Marketplace Platform (MPT) API. Provides synchronous
@@ -9,6 +19,8 @@ Python API client for the SoftwareONE Marketplace Platform (MPT) API. Provides s
 resource services, mixin-based HTTP operations, and an RQL query builder.
 
 ## Documentation Reading Order
+
+When applicable, read the repository documentation in this order:
 
 1. `README.md` — project overview and quick start
 2. `docs/architecture.md` — layered architecture, directory structure, key abstractions
@@ -58,6 +70,4 @@ This repository follows shared engineering standards from
 - `standards/testing-standard.md`
 - `standards/contributing-standard.md`
 - `standards/pull-request-guidelines.md`
-
-
 
