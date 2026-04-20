@@ -1,11 +1,11 @@
 import os
 from typing import Any
 
-from httpx import AsyncClient, HTTPError, HTTPStatusError
+from httpx import AsyncClient, HTTPError, HTTPStatusError, RequestError
 from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
-from mpt_api_client.exceptions import MPTError, transform_http_status_exception
+from mpt_api_client.exceptions import MPTError, MPTMaxRetryError, transform_http_status_exception
 from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
 from mpt_api_client.http.query_options import QueryOptions
@@ -23,7 +23,11 @@ class AsyncHTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
-        retry = Retry(total=retries)
+        self._retries = retries
+        retry = Retry(
+            total=retries,
+            allowed_methods={"DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"},
+        )
         transport = RetryTransport(retry=retry)
 
         api_token = api_token or os.getenv("MPT_API_TOKEN")
@@ -80,6 +84,7 @@ class AsyncHTTPClient:
             MPTError: If the request fails.
             MPTApiError: If the response contains an error.
             MPTHttpError: If the response contains an HTTP error.
+            MPTMaxRetryError: If the request fails after maximum retry attempts.
         """
         files = dict(files or {})
         if force_multipart or (files and json):
@@ -95,6 +100,8 @@ class AsyncHTTPClient:
                 params=params_str or None,
                 headers=headers,
             )
+        except RequestError as err:
+            raise MPTMaxRetryError(str(err), self._retries + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err
 

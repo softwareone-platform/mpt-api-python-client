@@ -2,11 +2,11 @@ import json as json_package
 import os
 from typing import Any
 
-from httpx import Client, HTTPError, HTTPStatusError
+from httpx import Client, HTTPError, HTTPStatusError, RequestError
 from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
-from mpt_api_client.exceptions import MPTError, transform_http_status_exception
+from mpt_api_client.exceptions import MPTError, MPTMaxRetryError, transform_http_status_exception
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
@@ -33,7 +33,11 @@ class HTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
-        retry = Retry(total=retries)
+        self._retries = retries
+        retry = Retry(
+            total=self._retries,
+            allowed_methods={"DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"},
+        )
         transport = RetryTransport(retry=retry)
 
         api_token = api_token or os.getenv("MPT_API_TOKEN")
@@ -105,6 +109,8 @@ class HTTPClient:
                 params=params_str or None,
                 headers=headers,
             )
+        except RequestError as err:
+            raise MPTMaxRetryError(str(err), self._retries + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err
 

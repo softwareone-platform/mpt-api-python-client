@@ -79,10 +79,10 @@ async def test_async_http_call_success(async_http_client, mock_response):
 async def test_async_http_call_failure(async_http_client):
     timeout_route = respx.get(f"{API_URL}/timeout").mock(side_effect=ConnectTimeout("Mock Timeout"))
 
-    with pytest.raises(MPTError, match="HTTP Error: Mock Timeout"):
+    with pytest.raises(MPTError, match=r"Mock Timeout error after 6 retry attempts."):
         await async_http_client.request("GET", "/timeout")
 
-    assert timeout_route.called
+    assert timeout_route.call_count == 6
 
 
 async def test_http_call_with_json_and_files(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210
