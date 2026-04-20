@@ -11,18 +11,22 @@ from mpt_api_client.resources.program.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
+from mpt_api_client.resources.program.programs_terms_variant import (
+    AsyncTermVariantService,
+    TermVariantService,
+)
 
 
 class Term(Model):
     """Program term resource.
 
     Attributes:
-         name: Program term name.
-         description: Program term description.
-         display_order: Display order of the program term.
-         status: Program term status.
-         program: Reference to the program.
-         audit: Audit information (created, updated events).
+        name: Program term name.
+        description: Program term description.
+        display_order: Display order of the program term.
+        status: Program term status.
+        program: Reference to the program.
+        audit: Audit information (created, updated events).
     """
 
     name: str | None
@@ -50,6 +54,13 @@ class TermService(
 ):
     """Program term service."""
 
+    def variants(self, term_id: str) -> TermVariantService:
+        """Access program term variants service."""
+        return TermVariantService(
+            http_client=self.http_client,
+            endpoint_params={"program_id": self.endpoint_params["program_id"], "term_id": term_id},
+        )
+
 
 class AsyncTermService(
     AsyncPublishableMixin[Term],
@@ -59,3 +70,10 @@ class AsyncTermService(
     TermServiceConfig,
 ):
     """Async program term service."""
+
+    def variants(self, term_id: str) -> AsyncTermVariantService:
+        """Access async program term variants service."""
+        return AsyncTermVariantService(
+            http_client=self.http_client,
+            endpoint_params={"program_id": self.endpoint_params["program_id"], "term_id": term_id},
+        )

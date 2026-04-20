@@ -76,5 +76,6 @@
   "program.parameter.id": "PPM-9643-3741-0001",
   "program.program.id": "PRG-9643-3741",
   "program.template.id": "PTM-9643-3741-0004",
-  "program.terms.id": "PTC-9643-3741-0001"
+  "program.terms.id": "PTC-9643-3741-0001",
+  "program.terms.variant.id": "PTV-9643-3741-0001-0001"
 }

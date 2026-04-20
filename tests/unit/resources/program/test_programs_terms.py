@@ -8,6 +8,10 @@ from mpt_api_client.resources.program.programs_terms import (
     Term,
     TermService,
 )
+from mpt_api_client.resources.program.programs_terms_variant import (
+    AsyncTermVariantService,
+    TermVariantService,
+)
 
 
 @pytest.fixture
@@ -88,3 +92,19 @@ def test_term_optional_fields_absent() -> None:
     assert not hasattr(result, "status")
     assert not hasattr(result, "program")
     assert not hasattr(result, "audit")
+
+
+def test_property_variants_services(term_service: TermService) -> None:
+    result = term_service.variants("PTC-001")
+
+    assert isinstance(result, TermVariantService)
+    assert result.http_client == term_service.http_client
+    assert result.endpoint_params == {"program_id": "PRG-001", "term_id": "PTC-001"}
+
+
+def test_async_variants_property_services(async_term_service: AsyncTermService) -> None:
+    result = async_term_service.variants("PTC-001")
+
+    assert isinstance(result, AsyncTermVariantService)
+    assert result.http_client == async_term_service.http_client
+    assert result.endpoint_params == {"program_id": "PRG-001", "term_id": "PTC-001"}
