@@ -24,6 +24,10 @@ from mpt_api_client.resources.program.programs_templates import (
     AsyncTemplatesService,
     TemplatesService,
 )
+from mpt_api_client.resources.program.programs_terms import (
+    AsyncTermService,
+    TermService,
+)
 
 
 @pytest.fixture
@@ -104,6 +108,7 @@ def test_async_mixins_present(async_programs_service, method):
         ("parameter_groups", ParameterGroupsService),
         ("parameters", ParametersService),
         ("templates", TemplatesService),
+        ("terms", TermService),
     ],
 )
 def test_property_services(programs_service, service_method, expected_service_class):
@@ -121,6 +126,7 @@ def test_property_services(programs_service, service_method, expected_service_cl
         ("parameter_groups", AsyncParameterGroupsService),
         ("parameters", AsyncParametersService),
         ("templates", AsyncTemplatesService),
+        ("terms", AsyncTermService),
     ],
 )
 def test_async_property_services(async_programs_service, service_method, expected_service_class):
