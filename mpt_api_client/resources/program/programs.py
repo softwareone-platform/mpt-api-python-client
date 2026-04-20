@@ -22,6 +22,14 @@ from mpt_api_client.resources.program.programs_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
 )
+from mpt_api_client.resources.program.programs_parameters import (
+    AsyncParametersService,
+    ParametersService,
+)
+from mpt_api_client.resources.program.programs_templates import (
+    AsyncTemplatesService,
+    TemplatesService,
+)
 
 
 class Program(Model):
@@ -101,6 +109,18 @@ class ProgramsService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
 
+    def parameters(self, program_id: str) -> ParametersService:  # noqa: WPS110
+        """Return program parameters service."""
+        return ParametersService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def templates(self, program_id: str) -> TemplatesService:
+        """Return program templates service."""
+        return TemplatesService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
 
 class AsyncProgramsService(
     AsyncGetMixin[Program],
@@ -138,5 +158,17 @@ class AsyncProgramsService(
     def parameter_groups(self, program_id: str) -> AsyncParameterGroupsService:
         """Return async program parameter groups service."""
         return AsyncParameterGroupsService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def parameters(self, program_id: str) -> AsyncParametersService:  # noqa: WPS110
+        """Return async program parameters service."""
+        return AsyncParametersService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def templates(self, program_id: str) -> AsyncTemplatesService:
+        """Return async program templates service."""
+        return AsyncTemplatesService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
