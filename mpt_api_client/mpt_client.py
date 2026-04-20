@@ -13,6 +13,7 @@ from mpt_api_client.resources import (
     AsyncIntegration,
     AsyncNotifications,
     AsyncProgram,
+    AsyncSpotlight,
     Audit,
     Billing,
     Catalog,
@@ -22,6 +23,7 @@ from mpt_api_client.resources import (
     Integration,
     Notifications,
     Program,
+    Spotlight,
 )
 
 
@@ -103,6 +105,11 @@ class AsyncMPTClient:
     def program(self) -> AsyncProgram:
         """Program MPT API Client."""
         return AsyncProgram(http_client=self.http_client)
+
+    @property
+    def spotlight(self) -> AsyncSpotlight:
+        """Spotlight MPT API Client."""
+        return AsyncSpotlight(http_client=self.http_client)
 
 
 class MPTClient:
@@ -188,3 +195,8 @@ class MPTClient:
     def program(self) -> Program:
         """Program MPT API Client."""
         return Program(http_client=self.http_client)
+
+    @property
+    def spotlight(self) -> Spotlight:
+        """Spotlight MPT API Client."""
+        return Spotlight(http_client=self.http_client)

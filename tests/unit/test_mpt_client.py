@@ -14,6 +14,7 @@ from mpt_api_client.resources import (
     AsyncIntegration,
     AsyncNotifications,
     AsyncProgram,
+    AsyncSpotlight,
     Audit,
     Billing,
     Catalog,
@@ -23,6 +24,7 @@ from mpt_api_client.resources import (
     Integration,
     Notifications,
     Program,
+    Spotlight,
 )
 from tests.unit.conftest import API_TOKEN, API_URL
 
@@ -44,6 +46,7 @@ def get_mpt_client():
         ("exchange", Exchange),
         ("integration", Integration),
         ("program", Program),
+        ("spotlight", Spotlight),
     ],
 )
 def test_mpt_client(resource_name: str, expected_type: type) -> None:
@@ -78,6 +81,7 @@ def test_mpt_client_env(monkeypatch: pytest.MonkeyPatch) -> None:
         ("exchange", AsyncExchange),
         ("integration", AsyncIntegration),
         ("program", AsyncProgram),
+        ("spotlight", AsyncSpotlight),
     ],
 )
 def test_async_mpt_client(resource_name: str, expected_type: type) -> None:
