@@ -30,6 +30,10 @@ from mpt_api_client.resources.program.programs_templates import (
     AsyncTemplatesService,
     TemplatesService,
 )
+from mpt_api_client.resources.program.programs_terms import (
+    AsyncTermService,
+    TermService,
+)
 
 
 class Program(Model):
@@ -121,6 +125,10 @@ class ProgramsService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
 
+    def terms(self, program_id: str) -> TermService:
+        """Return program terms service."""
+        return TermService(http_client=self.http_client, endpoint_params={"program_id": program_id})
+
 
 class AsyncProgramsService(
     AsyncGetMixin[Program],
@@ -170,5 +178,11 @@ class AsyncProgramsService(
     def templates(self, program_id: str) -> AsyncTemplatesService:
         """Return async program templates service."""
         return AsyncTemplatesService(
+            http_client=self.http_client, endpoint_params={"program_id": program_id}
+        )
+
+    def terms(self, program_id: str) -> AsyncTermService:
+        """Return async program terms service."""
+        return AsyncTermService(
             http_client=self.http_client, endpoint_params={"program_id": program_id}
         )
