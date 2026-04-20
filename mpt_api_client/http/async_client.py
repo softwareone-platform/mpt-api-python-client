@@ -1,24 +1,15 @@
 import os
 from typing import Any
 
-from httpx import (
-    AsyncClient,
-    AsyncHTTPTransport,
-    HTTPError,
-    HTTPStatusError,
-)
+from httpx import AsyncClient, HTTPError, HTTPStatusError
+from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError, transform_http_status_exception
 from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
 from mpt_api_client.http.query_options import QueryOptions
-from mpt_api_client.http.types import (
-    HeaderTypes,
-    QueryParam,
-    RequestFiles,
-    Response,
-)
+from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
 
 
 class AsyncHTTPClient:
@@ -32,6 +23,9 @@ class AsyncHTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
+        retry = Retry(total=retries)
+        transport = RetryTransport(retry=retry)
+
         api_token = api_token or os.getenv("MPT_API_TOKEN")
         if not api_token:
             raise ValueError(
@@ -49,7 +43,7 @@ class AsyncHTTPClient:
             base_url=base_url,
             headers=base_headers,
             timeout=timeout,
-            transport=AsyncHTTPTransport(retries=retries),
+            transport=transport,
             follow_redirects=True,
         )
 
