@@ -8,6 +8,7 @@ from mpt_api_client.resources.helpdesk import AsyncHelpdesk, Helpdesk
 from mpt_api_client.resources.integration import AsyncIntegration, Integration
 from mpt_api_client.resources.notifications import AsyncNotifications, Notifications
 from mpt_api_client.resources.program import AsyncProgram, Program
+from mpt_api_client.resources.spotlight import AsyncSpotlight, Spotlight
 
 __all__ = [  # noqa: WPS410
     "Accounts",
@@ -21,6 +22,7 @@ __all__ = [  # noqa: WPS410
     "AsyncIntegration",
     "AsyncNotifications",
     "AsyncProgram",
+    "AsyncSpotlight",
     "Audit",
     "Billing",
     "Catalog",
@@ -30,4 +32,5 @@ __all__ = [  # noqa: WPS410
     "Integration",
     "Notifications",
     "Program",
+    "Spotlight",
 ]
