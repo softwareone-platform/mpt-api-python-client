@@ -5,7 +5,7 @@ import pytest
 import respx
 from httpx import ConnectTimeout, Response, codes
 
-from mpt_api_client.exceptions import MPTError
+from mpt_api_client.exceptions import MPTMaxRetryError
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -71,10 +71,10 @@ def test_http_call_success(http_client):
 def test_http_call_failure(http_client):
     timeout_route = respx.get(f"{API_URL}/timeout").mock(side_effect=ConnectTimeout("Mock Timeout"))
 
-    with pytest.raises(MPTError, match="HTTP Error: Mock Timeout"):
+    with pytest.raises(MPTMaxRetryError, match=r"Mock Timeout error after 6 retry attempts."):
         http_client.request("GET", "/timeout")
 
-    assert timeout_route.called
+    assert timeout_route.call_count == 6
 
 
 def test_http_call_with_json_and_files(mocker, http_client, mock_httpx_response):

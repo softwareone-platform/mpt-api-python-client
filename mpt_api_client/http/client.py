@@ -2,26 +2,15 @@ import json as json_package
 import os
 from typing import Any
 
-from httpx import (
-    Client,
-    HTTPError,
-    HTTPStatusError,
-    HTTPTransport,
-)
+from httpx import Client, HTTPError, RequestError
+from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
-from mpt_api_client.exceptions import (
-    MPTError,
-    transform_http_status_exception,
-)
+from mpt_api_client.exceptions import MPTError, MPTMaxRetryError
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
 from mpt_api_client.http.query_options import QueryOptions
-from mpt_api_client.http.types import (
-    HeaderTypes,
-    QueryParam,
-    RequestFiles,
-    Response,
-)
+from mpt_api_client.http.request_response_utils import handle_response_http_error
+from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
 from mpt_api_client.models import ResourceData
 
 
@@ -45,6 +34,13 @@ class HTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
+        self._retries = retries
+        retry = Retry(
+            total=self._retries,
+            allowed_methods={"DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"},
+        )
+        transport = RetryTransport(retry=retry)
+
         api_token = api_token or os.getenv("MPT_API_TOKEN")
         if not api_token:
             raise ValueError(
@@ -62,7 +58,7 @@ class HTTPClient:
             base_url=base_url,
             headers=base_headers,
             timeout=timeout,
-            transport=HTTPTransport(retries=retries),
+            transport=transport,
             follow_redirects=True,
         )
 
@@ -114,13 +110,13 @@ class HTTPClient:
                 params=params_str or None,
                 headers=headers,
             )
+        except RequestError as err:
+            raise MPTMaxRetryError(str(err), self._retries + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err
 
-        try:
-            response.raise_for_status()
-        except HTTPStatusError as http_status_exception:
-            raise transform_http_status_exception(http_status_exception) from http_status_exception
+        handle_response_http_error(response)
+
         return Response(
             headers=dict(response.headers),
             status_code=response.status_code,

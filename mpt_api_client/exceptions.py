@@ -17,6 +17,13 @@ class MPTHttpError(MPTError):
         super().__init__(f"HTTP {status_code}: {message}")
 
 
+class MPTMaxRetryError(MPTError):
+    """Represents an error when maximum retry attempts are exceeded."""
+
+    def __init__(self, message: str, attempts: int):
+        super().__init__(f"{message} error after {attempts} retry attempts.")
+
+
 class MPTAPIError(MPTHttpError):
     """Represents an API error."""
 
