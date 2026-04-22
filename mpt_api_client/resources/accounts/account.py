@@ -19,11 +19,10 @@ from mpt_api_client.resources.accounts.accounts_users import (
     AsyncAccountsUsersService,
 )
 from mpt_api_client.resources.accounts.mixins import (
-    ActivatableMixin,
-    AsyncActivatableMixin,
     AsyncValidateMixin,
     ValidateMixin,
 )
+from mpt_api_client.resources.mixins import ActivatableMixin, AsyncActivatableMixin
 
 
 class Account(Model):

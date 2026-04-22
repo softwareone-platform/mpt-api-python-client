@@ -7,10 +7,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.program.mixins import (
-    AsyncMediaMixin,
-    MediaMixin,
-)
+from mpt_api_client.resources.mixins import AsyncMediaMixin, MediaMixin
 
 
 class Media(Model):

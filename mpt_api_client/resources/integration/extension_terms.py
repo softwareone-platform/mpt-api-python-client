@@ -11,7 +11,7 @@ from mpt_api_client.resources.integration.extension_term_variants import (
     AsyncExtensionTermVariantsService,
     ExtensionTermVariantsService,
 )
-from mpt_api_client.resources.integration.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )

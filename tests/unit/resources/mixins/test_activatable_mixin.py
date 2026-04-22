@@ -2,8 +2,9 @@ import httpx
 import pytest
 import respx
 
-from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.resources.accounts.mixins.activatable_mixin import (
+from mpt_api_client.http.async_service import AsyncService
+from mpt_api_client.http.service import Service
+from mpt_api_client.resources.mixins import (
     ActivatableMixin,
     AsyncActivatableMixin,
 )
@@ -39,13 +40,13 @@ def async_activatable_service(async_http_client):
 
 
 @pytest.mark.parametrize(
-    ("action", "input_status"),
+    ("action", "resource_data"),
     [
         ("activate", {"id": "OBJ-0000-0001", "status": "update"}),
         ("deactivate", {"id": "OBJ-0000-0001", "status": "update"}),
     ],
 )
-def test_activatable_resource_actions(activatable_service, action, input_status):
+def test_actions(activatable_service, action, resource_data):
     request_expected_content = b'{"id":"OBJ-0000-0001","status":"update"}'
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
@@ -59,24 +60,17 @@ def test_activatable_resource_actions(activatable_service, action, input_status)
             )
         )
 
-        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+        result = getattr(activatable_service, action)("OBJ-0000-0001", resource_data)
 
-        assert mock_route.call_count == 1
-        request = mock_route.calls[0].request
-        assert request.content == request_expected_content
-        assert result.to_dict() == response_expected_data
-        assert isinstance(result, DummyModel)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.content == request_expected_content
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
 
 
-@pytest.mark.parametrize(
-    ("action", "input_status"),
-    [
-        ("activate", None),
-        ("deactivate", None),
-    ],
-)
-def test_actions_no_data(activatable_service, action, input_status):
-    request_expected_content = b""
+@pytest.mark.parametrize("action", ["activate", "deactivate"])
+def test_actions_no_data(activatable_service, action):
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
         mock_route = respx.post(
@@ -89,23 +83,23 @@ def test_actions_no_data(activatable_service, action, input_status):
             )
         )
 
-        result = getattr(activatable_service, action)("OBJ-0000-0001", input_status)
+        result = getattr(activatable_service, action)("OBJ-0000-0001")
 
-        assert mock_route.call_count == 1
-        request = mock_route.calls[0].request
-        assert request.content == request_expected_content
-        assert result.to_dict() == response_expected_data
-        assert isinstance(result, DummyModel)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.content == b""
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
 
 
 @pytest.mark.parametrize(
-    ("action", "input_status"),
+    ("action", "resource_data"),
     [
         ("activate", {"id": "OBJ-0000-0001", "status": "update"}),
         ("deactivate", {"id": "OBJ-0000-0001", "status": "update"}),
     ],
 )
-async def test_async_activatable_resource_actions(async_activatable_service, action, input_status):
+async def test_async_actions(async_activatable_service, action, resource_data):
     request_expected_content = b'{"id":"OBJ-0000-0001","status":"update"}'
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
@@ -119,24 +113,17 @@ async def test_async_activatable_resource_actions(async_activatable_service, act
             )
         )
 
-        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", resource_data)
 
-        assert mock_route.call_count == 1
-        request = mock_route.calls[0].request
-        assert request.content == request_expected_content
-        assert result.to_dict() == response_expected_data
-        assert isinstance(result, DummyModel)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.content == request_expected_content
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)
 
 
-@pytest.mark.parametrize(
-    ("action", "input_status"),
-    [
-        ("activate", None),
-        ("deactivate", None),
-    ],
-)
-async def test_async_actions_no_data(async_activatable_service, action, input_status):
-    request_expected_content = b""
+@pytest.mark.parametrize("action", ["activate", "deactivate"])
+async def test_async_actions_no_data(async_activatable_service, action):
     response_expected_data = {"id": "OBJ-0000-0001", "status": "new_status"}
     with respx.mock:
         mock_route = respx.post(
@@ -149,10 +136,10 @@ async def test_async_actions_no_data(async_activatable_service, action, input_st
             )
         )
 
-        result = await getattr(async_activatable_service, action)("OBJ-0000-0001", input_status)
+        result = await getattr(async_activatable_service, action)("OBJ-0000-0001")
 
-        assert mock_route.call_count == 1
-        request = mock_route.calls[0].request
-        assert request.content == request_expected_content
-        assert result.to_dict() == response_expected_data
-        assert isinstance(result, DummyModel)
+    assert mock_route.call_count == 1
+    request = mock_route.calls[0].request
+    assert request.content == b""
+    assert result.to_dict() == response_expected_data
+    assert isinstance(result, DummyModel)

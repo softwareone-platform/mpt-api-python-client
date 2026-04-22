@@ -18,11 +18,10 @@ from mpt_api_client.http.mixins import (
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import ResourceData
 from mpt_api_client.resources.accounts.mixins import (
-    ActivatableMixin,
-    AsyncActivatableMixin,
     AsyncValidateMixin,
     ValidateMixin,
 )
+from mpt_api_client.resources.mixins import ActivatableMixin, AsyncActivatableMixin
 
 
 class Buyer(Model):

@@ -4,7 +4,7 @@ from mpt_api_client.http.mixins import (
     CreateFileMixin,
     DownloadFileMixin,
 )
-from mpt_api_client.resources.program.mixins.publishable_mixin import (
+from mpt_api_client.resources.mixins.publishable_mixin import (
     AsyncPublishableMixin,
     PublishableMixin,
 )
@@ -23,4 +23,4 @@ class AsyncMediaMixin[Model](
     AsyncDownloadFileMixin[Model],
     AsyncPublishableMixin[Model],
 ):
-    """Media mixin."""
+    """Async media mixin."""

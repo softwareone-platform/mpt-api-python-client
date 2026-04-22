@@ -7,10 +7,15 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import AsyncPublishableMixin, PublishableMixin
 from mpt_api_client.resources.catalog.product_term_variants import (
     AsyncTermVariantService,
     TermVariantService,
+)
+from mpt_api_client.resources.mixins import (
+    AsyncPublishableMixin,
+    AsyncReviewableMixin,
+    PublishableMixin,
+    ReviewableMixin,
 )
 
 
@@ -44,6 +49,7 @@ class TermServiceConfig:
 
 class TermService(
     PublishableMixin[Term],
+    ReviewableMixin[Term],
     ManagedResourceMixin[Term],
     CollectionMixin[Term],
     Service[Term],
@@ -61,6 +67,7 @@ class TermService(
 
 class AsyncTermService(
     AsyncPublishableMixin[Term],
+    AsyncReviewableMixin[Term],
     AsyncManagedResourceMixin[Term],
     AsyncCollectionMixin[Term],
     AsyncService[Term],

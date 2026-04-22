@@ -7,10 +7,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.program.mixins import (
-    AsyncPublishableMixin,
-    PublishableMixin,
-)
+from mpt_api_client.resources.mixins import AsyncPublishableMixin, PublishableMixin
 from mpt_api_client.resources.program.programs_terms_variant import (
     AsyncTermVariantService,
     TermVariantService,

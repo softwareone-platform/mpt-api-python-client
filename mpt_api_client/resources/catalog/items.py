@@ -7,9 +7,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncPublishableMixin,
+    AsyncReviewableMixin,
     PublishableMixin,
+    ReviewableMixin,
 )
 
 
@@ -53,6 +55,7 @@ class ItemsServiceConfig:
 
 class ItemsService(
     PublishableMixin[Item],
+    ReviewableMixin[Item],
     ManagedResourceMixin[Item],
     CollectionMixin[Item],
     Service[Item],
@@ -63,6 +66,7 @@ class ItemsService(
 
 class AsyncItemsService(
     AsyncPublishableMixin[Item],
+    AsyncReviewableMixin[Item],
     AsyncManagedResourceMixin[Item],
     AsyncCollectionMixin[Item],
     AsyncService[Item],

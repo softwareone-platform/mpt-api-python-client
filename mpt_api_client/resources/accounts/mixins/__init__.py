@@ -1,7 +1,3 @@
-from mpt_api_client.resources.accounts.mixins.activatable_mixin import (
-    ActivatableMixin,
-    AsyncActivatableMixin,
-)
 from mpt_api_client.resources.accounts.mixins.blockable_mixin import (
     AsyncBlockableMixin,
     BlockableMixin,
@@ -16,8 +12,6 @@ from mpt_api_client.resources.accounts.mixins.validate_mixin import (
 )
 
 __all__ = [  # noqa: WPS410
-    "ActivatableMixin",
-    "AsyncActivatableMixin",
     "AsyncBlockableMixin",
     "AsyncInvitableMixin",
     "AsyncValidateMixin",

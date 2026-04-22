@@ -7,11 +7,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel, ResourceData
+from mpt_api_client.resources.mixins.render_mixin import AsyncRenderMixin, RenderMixin
 from mpt_api_client.resources.program.enrollments_attachments import (
     AsyncEnrollmentAttachmentsService,
     EnrollmentAttachmentsService,
 )
-from mpt_api_client.resources.program.mixins.render_mixin import AsyncRenderMixin, RenderMixin
 
 
 class Enrollment(Model):
