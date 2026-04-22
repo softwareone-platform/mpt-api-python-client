@@ -7,6 +7,10 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel, ResourceData
+from mpt_api_client.resources.program.enrollments_attachments import (
+    AsyncEnrollmentAttachmentsService,
+    EnrollmentAttachmentsService,
+)
 from mpt_api_client.resources.program.mixins.render_mixin import AsyncRenderMixin, RenderMixin
 
 
@@ -58,6 +62,19 @@ class EnrollmentService(
     EnrollmentServiceConfig,
 ):
     """Program enrollment service."""
+
+    def attachments(self, enrollment_id: str) -> EnrollmentAttachmentsService:
+        """Get enrollment attachments service.
+
+        Args:
+            enrollment_id: Enrollment ID
+
+        Returns:
+            Enrollment attachments service.
+        """
+        return EnrollmentAttachmentsService(
+            http_client=self.http_client, endpoint_params={"enrollment_id": enrollment_id}
+        )
 
     def validate(self, resource_id: str, resource_data: ResourceData | None = None) -> Enrollment:
         """Validate enrollment.
@@ -140,6 +157,19 @@ class AsyncEnrollmentService(
     EnrollmentServiceConfig,
 ):
     """Async program enrollment service."""
+
+    def attachments(self, enrollment_id: str) -> AsyncEnrollmentAttachmentsService:
+        """Get enrollment attachments service.
+
+        Args:
+            enrollment_id: Enrollment ID
+
+        Returns:
+            Enrollment attachments service.
+        """
+        return AsyncEnrollmentAttachmentsService(
+            http_client=self.http_client, endpoint_params={"enrollment_id": enrollment_id}
+        )
 
     async def validate(
         self, resource_id: str, resource_data: ResourceData | None = None
