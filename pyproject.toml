@@ -139,6 +139,7 @@ per-file-ignores = [
   "tests/e2e/commerce/order/asset/*.py: WPS211 WPS202",
   "tests/e2e/commerce/subscription/*.py: WPS202",
   "tests/e2e/helpdesk/chats/links/*.py: WPS221 WPS202",
+  "tests/e2e/program/enrollment/*.py: WPS202 WPS204",
   "tests/e2e/program/program/term/*.py: WPS202 WPS204",
   "tests/unit/http/test_async_service.py: WPS204 WPS202",
   "tests/unit/http/test_resource_accessor.py: WPS204 WPS202 WPS210 WPS219",

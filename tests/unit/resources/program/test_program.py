@@ -1,5 +1,6 @@
 import pytest
 
+from mpt_api_client.resources.program.enrollments import AsyncEnrollmentService, EnrollmentService
 from mpt_api_client.resources.program.program import AsyncProgram, Program
 from mpt_api_client.resources.program.programs import AsyncProgramsService, ProgramsService
 
@@ -18,6 +19,7 @@ def async_program(async_http_client):
     ("property_name", "expected_service_class"),
     [
         ("programs", ProgramsService),
+        ("enrollments", EnrollmentService),
     ],
 )
 def test_program_properties(program, property_name, expected_service_class):
@@ -31,6 +33,7 @@ def test_program_properties(program, property_name, expected_service_class):
     ("property_name", "expected_service_class"),
     [
         ("programs", AsyncProgramsService),
+        ("enrollments", AsyncEnrollmentService),
     ],
 )
 def test_async_program_properties(async_program, property_name, expected_service_class):
