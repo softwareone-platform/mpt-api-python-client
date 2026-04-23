@@ -8,6 +8,10 @@ from mpt_api_client.resources.program.enrollments import (
     Enrollment,
     EnrollmentService,
 )
+from mpt_api_client.resources.program.enrollments_attachments import (
+    AsyncEnrollmentAttachmentsService,
+    EnrollmentAttachmentsService,
+)
 
 
 @pytest.fixture
@@ -175,6 +179,32 @@ async def test_async_custom_resource_actions_no_data(
         assert request.content == request_expected_content
         assert result.to_dict() == response_expected_data
         assert isinstance(result, Enrollment)
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("attachments", EnrollmentAttachmentsService),
+    ],
+)
+def test_property_services(enrollment_service, service_method, expected_service_class):
+    result = getattr(enrollment_service, service_method)("ENR-123")
+
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"enrollment_id": "ENR-123"}
+
+
+@pytest.mark.parametrize(
+    ("service_method", "expected_service_class"),
+    [
+        ("attachments", AsyncEnrollmentAttachmentsService),
+    ],
+)
+def test_async_property_services(async_enrollment_service, service_method, expected_service_class):
+    result = getattr(async_enrollment_service, service_method)("ENR-123")
+
+    assert isinstance(result, expected_service_class)
+    assert result.endpoint_params == {"enrollment_id": "ENR-123"}
 
 
 def test_enrollment_primitive_fields(enrollment_data):
