@@ -5,10 +5,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.program.mixins.attachment_mixin import (
-    AsyncAttachmentMixin,
-    AttachmentMixin,
-)
+from mpt_api_client.resources.mixins.attachment_mixin import AsyncAttachmentMixin, AttachmentMixin
 
 
 class EnrollmentAttachment(Model):

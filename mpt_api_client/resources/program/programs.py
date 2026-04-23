@@ -6,7 +6,7 @@ from mpt_api_client.http.mixins.get_mixin import AsyncGetMixin, GetMixin
 from mpt_api_client.http.mixins.update_file_mixin import AsyncUpdateFileMixin, UpdateFileMixin
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel, ResourceData
-from mpt_api_client.resources.program.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncPublishableMixin,
     PublishableMixin,
 )

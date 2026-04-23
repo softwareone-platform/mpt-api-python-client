@@ -7,7 +7,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.program.mixins import AsyncDocumentMixin, DocumentMixin
+from mpt_api_client.resources.mixins import AsyncDocumentMixin, DocumentMixin
 
 
 class Document(Model):

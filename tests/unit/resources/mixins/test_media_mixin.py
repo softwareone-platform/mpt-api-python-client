@@ -4,7 +4,7 @@ import respx
 
 from mpt_api_client.http.async_service import AsyncService
 from mpt_api_client.http.service import Service
-from mpt_api_client.resources.program.mixins.media_mixin import (
+from mpt_api_client.resources.mixins import (
     AsyncMediaMixin,
     MediaMixin,
 )

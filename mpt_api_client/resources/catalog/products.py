@@ -13,14 +13,7 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model, ResourceData
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import (
-    AsyncPublishableMixin,
-    PublishableMixin,
-)
-from mpt_api_client.resources.catalog.product_terms import (
-    AsyncTermService,
-    TermService,
-)
+from mpt_api_client.resources.catalog.product_terms import AsyncTermService, TermService
 from mpt_api_client.resources.catalog.products_documents import (
     AsyncDocumentService,
     DocumentService,
@@ -33,10 +26,7 @@ from mpt_api_client.resources.catalog.products_items import (
     AsyncProductItemService,
     ProductItemService,
 )
-from mpt_api_client.resources.catalog.products_media import (
-    AsyncMediaService,
-    MediaService,
-)
+from mpt_api_client.resources.catalog.products_media import AsyncMediaService, MediaService
 from mpt_api_client.resources.catalog.products_parameter_groups import (
     AsyncParameterGroupsService,
     ParameterGroupsService,
@@ -48,6 +38,12 @@ from mpt_api_client.resources.catalog.products_parameters import (
 from mpt_api_client.resources.catalog.products_templates import (
     AsyncTemplatesService,
     TemplatesService,
+)
+from mpt_api_client.resources.mixins import (
+    AsyncPublishableMixin,
+    AsyncReviewableMixin,
+    PublishableMixin,
+    ReviewableMixin,
 )
 
 
@@ -95,6 +91,7 @@ class ProductsService(
     CreateFileMixin[Product],
     UpdateFileMixin[Product],
     PublishableMixin[Product],
+    ReviewableMixin[Product],
     GetMixin[Product],
     DeleteMixin,
     CollectionMixin[Product],
@@ -158,6 +155,7 @@ class AsyncProductsService(
     AsyncCreateFileMixin[Product],
     AsyncUpdateFileMixin[Product],
     AsyncPublishableMixin[Product],
+    AsyncReviewableMixin[Product],
     AsyncGetMixin[Product],
     AsyncDeleteMixin,
     AsyncCollectionMixin[Product],

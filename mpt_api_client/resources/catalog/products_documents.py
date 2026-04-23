@@ -7,9 +7,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncDocumentMixin,
+    AsyncReviewableMixin,
     DocumentMixin,
+    ReviewableMixin,
 )
 
 
@@ -55,6 +57,7 @@ class DocumentServiceConfig:
 
 class DocumentService(
     DocumentMixin[Document],
+    ReviewableMixin[Document],
     ModifiableResourceMixin[Document],
     CollectionMixin[Document],
     Service[Document],
@@ -65,6 +68,7 @@ class DocumentService(
 
 class AsyncDocumentService(
     AsyncDocumentMixin[Document],
+    AsyncReviewableMixin[Document],
     AsyncModifiableResourceMixin[Document],
     AsyncCollectionMixin[Document],
     AsyncService[Document],

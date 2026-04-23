@@ -2,44 +2,24 @@ from mpt_api_client.models import ResourceData
 
 
 class PublishableMixin[Model]:
-    """Publishable mixin adds the ability to publish and unpublish."""
+    """Publishable mixin adds the ability to publish and unpublish a resource."""
 
     def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Update state to Published.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
+        """Publish the resource."""
         return self._resource(resource_id).post("publish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Update state to Unpublished.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
+        """Unpublish the resource."""
         return self._resource(resource_id).post("unpublish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
 
 class AsyncPublishableMixin[Model]:
-    """Publishable mixin adds the ability to publish and unpublish."""
+    """Async publishable mixin adds the ability to publish and unpublish a resource."""
 
     async def publish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Update state to Published.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
+        """Publish the resource."""
         return await self._resource(resource_id).post("publish", json=resource_data)  # type: ignore[attr-defined, no-any-return]
 
     async def unpublish(self, resource_id: str, resource_data: ResourceData | None = None) -> Model:
-        """Update state to Unpublished.
-
-        Args:
-            resource_id: Resource ID
-            resource_data: Resource data will be updated
-        """
+        """Unpublish the resource."""
         return await self._resource(resource_id).post("unpublish", json=resource_data)  # type: ignore[attr-defined, no-any-return]

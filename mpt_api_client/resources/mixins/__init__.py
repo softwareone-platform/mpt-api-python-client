@@ -1,18 +1,22 @@
-from mpt_api_client.resources.catalog.mixins.activatable_mixin import (
+from mpt_api_client.resources.mixins.activatable_mixin import (
     ActivatableMixin,
     AsyncActivatableMixin,
 )
-from mpt_api_client.resources.catalog.mixins.document_mixin import (
+from mpt_api_client.resources.mixins.document_mixin import (
     AsyncDocumentMixin,
     DocumentMixin,
 )
-from mpt_api_client.resources.catalog.mixins.media_mixin import (
+from mpt_api_client.resources.mixins.media_mixin import (
     AsyncMediaMixin,
     MediaMixin,
 )
-from mpt_api_client.resources.catalog.mixins.publishable_mixin import (
+from mpt_api_client.resources.mixins.publishable_mixin import (
     AsyncPublishableMixin,
     PublishableMixin,
+)
+from mpt_api_client.resources.mixins.reviewable_mixin import (
+    AsyncReviewableMixin,
+    ReviewableMixin,
 )
 
 __all__ = [  # noqa: WPS410
@@ -21,7 +25,9 @@ __all__ = [  # noqa: WPS410
     "AsyncDocumentMixin",
     "AsyncMediaMixin",
     "AsyncPublishableMixin",
+    "AsyncReviewableMixin",
     "DocumentMixin",
     "MediaMixin",
     "PublishableMixin",
+    "ReviewableMixin",
 ]

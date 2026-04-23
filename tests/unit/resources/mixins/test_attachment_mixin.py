@@ -2,10 +2,7 @@ import pytest
 
 from mpt_api_client.http.async_service import AsyncService
 from mpt_api_client.http.service import Service
-from mpt_api_client.resources.program.mixins.attachment_mixin import (
-    AsyncAttachmentMixin,
-    AttachmentMixin,
-)
+from mpt_api_client.resources.mixins.attachment_mixin import AsyncAttachmentMixin, AttachmentMixin
 from tests.unit.conftest import DummyModel
 
 

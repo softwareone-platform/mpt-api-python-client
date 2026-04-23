@@ -11,9 +11,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncPublishableMixin,
+    AsyncReviewableMixin,
     PublishableMixin,
+    ReviewableMixin,
 )
 
 
@@ -64,6 +66,7 @@ class TermVariantService(
     DownloadFileMixin[TermVariant],
     ModifiableResourceMixin[TermVariant],
     PublishableMixin[TermVariant],
+    ReviewableMixin[TermVariant],
     CollectionMixin[TermVariant],
     Service[TermVariant],
     TermVariantServiceConfig,
@@ -76,6 +79,7 @@ class AsyncTermVariantService(
     AsyncDownloadFileMixin[TermVariant],
     AsyncModifiableResourceMixin[TermVariant],
     AsyncPublishableMixin[TermVariant],
+    AsyncReviewableMixin[TermVariant],
     AsyncCollectionMixin[TermVariant],
     AsyncService[TermVariant],
     TermVariantServiceConfig,

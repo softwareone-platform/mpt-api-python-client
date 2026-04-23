@@ -2,7 +2,7 @@ import httpx
 import respx
 
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.resources.program.mixins.render_mixin import AsyncRenderMixin, RenderMixin
+from mpt_api_client.resources.mixins.render_mixin import AsyncRenderMixin, RenderMixin
 from tests.unit.conftest import DummyModel
 
 

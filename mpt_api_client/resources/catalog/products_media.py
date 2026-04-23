@@ -7,9 +7,11 @@ from mpt_api_client.http.mixins import (
 )
 from mpt_api_client.models import Model
 from mpt_api_client.models.model import BaseModel
-from mpt_api_client.resources.catalog.mixins import (
+from mpt_api_client.resources.mixins import (
     AsyncMediaMixin,
+    AsyncReviewableMixin,
     MediaMixin,
+    ReviewableMixin,
 )
 
 
@@ -55,6 +57,7 @@ class MediaServiceConfig:
 
 class MediaService(
     MediaMixin[Media],
+    ReviewableMixin[Media],
     ModifiableResourceMixin[Media],
     CollectionMixin[Media],
     Service[Media],
@@ -65,6 +68,7 @@ class MediaService(
 
 class AsyncMediaService(
     AsyncMediaMixin[Media],
+    AsyncReviewableMixin[Media],
     AsyncModifiableResourceMixin[Media],
     AsyncCollectionMixin[Media],
     AsyncService[Media],
