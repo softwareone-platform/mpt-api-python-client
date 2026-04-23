@@ -3,6 +3,10 @@ from mpt_api_client.resources.spotlight.objects import (
     AsyncSpotlightObjectsService,
     SpotlightObjectsService,
 )
+from mpt_api_client.resources.spotlight.queries import (
+    AsyncSpotlightQueriesService,
+    SpotlightQueriesService,
+)
 
 
 class Spotlight:
@@ -16,6 +20,11 @@ class Spotlight:
         """Spotlight Objects service."""
         return SpotlightObjectsService(http_client=self.http_client)
 
+    @property
+    def queries(self) -> SpotlightQueriesService:  # noqa: WPS110
+        """Spotlight Queries service."""
+        return SpotlightQueriesService(http_client=self.http_client)
+
 
 class AsyncSpotlight:
     """Spotlight MPT API Module."""
@@ -27,3 +36,8 @@ class AsyncSpotlight:
     def objects(self) -> AsyncSpotlightObjectsService:  # noqa: WPS110
         """Spotlight Objects service."""
         return AsyncSpotlightObjectsService(http_client=self.http_client)
+
+    @property
+    def queries(self) -> AsyncSpotlightQueriesService:  # noqa: WPS110
+        """Spotlight Queries service."""
+        return AsyncSpotlightQueriesService(http_client=self.http_client)
