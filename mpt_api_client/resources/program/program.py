@@ -1,4 +1,8 @@
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.resources.program.certificates import (
+    AsyncCertificateService,
+    CertificateService,
+)
 from mpt_api_client.resources.program.enrollments import AsyncEnrollmentService, EnrollmentService
 from mpt_api_client.resources.program.programs import AsyncProgramsService, ProgramsService
 
@@ -19,6 +23,11 @@ class Program:
         """Enrollments service."""
         return EnrollmentService(http_client=self.http_client)
 
+    @property
+    def certificates(self) -> CertificateService:
+        """Certificates service."""
+        return CertificateService(http_client=self.http_client)
+
 
 class AsyncProgram:
     """Program MPT API Module."""
@@ -35,3 +44,8 @@ class AsyncProgram:
     def enrollments(self) -> AsyncEnrollmentService:
         """Enrollments service."""
         return AsyncEnrollmentService(http_client=self.http_client)
+
+    @property
+    def certificates(self) -> AsyncCertificateService:
+        """Certificates service."""
+        return AsyncCertificateService(http_client=self.http_client)
