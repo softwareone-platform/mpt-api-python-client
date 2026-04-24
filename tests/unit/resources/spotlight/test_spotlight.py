@@ -4,6 +4,10 @@ from mpt_api_client.resources.spotlight.objects import (
     AsyncSpotlightObjectsService,
     SpotlightObjectsService,
 )
+from mpt_api_client.resources.spotlight.queries import (
+    AsyncSpotlightQueriesService,
+    SpotlightQueriesService,
+)
 from mpt_api_client.resources.spotlight.spotlight import AsyncSpotlight, Spotlight
 
 
@@ -21,6 +25,7 @@ def async_spotlight(async_http_client):
     ("property_name", "expected_service_class"),
     [
         ("objects", SpotlightObjectsService),
+        ("queries", SpotlightQueriesService),
     ],
 )
 def test_spotlight_properties(spotlight, property_name, expected_service_class):
@@ -34,6 +39,7 @@ def test_spotlight_properties(spotlight, property_name, expected_service_class):
     ("property_name", "expected_service_class"),
     [
         ("objects", AsyncSpotlightObjectsService),
+        ("queries", AsyncSpotlightQueriesService),
     ],
 )
 def test_async_spotlight_properties(async_spotlight, property_name, expected_service_class):
