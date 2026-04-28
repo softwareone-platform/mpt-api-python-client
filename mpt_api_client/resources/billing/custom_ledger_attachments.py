@@ -3,12 +3,12 @@ from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     CollectionMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import AttachmentModel
 from mpt_api_client.resources.billing.mixins import AsyncAttachmentMixin, AttachmentMixin
 
 
-class CustomLedgerAttachment(Model):
-    """Custom Ledger Attachment resource."""
+class CustomLedgerAttachment(AttachmentModel):
+    """Custom Ledger Attachment resource. Inherits fields from AttachmentModel."""
 
 
 class CustomLedgerAttachmentsServiceConfig:

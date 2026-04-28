@@ -76,6 +76,12 @@ def test_document_primitive_fields(document_data):
     assert result.to_dict() == document_data
 
 
+def test_document_inherited_primitive_fields(document_inherited_data):
+    result = Document(document_inherited_data)
+
+    assert result.to_dict() == document_inherited_data
+
+
 def test_document_nested_fields_are_base_models(document_data):
     result = Document(document_data)
 
@@ -83,10 +89,18 @@ def test_document_nested_fields_are_base_models(document_data):
     assert isinstance(result.audit, BaseModel)
 
 
-def test_document_optional_fields_absent():
+def test_document_optional_fields_absent():  # noqa: WPS218
     result = Document({"id": "DOC-001"})
 
     assert result.id == "DOC-001"
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "audit")
+    assert result.name is None
+    assert result.type is None
+    assert result.description is None
+    assert result.status is None
+    assert result.filename is None
+    assert result.size is None
+    assert result.content_type is None
+    assert result.url is None
+    assert result.language is None
+    assert result.product is None
+    assert result.audit is None

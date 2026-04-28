@@ -5,37 +5,21 @@ from mpt_api_client.http.mixins import (
     CollectionMixin,
     ModifiableResourceMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import DocumentModel
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.mixins import AsyncDocumentMixin, DocumentMixin
 
 
-class Document(Model):
+class Document(DocumentModel):
     """Document resource.
 
     Attributes:
-        name: Document name.
-        type: Document type.
-        description: Document description.
-        status: Document status.
-        filename: Original file name.
-        size: File size in bytes.
-        content_type: MIME content type of the document.
-        url: URL to access the document.
         program: Reference to the program.
         audit: Audit information (created, updated events).
     """
 
-    name: str | None
-    type: str | None
-    description: str | None
-    status: str | None
-    filename: str | None
-    size: int | None
-    content_type: str | None
-    url: str | None
-    program: BaseModel | None
-    audit: BaseModel | None
+    program: BaseModel | None = None
+    audit: BaseModel | None = None
 
 
 class DocumentServiceConfig:

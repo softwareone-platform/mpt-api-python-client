@@ -76,6 +76,12 @@ def test_document_primitive_fields(document_data):
     assert result.to_dict() == document_data
 
 
+def test_document_inherited_primitive_fields(document_inherited_data):
+    result = Document(document_inherited_data)
+
+    assert result.to_dict() == document_inherited_data
+
+
 def test_document_nested_fields_are_base_models(document_data):
     result = Document(document_data)
 
@@ -87,8 +93,13 @@ def test_document_optional_fields_absent():
     result = Document({"id": "PDM-001"})
 
     assert result.id == "PDM-001"
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "type")
-    assert not hasattr(result, "description")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "audit")
+    assert result.name is None
+    assert result.type is None
+    assert result.description is None
+    assert result.status is None
+    assert result.filename is None
+    assert result.size is None
+    assert result.content_type is None
+    assert result.url is None
+    assert result.program is None
+    assert result.audit is None

@@ -76,6 +76,12 @@ def test_media_primitive_fields(media_data):
     assert result.to_dict() == media_data
 
 
+def test_media_inherited_primitive_fields(media_inherited_data):
+    result = Media(media_inherited_data)
+
+    assert result.to_dict() == media_inherited_data
+
+
 def test_media_nested_fields_are_base_models(media_data):
     result = Media(media_data)
 
@@ -87,11 +93,14 @@ def test_media_optional_fields_absent():
     result = Media({"id": "PMD-001"})
 
     assert result.id == "PMD-001"
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "type")
-    assert not hasattr(result, "description")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "filename")
-    assert not hasattr(result, "size")
-    assert not hasattr(result, "content_type")
-    assert not hasattr(result, "audit")
+    assert result.name is None
+    assert result.type is None
+    assert result.description is None
+    assert result.status is None
+    assert result.filename is None
+    assert result.size is None
+    assert result.content_type is None
+    assert result.display_order is None
+    assert result.url is None
+    assert result.program is None
+    assert result.audit is None

@@ -5,7 +5,7 @@ from mpt_api_client.http.mixins import (
     CollectionMixin,
     ModifiableResourceMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import MediaModel
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.mixins import (
     AsyncMediaMixin,
@@ -15,34 +15,16 @@ from mpt_api_client.resources.mixins import (
 )
 
 
-class Media(Model):
+class Media(MediaModel):
     """Media resource.
 
     Attributes:
-        name: Media name.
-        type: Media type.
-        description: Media description.
-        status: Media status.
-        filename: Original file name.
-        size: File size in bytes.
-        content_type: MIME content type of the media file.
-        display_order: Display order of the media item.
-        url: URL to access the media file.
         product: Reference to the product.
         audit: Audit information (created, updated events).
     """
 
-    name: str | None
-    type: str | None
-    description: str | None
-    status: str | None
-    filename: str | None
-    size: int | None
-    content_type: str | None
-    display_order: int | None
-    url: str | None
-    product: BaseModel | None
-    audit: BaseModel | None
+    product: BaseModel | None = None
+    audit: BaseModel | None = None
 
 
 class MediaServiceConfig:
