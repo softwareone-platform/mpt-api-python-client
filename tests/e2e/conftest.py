@@ -179,3 +179,8 @@ def user_group_id(e2e_config):
 @pytest.fixture(scope="session")
 def commerce_product_id(e2e_config):
     return e2e_config["commerce.product.id"]
+
+
+@pytest.fixture
+def certificate_id(e2e_config):
+    return e2e_config["program.certificate.id"]

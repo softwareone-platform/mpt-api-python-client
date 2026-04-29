@@ -9,7 +9,9 @@ def invalid_order_id():
 
 @pytest.fixture
 @freeze_time("2025-12-01T10:00:00.000Z")
-def order_factory(licensee_id, commerce_product_id, commerce_item_id, authorization_id):
+def order_factory(
+    licensee_id, commerce_product_id, commerce_item_id, authorization_id, certificate_id
+):
     def factory(
         notes: str = "E2E Created Order",
         line_item_period: str = "1y",
@@ -49,6 +51,7 @@ def order_factory(licensee_id, commerce_product_id, commerce_item_id, authorizat
                     "quantity": line_quantity,
                 }
             ],
+            "certificates": [{"id": certificate_id}],
         }
 
     return factory
