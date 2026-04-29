@@ -2,11 +2,6 @@ import pytest
 
 
 @pytest.fixture
-def certificate_id(e2e_config):
-    return e2e_config["program.certificate.id"]
-
-
-@pytest.fixture
 def invalid_certificate_id():
     return "CER-0000-0000-0000"
 
