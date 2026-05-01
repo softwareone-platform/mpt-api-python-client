@@ -3,7 +3,7 @@ from http import HTTPStatus
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
-from mpt_api_client.resources.helpdesk.chat_attachments import ChatAttachment
+from mpt_api_client.models import AttachmentModel
 
 pytestmark = [pytest.mark.flaky]
 
@@ -12,18 +12,18 @@ async def test_list_chat_attachments(async_chat_attachments_service, async_creat
     result = await async_chat_attachments_service.fetch_page(limit=1)
 
     assert len(result) > 0
-    assert all(isinstance(attachment, ChatAttachment) for attachment in result)
+    assert all(isinstance(attachment, AttachmentModel) for attachment in result)
 
 
 def test_create_chat_attachment(async_created_chat_attachment, chat_attachment_data):  # noqa: AAA01
-    assert isinstance(async_created_chat_attachment, ChatAttachment)
+    assert isinstance(async_created_chat_attachment, AttachmentModel)
     assert async_created_chat_attachment.to_dict().get("name") == chat_attachment_data["name"]
 
 
 async def test_get_chat_attachment(async_chat_attachments_service, async_created_chat_attachment):
     result = await async_chat_attachments_service.get(async_created_chat_attachment.id)
 
-    assert isinstance(result, ChatAttachment)
+    assert isinstance(result, AttachmentModel)
 
 
 async def test_update_chat_attachment(
@@ -36,7 +36,7 @@ async def test_update_chat_attachment(
         {"name": updated_name, "description": updated_name},
     )
 
-    assert isinstance(result, ChatAttachment)
+    assert isinstance(result, AttachmentModel)
     assert result.to_dict().get("name") == updated_name
 
 

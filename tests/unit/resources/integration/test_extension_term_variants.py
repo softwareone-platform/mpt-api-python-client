@@ -87,6 +87,14 @@ def test_extension_term_variant_primitive_fields(variant_data: dict) -> None:
     assert result.to_dict() == variant_data
 
 
+def test_extension_term_variant_inherited_fields(
+    term_variant_inherited_data: dict,
+) -> None:
+    result = ExtensionTermVariant(term_variant_inherited_data)
+
+    assert result.to_dict() == term_variant_inherited_data
+
+
 def test_extension_term_variant_nested_fields(variant_data: dict) -> None:
     result = ExtensionTermVariant(variant_data)
 

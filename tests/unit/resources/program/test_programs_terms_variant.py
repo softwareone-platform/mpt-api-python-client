@@ -87,6 +87,12 @@ def test_term_variant_primitive_fields(term_variant_data: dict) -> None:
     assert result.to_dict() == term_variant_data
 
 
+def test_term_variant_inherited_primitive_fields(term_variant_inherited_data: dict) -> None:
+    result = TermVariant(term_variant_inherited_data)
+
+    assert result.to_dict() == term_variant_inherited_data
+
+
 def test_term_variant_nested_base_model(term_variant_data: dict) -> None:
     result = TermVariant(term_variant_data)
 
@@ -98,13 +104,15 @@ def test_term_variant_optional_fields_absent() -> None:
     result = TermVariant({"id": "PTV-001"})
 
     assert result.id == "PTV-001"
-    assert not hasattr(result, "type")
-    assert not hasattr(result, "assetUrl")
-    assert not hasattr(result, "languageCode")
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "description")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "filename")
-    assert not hasattr(result, "size")
-    assert not hasattr(result, "contentType")
-    assert not hasattr(result, "fileId")
+    assert result.name is None
+    assert result.type is None
+    assert result.asset_url is None
+    assert result.language_code is None
+    assert result.description is None
+    assert result.status is None
+    assert result.filename is None
+    assert result.size is None
+    assert result.content_type is None
+    assert result.file_id is None
+    assert result.program_terms_and_conditions is None
+    assert result.audit is None

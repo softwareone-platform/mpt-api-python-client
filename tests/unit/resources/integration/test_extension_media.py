@@ -103,6 +103,12 @@ def test_extension_media_primitive_fields(media_data) -> None:
     assert result.display_order == 1
 
 
+def test_extension_media_inherited_fields(media_inherited_data) -> None:
+    result = ExtensionMedia(media_inherited_data)
+
+    assert result.to_dict() == media_inherited_data
+
+
 def test_extension_media_nested_fields(media_data) -> None:  # noqa: WPS118
     result = ExtensionMedia(media_data)
 

@@ -2,6 +2,7 @@ import pytest
 
 from mpt_api_client.resources.billing.statement_attachments import (
     AsyncStatementAttachmentsService,
+    StatementAttachment,
     StatementAttachmentsService,
 )
 
@@ -50,3 +51,20 @@ def test_async_methods_present(async_statement_attachments_service, method: str)
     result = hasattr(async_statement_attachments_service, method)
 
     assert result is True
+
+
+def test_attachment_inherited_primitive_fields(attachment_data):
+    result = StatementAttachment(attachment_data)
+
+    assert result.to_dict() == attachment_data
+
+
+def test_attachment_inherited_fields_absent():  # noqa: WPS218
+    result = StatementAttachment({"id": "ATT-001"})
+
+    assert result.id == "ATT-001"
+    assert result.name is None
+    assert result.type is None
+    assert result.size is None
+    assert result.description is None
+    assert result.content_type is None

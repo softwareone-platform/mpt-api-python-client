@@ -100,6 +100,12 @@ def test_extension_document_primitive_fields(document_data):
     assert result.to_dict() == document_data
 
 
+def test_extension_document_inherited_fields(document_inherited_data):
+    result = ExtensionDocument(document_inherited_data)
+
+    assert result.to_dict() == document_inherited_data
+
+
 def test_extension_document_nested_fields(document_data):
     result = ExtensionDocument(document_data)
 
@@ -111,9 +117,18 @@ def test_extension_document_optional_absent():
     result = ExtensionDocument({"id": "DOC-001"})
 
     assert result.id == "DOC-001"
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "audit")
+    assert result.name is None
+    assert result.type is None
+    assert result.description is None
+    assert result.status is None
+    assert result.filename is None
+    assert result.size is None
+    assert result.content_type is None
+    assert result.url is None
+    assert result.revision is None
+    assert result.language is None
+    assert result.extension is None
+    assert result.audit is None
 
 
 def test_extension_document_create(extension_documents_service, tmp_path):

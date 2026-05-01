@@ -11,42 +11,24 @@ from mpt_api_client.http.mixins import (
     DownloadFileMixin,
     ModifiableResourceMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import MediaModel
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.integration.mixins import AsyncMediaMixin, MediaMixin
 from mpt_api_client.resources.mixins import AsyncPublishableMixin, PublishableMixin
 
 
-class ExtensionMedia(Model):
+class ExtensionMedia(MediaModel):
     """Extension Media resource.
 
     Attributes:
-        name: Media name.
         revision: Revision number.
-        type: Media type (Video or Image).
-        description: Media description.
-        status: Media status (Draft, Published, Unpublished, Deleted).
-        filename: Original file name.
-        size: File size in bytes.
-        content_type: MIME content type.
-        display_order: Display order.
-        url: URL to access the media.
         extension: Reference to the extension.
         audit: Audit information (created, updated, published, unpublished).
     """
 
-    name: str | None
-    revision: int | None
-    type: str | None
-    description: str | None
-    status: str | None
-    filename: str | None
-    size: int | None
-    content_type: str | None
-    display_order: int | None
-    url: str | None
-    extension: BaseModel | None
-    audit: BaseModel | None
+    revision: int | None = None
+    extension: BaseModel | None = None
+    audit: BaseModel | None = None
 
 
 class ExtensionMediaServiceConfig:

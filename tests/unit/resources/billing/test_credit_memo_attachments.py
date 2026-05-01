@@ -2,6 +2,7 @@ import pytest
 
 from mpt_api_client.resources.billing.credit_memo_attachments import (
     AsyncCreditMemoAttachmentsService,
+    CreditMemoAttachment,
     CreditMemoAttachmentsService,
 )
 
@@ -50,3 +51,20 @@ def test_async_methods_present(async_credit_memo_attachments_service, method: st
     result = hasattr(async_credit_memo_attachments_service, method)
 
     assert result is True
+
+
+def test_attachment_inherited_primitive_fields(attachment_data):
+    result = CreditMemoAttachment(attachment_data)
+
+    assert result.to_dict() == attachment_data
+
+
+def test_attachment_inherited_fields_absent():  # noqa: WPS218
+    result = CreditMemoAttachment({"id": "ATT-001"})
+
+    assert result.id == "ATT-001"
+    assert result.name is None
+    assert result.type is None
+    assert result.size is None
+    assert result.description is None
+    assert result.content_type is None

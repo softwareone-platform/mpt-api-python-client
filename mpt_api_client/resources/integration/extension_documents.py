@@ -9,41 +9,25 @@ from mpt_api_client.http.mixins import (
     DownloadFileMixin,
     ModifiableResourceMixin,
 )
-from mpt_api_client.models import Model
+from mpt_api_client.models import DocumentModel
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.mixins import AsyncPublishableMixin, PublishableMixin
 
 
-class ExtensionDocument(Model):
+class ExtensionDocument(DocumentModel):
     """Extension Document resource.
 
     Attributes:
-        name: Document name.
         revision: Revision number.
-        type: Document type (Online or File).
-        description: Document description.
-        status: Document status (Draft, Published, Unpublished, Deleted).
-        filename: Original file name.
-        size: File size in bytes.
-        content_type: MIME content type.
-        url: URL to access the document.
         language: Language code.
         extension: Reference to the extension.
         audit: Audit information (created, updated, published, unpublished).
     """
 
-    name: str | None
-    revision: int | None
-    type: str | None
-    description: str | None
-    status: str | None
-    filename: str | None
-    size: int | None
-    content_type: str | None
-    url: str | None
-    language: str | None
-    extension: BaseModel | None
-    audit: BaseModel | None
+    revision: int | None = None
+    language: str | None = None
+    extension: BaseModel | None = None
+    audit: BaseModel | None = None
 
 
 class ExtensionDocumentsServiceConfig:

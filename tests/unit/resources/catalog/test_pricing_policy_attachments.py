@@ -83,10 +83,15 @@ def test_pricing_policy_attachment_nested_models(pricing_policy_attachment_data)
     assert isinstance(result.audit, BaseModel)
 
 
-def test_pricing_policy_attachment_absent():
+def test_pricing_policy_attachment_absent():  # noqa: WPS218
     result = PricingPolicyAttachment({"id": "ATT-001"})
 
     assert result.id == "ATT-001"
-    assert not hasattr(result, "name")
-    assert not hasattr(result, "status")
-    assert not hasattr(result, "audit")
+    assert result.name is None
+    assert result.type is None
+    assert result.size is None
+    assert result.description is None
+    assert result.content_type is None
+    assert result.file_name is None
+    assert result.status is None
+    assert result.audit is None
