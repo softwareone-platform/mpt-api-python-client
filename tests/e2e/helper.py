@@ -4,28 +4,38 @@ from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import MPTAPIError
 
 
-@asynccontextmanager
-async def async_create_fixture_resource_and_delete(service, resource_data):
-    resource = await service.create(resource_data)
-
-    yield resource
-
+async def _delete_async_resource(service, resource):
     try:
         await service.delete(resource.id)
     except MPTAPIError as error:
         print(f"TEARDOWN - Unable to delete resource {resource}: {error.title}")  # noqa:  WPS421
 
 
-@contextmanager
-def create_fixture_resource_and_delete(service, resource_data):
-    resource = service.create(resource_data)
-
-    yield resource
-
+def _delete_resource(service, resource):
     try:
         service.delete(resource.id)
     except MPTAPIError as error:
         print(f"TEARDOWN - Unable to delete resource {resource}: {error.title}")  # noqa:  WPS421
+
+
+@asynccontextmanager
+async def async_create_fixture_resource_and_delete(service, resource_data):
+    resource = await service.create(resource_data)
+
+    try:
+        yield resource
+    finally:
+        await _delete_async_resource(service, resource)
+
+
+@contextmanager
+def create_fixture_resource_and_delete(service, resource_data):
+    resource = service.create(resource_data)
+
+    try:
+        yield resource
+    finally:
+        _delete_resource(service, resource)
 
 
 async def assert_async_service_filter_with_iterate(service, filter_by_id, select: list[str] | None):

@@ -8,16 +8,21 @@ from mpt_api_client.rql.query_builder import RQLQuery
 pytestmark = [pytest.mark.flaky]
 
 
-@asynccontextmanager
-async def async_create_fixture_resource_and_delete(resource_manager, resource_data):
-    resource = await resource_manager.create(resource_data)
-
-    yield resource
-
+async def _delete_order_asset(resource_manager, resource):
     try:
         await resource_manager.delete(resource.id)
     except MPTAPIError as error:
         print(f"TEARDOWN - Unable to delete order asset: {getattr(error, 'title', str(error))}")  # noqa: WPS421
+
+
+@asynccontextmanager
+async def async_create_fixture_resource_and_delete(resource_manager, resource_data):
+    resource = await resource_manager.create(resource_data)
+
+    try:
+        yield resource
+    finally:
+        await _delete_order_asset(resource_manager, resource)
 
 
 @pytest.fixture
