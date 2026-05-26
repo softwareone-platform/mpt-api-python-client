@@ -25,13 +25,13 @@ def async_accounts_users_service(async_http_client):
 
 
 def test_endpoint(accounts_users_service):
-    result = accounts_users_service.path == "/public/v1/accounts/ACC-0000-0001/users"
+    result = accounts_users_service.path == "/public/v1/accounts/accounts/ACC-0000-0001/users"
 
     assert result is True
 
 
 def test_async_endpoint(async_accounts_users_service):
-    result = async_accounts_users_service.path == "/public/v1/accounts/ACC-0000-0001/users"
+    result = async_accounts_users_service.path == "/public/v1/accounts/accounts/ACC-0000-0001/users"
 
     assert result is True
 

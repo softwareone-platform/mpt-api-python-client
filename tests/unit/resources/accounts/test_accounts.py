@@ -1,10 +1,6 @@
 import pytest
 
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
-from mpt_api_client.resources.accounts.account_users import (
-    AccountUsersService,
-    AsyncAccountUsersService,
-)
 from mpt_api_client.resources.accounts.accounts import Accounts, AsyncAccounts
 from mpt_api_client.resources.accounts.api_tokens import (
     ApiTokensService,
@@ -48,7 +44,6 @@ def async_accounts(async_http_client):
         ("modules", ModulesService),
         ("cloud_tenants", CloudTenantsService),
         ("buyers", BuyersService),
-        ("account_users", AccountUsersService),
         ("erp_links", ErpLinksService),
     ],
 )
@@ -71,7 +66,6 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
         ("modules", AsyncModulesService),
         ("cloud_tenants", AsyncCloudTenantsService),
         ("buyers", AsyncBuyersService),
-        ("account_users", AsyncAccountUsersService),
         ("erp_links", AsyncErpLinksService),
     ],
 )

@@ -23,7 +23,7 @@ class AccountsUser(Model):
 class AccountsUsersServiceConfig:
     """Account Users Service Configuration."""
 
-    _endpoint = "/public/v1/accounts/{account_id}/users"
+    _endpoint = "/public/v1/accounts/accounts/{account_id}/users"
     _model_class = AccountsUser
     _collection_key = "data"
 
