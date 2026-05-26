@@ -8,16 +8,23 @@ from mpt_api_client.rql.query_builder import RQLQuery
 pytestmark = [pytest.mark.flaky]
 
 
+async def _delete_subscription(resource_manager, resource):
+    try:
+        await resource_manager.delete(resource.id)
+    except MPTAPIError as error:
+        print(  # noqa: WPS421
+            f"TEARDOWN - Unable to delete subscription: {getattr(error, 'title', str(error))}"
+        )
+
+
 @asynccontextmanager
 async def async_create_fixture_resource_and_delete(resource_manager, resource_data):
     resource = await resource_manager.create(resource_data)
 
-    yield resource
-
     try:
-        await resource_manager.delete(resource.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete subscription: {getattr(error, 'title', str(error))}")  # noqa: WPS421
+        yield resource
+    finally:
+        await _delete_subscription(resource_manager, resource)
 
 
 @pytest.fixture
