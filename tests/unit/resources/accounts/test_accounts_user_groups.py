@@ -29,7 +29,7 @@ def async_accounts_user_groups_service(async_http_client):
 def test_endpoint(accounts_user_groups_service):
     result = (
         accounts_user_groups_service.path
-        == "/public/v1/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
+        == "/public/v1/accounts/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
     )
 
     assert result is True
@@ -38,7 +38,7 @@ def test_endpoint(accounts_user_groups_service):
 def test_async_endpoint(async_accounts_user_groups_service):
     result = (
         async_accounts_user_groups_service.path
-        == "/public/v1/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
+        == "/public/v1/accounts/accounts/ACC-0000-0001/users/USR-0000-0001/groups"
     )
 
     assert result is True
@@ -74,7 +74,7 @@ def test_account_user_groups_update(accounts_user_groups_service):  # noqa: AAA0
 
     with respx.mock:
         mock_route = respx.put(
-            f"https://api.example.com/public/v1/accounts/ACC-0000-0001/users/{user_id}/groups"
+            f"https://api.example.com/public/v1/accounts/accounts/ACC-0000-0001/users/{user_id}/groups"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,
@@ -101,7 +101,7 @@ async def test_async_account_user_groups_update(async_accounts_user_groups_servi
 
     with respx.mock:
         mock_route = respx.put(
-            f"https://api.example.com/public/v1/accounts/ACC-0000-0001/users/{user_id}/groups"
+            f"https://api.example.com/public/v1/accounts/accounts/ACC-0000-0001/users/{user_id}/groups"
         ).mock(
             return_value=httpx.Response(
                 status_code=httpx.codes.OK,

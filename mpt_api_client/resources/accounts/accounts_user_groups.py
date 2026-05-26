@@ -21,7 +21,7 @@ class AccountsUserGroup(Model):
 class AccountsUserGroupsServiceConfig:
     """Account User Groups Service Configuration."""
 
-    _endpoint = "/public/v1/accounts/{account_id}/users/{user_id}/groups"
+    _endpoint = "/public/v1/accounts/accounts/{account_id}/users/{user_id}/groups"
     _model_class = AccountsUserGroup
     _collection_key = "data"
 
