@@ -11,6 +11,7 @@ def queue_data(short_uuid):
     return {
         "name": f"E2E Queue {short_uuid}",
         "description": "E2E Created Helpdesk Queue",
+        "shortDescription": "E2E Created Queue",
         "internal": False,
     }
 
