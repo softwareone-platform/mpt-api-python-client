@@ -1,6 +1,7 @@
 from typing import Self
 
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.http.authentication import Authentication
 from mpt_api_client.resources import (
     Accounts,
     AsyncAccounts,
@@ -32,21 +33,21 @@ class AsyncMPTClient:
 
     def __init__(
         self,
-        http_client: AsyncHTTPClient | None = None,
+        http_client: AsyncHTTPClient,
     ):
-        self.http_client = http_client or AsyncHTTPClient()
+        self.http_client = http_client
 
     @classmethod
     def from_config(
         cls,
-        api_token: str,
+        authentication: Authentication,
         base_url: str,
         timeout: float = 60.0,
     ) -> Self:
         """Create MPT client from configuration.
 
         Args:
-            api_token: MPT API Token
+            authentication: Authentication provider (e.g. BearerTokenAuthentication).
             base_url: MPT Base URL
             timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
@@ -54,7 +55,9 @@ class AsyncMPTClient:
             MPT Client
 
         """
-        return cls(AsyncHTTPClient(base_url=base_url, api_token=api_token, timeout=timeout))
+        return cls(
+            AsyncHTTPClient(authentication=authentication, base_url=base_url, timeout=timeout)
+        )
 
     @property
     def catalog(self) -> AsyncCatalog:
@@ -117,21 +120,21 @@ class MPTClient:
 
     def __init__(
         self,
-        http_client: HTTPClient | None = None,
+        http_client: HTTPClient,
     ):
-        self.http_client = http_client or HTTPClient()
+        self.http_client = http_client
 
     @classmethod
     def from_config(
         cls,
-        api_token: str,
+        authentication: Authentication,
         base_url: str,
         timeout: float = 60.0,
     ) -> Self:
         """Create MPT client from configuration.
 
         Args:
-            api_token: MPT API Token
+            authentication: Authentication provider (e.g. BearerTokenAuthentication).
             base_url: MPT Base URL
             timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
@@ -139,7 +142,7 @@ class MPTClient:
             MPT Client
 
         """
-        return cls(HTTPClient(base_url=base_url, api_token=api_token, timeout=timeout))
+        return cls(HTTPClient(authentication=authentication, base_url=base_url, timeout=timeout))
 
     @property
     def commerce(self) -> Commerce:

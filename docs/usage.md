@@ -20,39 +20,53 @@ uv add mpt-api-client
 
 ## Configuration
 
-The client reads configuration from constructor arguments or the environment.
+The client requires a base URL and an authentication provider.
 
 Environment variables:
 
 | Variable           | Required | Description                        |
 |--------------------|----------|------------------------------------|
 | `MPT_API_BASE_URL` | yes      | SoftwareONE Marketplace API URL    |
-| `MPT_API_TOKEN`    | yes      | SoftwareONE Marketplace API token  |
+
+The base URL can be read from the environment; the authentication provider is always passed
+explicitly.
 
 Example `.env` snippet:
 
 ```env
 MPT_API_BASE_URL=<YOUR_MPT_API_BASE_URL>
-MPT_API_TOKEN=<YOUR_API_TOKEN>
 ```
+
+## Authentication
+
+Authentication is provided through an `Authentication` provider passed to the client. Two
+implementations are available:
+
+- `BearerTokenAuthentication` — a single, long-lived token.
+- `ExtensionFrameworkAuthentication` — a short-lived installation token fetched from an
+  extension secret via `POST /installations/-/token` and refreshed automatically when it
+  expires.
 
 ## Instantiate The Client
 
-You can rely on environment variables:
+With a long-lived bearer token:
 
 ```python
-from mpt_api_client import MPTClient
-
-client = MPTClient()
-```
-
-Or pass configuration explicitly:
-
-```python
-from mpt_api_client import MPTClient
+from mpt_api_client import MPTClient, BearerTokenAuthentication
 
 client = MPTClient.from_config(
-    api_token="token",
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
+)
+```
+
+With the extension framework (short-lived installation tokens):
+
+```python
+from mpt_api_client import MPTClient, ExtensionFrameworkAuthentication
+
+client = MPTClient.from_config(
+    authentication=ExtensionFrameworkAuthentication(secret="<extension-secret>"),
     base_url="https://api.s1.show/public",
 )
 ```
@@ -62,9 +76,12 @@ client = MPTClient.from_config(
 Read a single resource:
 
 ```python
-from mpt_api_client import MPTClient
+from mpt_api_client import MPTClient, BearerTokenAuthentication
 
-client = MPTClient()
+client = MPTClient.from_config(
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
+)
 
 product = client.catalog.products.get("PRD-123-456")
 print(product.name)
@@ -73,9 +90,12 @@ print(product.name)
 Iterate through a collection:
 
 ```python
-from mpt_api_client import MPTClient
+from mpt_api_client import MPTClient, BearerTokenAuthentication
 
-client = MPTClient()
+client = MPTClient.from_config(
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
+)
 
 for invoice in client.billing.invoices.iterate():
     print(invoice.id)
@@ -86,11 +106,14 @@ for invoice in client.billing.invoices.iterate():
 ```python
 import asyncio
 
-from mpt_api_client import AsyncMPTClient
+from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication
 
 
 async def main():
-    client = AsyncMPTClient()
+    client = AsyncMPTClient.from_config(
+        authentication=BearerTokenAuthentication("<token>"),
+        base_url="https://api.s1.show/public",
+    )
 
     product = await client.catalog.products.get("PRD-123-456")
     print(product.name)
@@ -130,9 +153,12 @@ the source of truth for query composition.
 Typical example:
 
 ```python
-from mpt_api_client import MPTClient, RQLQuery
+from mpt_api_client import MPTClient, BearerTokenAuthentication, RQLQuery
 
-client = MPTClient()
+client = MPTClient.from_config(
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
+)
 
 target_ids = RQLQuery("id").in_(["PRD-123-456", "PRD-789-012"])
 active = RQLQuery(status="active")

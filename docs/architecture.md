@@ -92,7 +92,7 @@ Each client holds an HTTP client instance and exposes domain-specific resource g
 properties:
 
 ```python
-client = MPTClient.from_config(api_token="...", base_url="...")
+client = MPTClient.from_config(authentication=BearerTokenAuthentication("..."), base_url="...")
 client.catalog  # Catalog
 client.commerce  # Commerce
 client.billing  # Billing
@@ -149,14 +149,15 @@ class ProductsService(
 
 `HTTPClient` and `AsyncHTTPClient` wrap `httpx.Client` / `httpx.AsyncClient` with:
 
-- automatic Bearer token authentication
+- pluggable authentication via an `Authentication` provider (`BearerTokenAuthentication`,
+  `ExtensionFrameworkAuthentication`)
 - base URL resolution
 - retry transport (configurable)
 - error transformation into `MPTHttpError` / `MPTAPIError`
 - multipart file upload support
 
-Configuration is read from constructor arguments or environment variables
-(`MPT_API_TOKEN`, `MPT_API_BASE_URL`).
+The base URL is read from a constructor argument or the `MPT_API_BASE_URL` environment
+variable; the authentication provider is always passed explicitly.
 
 ## Cross-Cutting Concerns
 

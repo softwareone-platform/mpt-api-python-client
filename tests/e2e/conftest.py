@@ -7,7 +7,7 @@ import uuid
 import pytest
 from reportportal_client import RPLogger
 
-from mpt_api_client import AsyncMPTClient, MPTClient
+from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication, MPTClient
 
 
 @pytest.fixture(scope="session")
@@ -23,43 +23,55 @@ def api_timeout():
 @pytest.fixture
 def mpt_vendor(base_url, api_timeout):
     return MPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_VENDOR")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture
 def async_mpt_vendor(base_url, api_timeout):
     return AsyncMPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_VENDOR"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_VENDOR")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture
 def mpt_ops(base_url, api_timeout):
     return MPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_OPERATIONS")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture
 def async_mpt_ops(base_url, api_timeout):
     return AsyncMPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_OPERATIONS"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_OPERATIONS")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture
 def mpt_client(base_url, api_timeout):
     return MPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_CLIENT")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture
 def async_mpt_client(base_url, api_timeout):
     return AsyncMPTClient.from_config(
-        api_token=os.getenv("MPT_API_TOKEN_CLIENT"), base_url=base_url, timeout=api_timeout
-    )  # type: ignore
+        authentication=BearerTokenAuthentication(os.getenv("MPT_API_TOKEN_CLIENT")),
+        base_url=base_url,
+        timeout=api_timeout,
+    )
 
 
 @pytest.fixture(scope="module")
