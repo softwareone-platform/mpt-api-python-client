@@ -1,8 +1,11 @@
 import json as json_package
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 from httpx import Client, HTTPError, RequestError
+from httpx import Response as HTTPXResponse
 from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
@@ -122,3 +125,48 @@ class HTTPClient:
             status_code=response.status_code,
             content=response.content,
         )
+
+    @contextmanager
+    def stream(
+        self,
+        method: str,
+        url: str,
+        *,
+        headers: HeaderTypes | None = None,
+        query_params: QueryParam | None = None,
+        options: QueryOptions | None = None,
+    ) -> Iterator[HTTPXResponse]:
+        """Open a streaming response without buffering its body fully in memory.
+
+        Useful for JSONL/NDJSON endpoints; callers consume the body via the yielded
+        response (e.g. ``iter_lines()``). Redirects are followed automatically.
+
+        Args:
+            method: HTTP method.
+            url: URL to send the request to.
+            headers: Request headers.
+            query_params: Query parameters.
+            options: Additional options for the request.
+
+        Yields:
+            The open streaming response.
+
+        Raises:
+            MPTError: If the request fails.
+            MPTApiError: If the response contains an error.
+            MPTHttpError: If the response contains an HTTP error.
+            MPTMaxRetryError: If the request fails after maximum retry attempts.
+        """
+        params_str = get_query_params(query_params, options)
+        try:
+            with self.httpx_client.stream(
+                method, url, params=params_str or None, headers=headers
+            ) as response:
+                if response.is_error:
+                    response.read()
+                handle_response_http_error(response)
+                yield response
+        except RequestError as err:
+            raise MPTMaxRetryError(str(err), self._retries + 1) from err
+        except HTTPError as err:
+            raise MPTError(f"HTTP Error: {err}") from err

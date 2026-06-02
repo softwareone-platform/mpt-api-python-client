@@ -42,3 +42,10 @@ async def test_filter_statement_charges(statement_charges, statement_charge_id):
     result = [statement async for statement in filtered_charges.iterate()]
 
     assert len(result) == 1
+
+
+async def test_stream_statement_charges_jsonl(statement_charges):
+    result = [charge async for charge in statement_charges.stream()]
+
+    assert len(result) > 0
+    assert all(charge.id for charge in result)

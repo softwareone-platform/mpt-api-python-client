@@ -5,7 +5,7 @@ import pytest
 import respx
 from httpx import ConnectTimeout, Response, codes
 
-from mpt_api_client.exceptions import MPTMaxRetryError
+from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -108,6 +108,43 @@ def test_http_call_force_multipart(mocker, http_client):
     payload_tuple = sent_files["_attachment_data"]
     assert payload_tuple[2] == "application/json"
     assert payload_tuple[1].decode() == '{"foo":"bar"}'
+
+
+def drain_stream(stream_cm):
+    with stream_cm as response:
+        return list(response.iter_lines())
+
+
+@respx.mock
+def test_stream_yields_lines(http_client):
+    body = b'{"id": "ID-1"}\n{"id": "ID-2"}\n'
+    streamed = Response(200, content=body)
+    stream_route = respx.get(f"{API_URL}/charges").mock(return_value=streamed)
+
+    result = drain_stream(
+        http_client.stream("GET", "/charges", headers={"Accept": "application/jsonl"})
+    )
+
+    request = stream_route.calls[0].request
+    assert result == ['{"id": "ID-1"}', '{"id": "ID-2"}']
+    assert request.headers["Accept"] == "application/jsonl"
+
+
+@respx.mock
+def test_stream_raises_on_error_status(http_client):
+    not_found = Response(404, json={"message": "Not Found"})
+    respx.get(f"{API_URL}/charges").mock(return_value=not_found)
+
+    with pytest.raises(MPTAPIError, match=r"404"):
+        drain_stream(http_client.stream("GET", "/charges"))
+
+
+@respx.mock
+def test_stream_raises_on_connection_error(http_client):
+    respx.get(f"{API_URL}/charges").mock(side_effect=ConnectTimeout("Mock Timeout"))
+
+    with pytest.raises(MPTMaxRetryError):
+        drain_stream(http_client.stream("GET", "/charges"))
 
 
 def test_request_with_render(mocker, http_client, mock_httpx_response):
