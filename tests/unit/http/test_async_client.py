@@ -5,7 +5,7 @@ import pytest
 import respx
 from httpx import ConnectTimeout, Request, Response, codes
 
-from mpt_api_client.exceptions import MPTError
+from mpt_api_client.exceptions import MPTAPIError, MPTError, MPTMaxRetryError
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -83,6 +83,43 @@ async def test_async_http_call_failure(async_http_client):
         await async_http_client.request("GET", "/timeout")
 
     assert timeout_route.call_count == 6
+
+
+async def drain_async_stream(stream_cm):
+    async with stream_cm as response:
+        return [line async for line in response.aiter_lines()]
+
+
+@respx.mock
+async def test_async_stream_yields_lines(async_http_client):
+    body = b'{"id": "ID-1"}\n{"id": "ID-2"}\n'
+    streamed = Response(200, content=body)
+    stream_route = respx.get(f"{API_URL}/charges").mock(return_value=streamed)
+
+    result = await drain_async_stream(
+        async_http_client.stream("GET", "/charges", headers={"Accept": "application/jsonl"})
+    )
+
+    request = stream_route.calls[0].request
+    assert result == ['{"id": "ID-1"}', '{"id": "ID-2"}']
+    assert request.headers["Accept"] == "application/jsonl"
+
+
+@respx.mock
+async def test_async_stream_error_status(async_http_client):
+    not_found = Response(404, json={"message": "Not Found"})
+    respx.get(f"{API_URL}/charges").mock(return_value=not_found)
+
+    with pytest.raises(MPTAPIError, match=r"404"):
+        await drain_async_stream(async_http_client.stream("GET", "/charges"))
+
+
+@respx.mock
+async def test_async_stream_conn_error(async_http_client):
+    respx.get(f"{API_URL}/charges").mock(side_effect=ConnectTimeout("Mock Timeout"))
+
+    with pytest.raises(MPTMaxRetryError):
+        await drain_async_stream(async_http_client.stream("GET", "/charges"))
 
 
 async def test_http_call_with_json_and_files(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210

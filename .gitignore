@@ -174,3 +174,6 @@ make/local.mk
 
 # E2E report
 e2e-report.xml
+
+# Claude Code local artifacts
+.claude/
