@@ -1,5 +1,7 @@
 import pytest
 
+EXTERNAL_ID = "e2eCreatedProgramParameter"
+
 
 @pytest.fixture
 def parameter_id(e2e_config):
@@ -14,7 +16,7 @@ def invalid_parameter_id():
 @pytest.fixture
 def parameter_data():
     return {
-        "externalId": "e2eCreatedProgramParameter",
+        "externalId": EXTERNAL_ID,
         "displayOrder": 100,
         "scope": "Enrollment",
         "phase": "Fulfillment",
