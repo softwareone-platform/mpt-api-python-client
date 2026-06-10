@@ -17,41 +17,22 @@ def commerce_asset_draft_order_id(e2e_config):
 
 
 @pytest.fixture
-def order_asset_factory(
-    draft_order_asset_agreement_id,
-    buyer_id,
-    asset_agreement_line_id,
-    buyer_account_id,
-    seller_id,
-    commerce_product_id,
-    commerce_asset_draft_order_id,
-):
+def order_asset_factory():
+
     def factory(
+        order: dict,
         name: str = "E2E Created Order Asset",
-        quantity: int = 1,
         external_vendor_id: str = "ext-vendor-id",
     ):
+        asset_lines = [line for line in order["lines"] if "Asset" in line["item"]["name"]]
+
         return {
             "name": name,
             "externalIds": {"vendor": external_vendor_id},
-            "lines": [
-                {
-                    "id": asset_agreement_line_id,
-                    "agreement": {"id": draft_order_asset_agreement_id},
-                    "buyer": {"id": buyer_id},
-                    "client": {"id": buyer_account_id},
-                    "oldQuantity": 0,
-                    "quantity": quantity,
-                    "price": {
-                        "unitPP": 10,
-                        "PPx1": 100,
-                        "currency": "USD",
-                    },
-                }
-            ],
-            "order": {"id": commerce_asset_draft_order_id},
-            "product": {"id": commerce_product_id},
-            "seller": {"id": seller_id},
+            "lines": asset_lines,
+            "order": {"id": order["id"]},
+            "product": {"id": order["product"]["id"]},
+            "seller": {"id": order["seller"]["id"]},
         }
 
     return factory
