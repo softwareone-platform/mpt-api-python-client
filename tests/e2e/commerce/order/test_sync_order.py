@@ -7,13 +7,6 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_order(mpt_client, order_factory):
-    new_order_request_data = order_factory()
-
-    return mpt_client.commerce.orders.create(new_order_request_data)
-
-
-@pytest.fixture
 def processed_order(mpt_client, created_order):
     return mpt_client.commerce.orders.process(created_order.id)
 

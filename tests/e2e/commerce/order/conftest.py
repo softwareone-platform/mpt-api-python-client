@@ -8,9 +8,21 @@ def invalid_order_id():
 
 
 @pytest.fixture
+def created_order(mpt_client, order_factory):
+    new_order_request_data = order_factory()
+
+    return mpt_client.commerce.orders.create(new_order_request_data)
+
+
+@pytest.fixture
 @freeze_time("2025-12-01T10:00:00.000Z")
 def order_factory(
-    licensee_id, commerce_product_id, commerce_item_id, authorization_id, certificate_id
+    licensee_id,
+    commerce_product_id,
+    commerce_item_id,
+    asset_item_id,
+    authorization_id,
+    certificate_id,
 ):
     def factory(
         notes: str = "E2E Created Order",
@@ -49,7 +61,21 @@ def order_factory(
                         "SPxY": 15,
                     },
                     "quantity": line_quantity,
-                }
+                },
+                {
+                    "item": {
+                        "id": asset_item_id,
+                        "terms": {"model": "quantity", "period": "one-time"},
+                    },
+                    "price": {
+                        "currency": "USD",
+                        "unitSP": 15,
+                        "SPx1": None,
+                        "SPxM": 1.25,
+                        "SPxY": 15,
+                    },
+                    "quantity": line_quantity,
+                },
             ],
             "certificates": [{"id": certificate_id}],
         }
