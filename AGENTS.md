@@ -23,6 +23,8 @@ When applicable, read the repository documentation in this order:
 5. `docs/testing.md` — repository-specific testing strategy and command mapping
 6. `docs/contributing.md` — repository-specific workflow and links to shared standards
 7. `docs/documentation.md` — repository-specific documentation rules
+8. `docs/unit_tests.md` — unit test structure and guidance
+9. `docs/e2e_tests.md` — end-to-end test setup and execution
 
 Then inspect the code paths relevant to the task:
 

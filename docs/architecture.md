@@ -50,7 +50,7 @@ mpt_api_client/
 │
 ├── models/                  # Response models
 │   ├── model.py             # Model base class (camelCase ↔ snake_case mapping)
-│   ├── collection.py        # Collection[Model] — paginated result set
+│   ├── model_collection.py  # ModelCollection — paginated result set
 │   ├── meta.py              # Meta / Pagination metadata
 │   └── file_model.py        # FileModel for binary responses
 │
@@ -60,8 +60,12 @@ mpt_api_client/
 │   ├── billing/             # Invoices, Ledgers, Journals, Statements, Credit memos, …
 │   ├── catalog/             # Products, Listings, Price lists, Authorizations, …
 │   ├── commerce/            # Agreements, Orders, Subscriptions, Assets
+│   ├── exchange/            # Exchange resources
 │   ├── helpdesk/            # Cases, Chats, Queues, Forms, …
-│   └── notifications/       # Messages, Batches, Subscribers, …
+│   ├── integration/         # Integration resources
+│   ├── notifications/       # Messages, Batches, Subscribers, …
+│   ├── program/             # Program resources
+│   └── spotlight/           # Spotlight resources
 │
 └── rql/                     # RQL query builder
     ├── query_builder.py     # RQLQuery, RQLProperty, RQLValue
@@ -129,6 +133,8 @@ Services are composed using **mixins** that add HTTP operations:
 | `DownloadFileMixin` | download binary content |
 | `EnableMixin` / `DisableMixin` | enable/disable actions |
 | `QueryableMixin` | `filter()`, `order_by()`, `select()` — RQL query chaining |
+| `StreamJSONLMixin` | `stream()` — stream JSONL records line by line (e.g. billing charges) |
+| `FilesOperationsMixin` | combined file create / update / download operations |
 
 Example service definition:
 
@@ -183,6 +189,3 @@ MPTError
 ├── MPTHttpError          # generic HTTP error (status_code, message, body)
 │   └── MPTAPIError       # structured API error (payload, title, detail, trace_id)
 ```
-
-
-

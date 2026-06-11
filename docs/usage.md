@@ -57,6 +57,8 @@ client = MPTClient.from_config(
 )
 ```
 
+`from_config` also accepts a `timeout` argument (HTTP request timeout in seconds, default `60.0`).
+
 ## Synchronous Usage Patterns
 
 Read a single resource:
@@ -115,6 +117,8 @@ The client exposes resource groups such as:
 - `client.helpdesk`
 - `client.integration`
 - `client.notifications`
+- `client.program`
+- `client.spotlight`
 
 See [architecture.md](architecture.md) for the repository structure and the
 [MPT OpenAPI spec](https://docs.platform.softwareone.com/developer-resources/rest-api/openapi-specification)
