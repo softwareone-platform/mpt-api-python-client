@@ -18,6 +18,20 @@ def _delete_resource(service, resource):
         print(f"TEARDOWN - Unable to delete resource {resource}: {error.title}")  # noqa:  WPS421
 
 
+async def _finalize_async_resource(finalize, resource, logger):
+    try:
+        await finalize(resource.id)
+    except Exception:
+        logger.warning("TEARDOWN - Unable to finalize resource %s", resource, exc_info=True)
+
+
+def _finalize_resource(finalize, resource, logger):
+    try:
+        finalize(resource.id)
+    except Exception:
+        logger.warning("TEARDOWN - Unable to finalize resource %s", resource, exc_info=True)
+
+
 @asynccontextmanager
 async def async_create_fixture_resource_and_delete(service, resource_data):
     resource = await service.create(resource_data)
@@ -36,6 +50,36 @@ def create_fixture_resource_and_delete(service, resource_data):
         yield resource
     finally:
         _delete_resource(service, resource)
+
+
+@asynccontextmanager
+async def async_create_fixture_resource_and_finalize(service, resource_data, finalize, logger):
+    """Create a resource, then transition it to a terminal state on teardown.
+
+    ``finalize`` is the bound terminal-transition method (e.g. ``queues.disable`` or
+    ``cases.complete``) and is invoked best-effort so a failed teardown never fails the test.
+    """
+    resource = await service.create(resource_data)
+
+    try:
+        yield resource
+    finally:
+        await _finalize_async_resource(finalize, resource, logger)
+
+
+@contextmanager
+def create_fixture_resource_and_finalize(service, resource_data, finalize, logger):
+    """Create a resource, then transition it to a terminal state on teardown.
+
+    ``finalize`` is the bound terminal-transition method (e.g. ``queues.disable`` or
+    ``cases.complete``) and is invoked best-effort so a failed teardown never fails the test.
+    """
+    resource = service.create(resource_data)
+
+    try:
+        yield resource
+    finally:
+        _finalize_resource(finalize, resource, logger)
 
 
 async def assert_async_service_filter_with_iterate(service, filter_by_id, select: list[str] | None):
