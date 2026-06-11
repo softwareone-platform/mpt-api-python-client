@@ -113,6 +113,24 @@ class ModelList(UserList[Any]):
         return item
 
 
+def _build_model_from_dict(value: Resource, target_class: Any) -> "BaseModel":
+    """Builds a BaseModel (or target subclass) from a raw dict value."""
+    if target_class and isinstance(target_class, type) and issubclass(target_class, BaseModel):
+        model_class: type[BaseModel] = target_class
+        return model_class(**value)
+    return BaseModel(**value)
+
+
+def _resolve_list_model_class(target_class: Any) -> type["BaseModel"]:
+    """Resolves the element model class for a list-typed field from its type hint."""
+    if not target_class or get_origin(target_class) is not list:
+        return BaseModel
+    args = get_args(target_class)
+    if args and isinstance(args[0], type) and issubclass(args[0], BaseModel):  # noqa: WPS221
+        return args[0]
+    return BaseModel
+
+
 class BaseModel:
     """Base dataclass for models providing object-only access and case conversion."""
 
@@ -183,34 +201,13 @@ class BaseModel:
             return [self._serialize_value(item) for item in value]
         return value
 
-    def _process_value(self, value: Any, target_class: Any = None) -> Any:  # noqa: WPS231 C901
+    def _process_value(self, value: Any, target_class: Any = None) -> Any:
         """Recursively processes values to ensure nested dicts are BaseModels."""
         if isinstance(value, dict) and not isinstance(value, BaseModel):
-            # If a target class is provided and it's a subclass of BaseModel, use it
-            if (
-                target_class
-                and isinstance(target_class, type)
-                and issubclass(target_class, BaseModel)
-            ):
-                return target_class(**value)
-            return BaseModel(**value)
-
+            return _build_model_from_dict(value, target_class)
         if isinstance(value, (list, UserList)) and not isinstance(value, ModelList):
-            # Try to determine the model class for the list elements from type hints
-            model_class = BaseModel
-            if target_class:
-                # Handle list[ModelClass]
-
-                origin = get_origin(target_class)
-                if origin is list:
-                    args = get_args(target_class)
-                    if args and isinstance(args[0], type) and issubclass(args[0], BaseModel):  # noqa: WPS221
-                        model_class = args[0]  # noqa: WPS220
-
-            return ModelList(value, model_class=model_class)
-        # Recursively handle BaseModel if it's already one
-        if isinstance(value, BaseModel):
-            return value
+            return ModelList(value, model_class=_resolve_list_model_class(target_class))
+        # Already a BaseModel or a scalar: nothing to convert.
         return value
 
 
