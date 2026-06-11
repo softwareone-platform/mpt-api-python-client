@@ -15,6 +15,8 @@ Start with these documents:
 - [docs/architecture.md](docs/architecture.md): repository structure, layers, and key abstractions
 - [docs/local-development.md](docs/local-development.md): Docker-only local setup and execution model
 - [docs/testing.md](docs/testing.md): repository-specific test strategy and commands
+- [docs/unit_tests.md](docs/unit_tests.md): unit test structure and guidance
+- [docs/e2e_tests.md](docs/e2e_tests.md): end-to-end test setup and execution
 - [docs/contributing.md](docs/contributing.md): repository-specific workflow and links to shared standards
 - [docs/documentation.md](docs/documentation.md): repository-specific documentation rules
 - [docs/rql.md](docs/rql.md): fluent RQL query builder guide
