@@ -2,7 +2,9 @@ import pytest
 
 from tests.e2e.helper import (
     async_create_fixture_resource_and_delete,
+    async_create_fixture_resource_and_finalize,
     create_fixture_resource_and_delete,
+    create_fixture_resource_and_finalize,
 )
 
 
@@ -21,8 +23,10 @@ def invalid_queue_id():
 
 
 @pytest.fixture
-def created_queue(mpt_ops, queue_data):
-    with create_fixture_resource_and_delete(mpt_ops.helpdesk.queues, queue_data) as queue:
+def created_queue(mpt_ops, queue_data, logger):
+    with create_fixture_resource_and_finalize(
+        mpt_ops.helpdesk.queues, queue_data, mpt_ops.helpdesk.queues.disable, logger
+    ) as queue:
         yield queue
 
 
@@ -35,9 +39,9 @@ def created_disabled_queue(mpt_ops, created_queue):
 
 
 @pytest.fixture
-async def async_created_queue(async_mpt_ops, queue_data):
-    async with async_create_fixture_resource_and_delete(
-        async_mpt_ops.helpdesk.queues, queue_data
+async def async_created_queue(async_mpt_ops, queue_data, logger):
+    async with async_create_fixture_resource_and_finalize(
+        async_mpt_ops.helpdesk.queues, queue_data, async_mpt_ops.helpdesk.queues.disable, logger
     ) as queue:
         yield queue
 
@@ -64,8 +68,11 @@ def case_data(created_queue):
 
 
 @pytest.fixture
-def created_case(mpt_ops, case_data):
-    return mpt_ops.helpdesk.cases.create(case_data)
+def created_case(mpt_ops, case_data, logger):
+    with create_fixture_resource_and_finalize(
+        mpt_ops.helpdesk.cases, case_data, mpt_ops.helpdesk.cases.complete, logger
+    ) as case:
+        yield case
 
 
 @pytest.fixture
@@ -84,8 +91,11 @@ def created_chat(created_case):
 
 
 @pytest.fixture
-async def async_created_case(async_mpt_ops, case_data):
-    return await async_mpt_ops.helpdesk.cases.create(case_data)
+async def async_created_case(async_mpt_ops, case_data, logger):
+    async with async_create_fixture_resource_and_finalize(
+        async_mpt_ops.helpdesk.cases, case_data, async_mpt_ops.helpdesk.cases.complete, logger
+    ) as case:
+        yield case
 
 
 @pytest.fixture
