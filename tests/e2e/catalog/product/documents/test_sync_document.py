@@ -8,7 +8,7 @@ pytestmark = [pytest.mark.flaky]
 
 @pytest.fixture
 def created_document_from_file(vendor_document_service, document_data, pdf_fd):
-    document_data["documenttype"] = "File"
+    document_data["documentType"] = "File"
     document = vendor_document_service.create(document_data, pdf_fd)
     yield document
     try:

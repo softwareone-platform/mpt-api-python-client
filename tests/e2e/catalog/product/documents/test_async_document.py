@@ -13,7 +13,7 @@ def async_document_service(async_mpt_vendor, product_id):
 
 @pytest.fixture
 async def created_document_from_file_async(async_document_service, document_data, pdf_fd):
-    document_data["documenttype"] = "File"
+    document_data["documentType"] = "File"
     document = await async_document_service.create(document_data, file=pdf_fd)
     yield document
     try:
