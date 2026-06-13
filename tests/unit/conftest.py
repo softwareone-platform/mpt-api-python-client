@@ -1,6 +1,6 @@
 import pytest
 
-from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.http import AsyncHTTPClient, BearerTokenAuthentication, HTTPClient
 from mpt_api_client.models import Model
 
 API_TOKEN = "test-token"
@@ -13,12 +13,12 @@ class DummyModel(Model):
 
 @pytest.fixture
 def http_client():
-    return HTTPClient(base_url=API_URL, api_token=API_TOKEN)
+    return HTTPClient(base_url=API_URL, authentication=BearerTokenAuthentication(API_TOKEN))
 
 
 @pytest.fixture
 def async_http_client():
-    return AsyncHTTPClient(base_url=API_URL, api_token=API_TOKEN)
+    return AsyncHTTPClient(base_url=API_URL, authentication=BearerTokenAuthentication(API_TOKEN))
 
 
 @pytest.fixture

@@ -9,6 +9,7 @@ from httpx_retries import Retry, RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError, MPTMaxRetryError
+from mpt_api_client.http.authentication import Authentication
 from mpt_api_client.http.client import json_to_file_payload
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
 from mpt_api_client.http.query_options import QueryOptions
@@ -22,8 +23,8 @@ class AsyncHTTPClient:
     def __init__(
         self,
         *,
+        authentication: Authentication,
         base_url: str | None = None,
-        api_token: str | None = None,
         timeout: float = 20.0,
         retries: int = 5,
     ):
@@ -34,22 +35,11 @@ class AsyncHTTPClient:
         )
         transport = RetryTransport(retry=retry)
 
-        api_token = api_token or os.getenv("MPT_API_TOKEN")
-        if not api_token:
-            raise ValueError(
-                "API token is required. "
-                "Set it up as env variable MPT_API_TOKEN or pass it as `api_token` "
-                "argument to MPTClient."
-            )
-
         base_url = validate_base_url(base_url or os.getenv("MPT_API_BASE_URL"))
-        base_headers = {
-            "User-Agent": "swo-marketplace-client/1.0",
-            "Authorization": f"Bearer {api_token}",
-        }
         self.httpx_client = AsyncClient(
             base_url=base_url,
-            headers=base_headers,
+            headers={"User-Agent": "swo-marketplace-client/1.0"},
+            auth=authentication,
             timeout=timeout,
             transport=transport,
             follow_redirects=True,

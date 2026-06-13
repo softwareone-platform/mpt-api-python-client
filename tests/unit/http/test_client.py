@@ -6,6 +6,7 @@ import respx
 from httpx import ConnectTimeout, Response, codes
 
 from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
+from mpt_api_client.http import BearerTokenAuthentication
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from tests.unit.conftest import API_TOKEN, API_URL
@@ -13,45 +14,34 @@ from tests.unit.conftest import API_TOKEN, API_URL
 
 def test_http_initialization(mocker):
     mock_client = mocker.patch("mpt_api_client.http.client.Client")
+    authentication = BearerTokenAuthentication(API_TOKEN)
 
-    HTTPClient(base_url=API_URL, api_token=API_TOKEN)  # act
+    HTTPClient(base_url=API_URL, authentication=authentication)  # act
 
     mock_client.assert_called_once_with(
         base_url=API_URL,
         follow_redirects=True,
-        headers={
-            "User-Agent": "swo-marketplace-client/1.0",
-            "Authorization": "Bearer test-token",
-        },
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=authentication,
         timeout=20.0,
         transport=mocker.ANY,
     )
 
 
-def test_env_initialization(monkeypatch, mocker):
+def test_env_base_url_initialization(monkeypatch, mocker):
     monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
-    monkeypatch.setenv("MPT_API_TOKEN", API_TOKEN)
     mock_client = mocker.patch("mpt_api_client.http.client.Client")
 
-    HTTPClient()  # act
+    HTTPClient(authentication=BearerTokenAuthentication(API_TOKEN))  # act
 
     mock_client.assert_called_once_with(
         base_url=API_URL,
         follow_redirects=True,
-        headers={
-            "User-Agent": "swo-marketplace-client/1.0",
-            "Authorization": f"Bearer {API_TOKEN}",
-        },
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
         timeout=20.0,
         transport=mocker.ANY,
     )
-
-
-def test_http_without_token(monkeypatch):
-    monkeypatch.delenv("MPT_API_TOKEN", raising=False)
-
-    with pytest.raises(ValueError):
-        HTTPClient(base_url=API_URL)
 
 
 @respx.mock
