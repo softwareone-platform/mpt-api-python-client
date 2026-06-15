@@ -99,6 +99,7 @@ aaa_act_block_style = "large"
 doctests = true
 extend-ignore = ["WPS226", "WPS412"]
 extend-exclude = [
+  ".claude",
   ".coverage",
   ".github",
   ".idea",
