@@ -27,9 +27,12 @@ appends filters immutably, allowing expression composition without shared mutati
 You can build complex predicates by joining queries with `&` (AND), `|` (OR), and `~` (NOT):
 
 ```python
-from mpt_api_client import MPTClient, RQLQuery
+from mpt_api_client import MPTClient, BearerTokenAuthentication, RQLQuery
 
-client = MPTClient()
+client = MPTClient.from_config(
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
+)
 products = client.catalog.products
 
 target_ids = RQLQuery("id").in_([

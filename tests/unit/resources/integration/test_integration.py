@@ -12,6 +12,10 @@ from mpt_api_client.resources.integration.installations import (
     AsyncInstallationsService,
     InstallationsService,
 )
+from mpt_api_client.resources.integration.installations_token import (
+    AsyncInstallationsTokenService,
+    InstallationsTokenService,
+)
 from mpt_api_client.resources.integration.integration import (
     AsyncIntegration,
     Integration,
@@ -69,4 +73,18 @@ def test_async_integration_properties(async_integration, property_name, expected
     result = getattr(async_integration, property_name)
 
     assert isinstance(result, expected_service_class)
+    assert result.http_client is async_integration.http_client
+
+
+def test_integration_installations_token(integration):
+    result = integration.installations_token()
+
+    assert isinstance(result, InstallationsTokenService)
+    assert result.http_client is integration.http_client
+
+
+def test_async_integration_installations_token(async_integration):
+    result = async_integration.installations_token()
+
+    assert isinstance(result, AsyncInstallationsTokenService)
     assert result.http_client is async_integration.http_client
