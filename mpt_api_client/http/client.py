@@ -2,7 +2,7 @@ import json as json_package
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from httpx import Client, HTTPError, RequestError
 from httpx import Response as HTTPXResponse
@@ -15,6 +15,9 @@ from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.request_response_utils import handle_response_http_error
 from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
 from mpt_api_client.models import ResourceData
+
+if TYPE_CHECKING:
+    from mpt_api_client.auth.base import Authentication
 
 
 def json_to_file_payload(resource_data: ResourceData | None) -> bytes:
@@ -32,8 +35,8 @@ class HTTPClient:
     def __init__(
         self,
         *,
+        authentication: "Authentication",
         base_url: str | None = None,
-        api_token: str | None = None,
         timeout: float = 20.0,
         retries: int = 5,
     ):
@@ -44,22 +47,12 @@ class HTTPClient:
         )
         transport = RetryTransport(retry=retry)
 
-        api_token = api_token or os.getenv("MPT_API_TOKEN")
-        if not api_token:
-            raise ValueError(
-                "API token is required. "
-                "Set it up as env variable MPT_API_TOKEN or pass it as `api_token` "
-                "argument to MPTClient."
-            )
-
         base_url = validate_base_url(base_url or os.getenv("MPT_API_BASE_URL"))
-        base_headers = {
-            "User-Agent": "swo-marketplace-client/1.0",
-            "Authorization": f"Bearer {api_token}",
-        }
+        authentication.configure(base_url=base_url, timeout=timeout, retries=self._retries)
         self.httpx_client = Client(
             base_url=base_url,
-            headers=base_headers,
+            headers={"User-Agent": "swo-marketplace-client/1.0"},
+            auth=authentication,
             timeout=timeout,
             transport=transport,
             follow_redirects=True,

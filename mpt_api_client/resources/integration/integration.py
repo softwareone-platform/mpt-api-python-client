@@ -11,6 +11,10 @@ from mpt_api_client.resources.integration.installations import (
     AsyncInstallationsService,
     InstallationsService,
 )
+from mpt_api_client.resources.integration.installations_token import (
+    AsyncInstallationsTokenService,
+    InstallationsTokenService,
+)
 
 
 class Integration:
@@ -34,6 +38,10 @@ class Integration:
         """Installations service."""
         return InstallationsService(http_client=self.http_client)
 
+    def installations_token(self) -> InstallationsTokenService:
+        """Installations token service."""
+        return InstallationsTokenService(http_client=self.http_client)
+
 
 class AsyncIntegration:
     """Async Integration MPT API Module."""
@@ -55,3 +63,7 @@ class AsyncIntegration:
     def installations(self) -> AsyncInstallationsService:
         """Installations service."""
         return AsyncInstallationsService(http_client=self.http_client)
+
+    def installations_token(self) -> AsyncInstallationsTokenService:
+        """Installations token service."""
+        return AsyncInstallationsTokenService(http_client=self.http_client)

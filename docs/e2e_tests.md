@@ -30,12 +30,13 @@ E2E suites use `pytest` markers and live API credentials, so they run outside th
 
 ## Environment Variables
 
-| Variable                   | Description          |
-|----------------------------|----------------------|
-| `MPT_API_BASE_URL`         | MPT API base URL     |
-| `MPT_API_TOKEN_VENDOR`     | Vendor API token     |
-| `MPT_API_TOKEN_CLIENT`     | Client API token     |
-| `MPT_API_TOKEN_OPERATIONS` | Operations API token |
+| Variable                   | Description                                        |
+|----------------------------|----------------------------------------------------|
+| `MPT_API_BASE_URL`         | MPT API base URL                                   |
+| `MPT_API_TOKEN_VENDOR`     | Vendor API token                                   |
+| `MPT_API_TOKEN_CLIENT`     | Client API token                                   |
+| `MPT_API_TOKEN_OPERATIONS` | Operations API token                               |
+| `MPT_API_TOKEN_EXTENSION`  | Extension API key (installation token / extension framework auth) |
 
 ### Optional ReportPortal Integration
 

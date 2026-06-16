@@ -25,7 +25,7 @@ Start with these documents:
 ## Quick Start
 
 ```bash
-cp .env.sample .env   # configure MPT_API_BASE_URL and MPT_API_TOKEN
+cp .env.sample .env   # configure MPT_API_BASE_URL
 make build
 make test
 ```
