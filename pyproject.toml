@@ -157,6 +157,7 @@ per-file-ignores = [
   "tests/unit/resources/integration/*.py: WPS202 WPS210 WPS218 WPS453",
   "tests/unit/resources/integration/mixins/*.py: WPS453 WPS202",
   "tests/unit/auth/test_extension_framework.py: AAA01 AAA05 WPS118 WPS202 WPS204 WPS210 WPS218 WPS221 WPS430 WPS432 WPS453",
+  "tests/unit/auth/test_account_scoped.py: AAA01 AAA05 WPS118 WPS202 WPS204 WPS210 WPS218 WPS221 WPS430 WPS432 WPS437 WPS453",
   "tests/unit/resources/commerce/*.py: WPS202 WPS204",
   "tests/unit/resources/program/*.py: WPS202 WPS210 WPS218",
   "tests/unit/test_mpt_client.py: WPS235",

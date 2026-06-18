@@ -48,6 +48,12 @@ implementations are available:
   proactively once the token nears its JWT `exp` (default leeway 60s) and reactively on
   `401`. Pass `account_id` to request a token scoped to a specific account
   (`?account.id=<id>`); use one provider instance per account scope.
+- `AccountScopedAuthentication` — an always account-scoped token (`account_id` is required)
+  backed by a process-wide cache keyed by `(secret, account_id)`. Several provider or client
+  instances for the same account reuse a single cached token, and refreshes are serialized
+  per account, so concurrent callers trigger at most one token request. It refreshes
+  proactively (default leeway 60s) and reactively on `401`. Use this when many clients share
+  the same account scope or when many requests run concurrently.
 
 ## Instantiate The Client
 
@@ -78,6 +84,20 @@ For an account-scoped token, pass `account_id`:
 ```python
 client = MPTClient.from_config(
     authentication=ExtensionFrameworkAuthentication(
+        secret="<extension-secret>",
+        account_id="<account-id>",
+    ),
+    base_url="https://api.s1.show/public",
+)
+```
+
+With an account-scoped token shared across clients and concurrent requests:
+
+```python
+from mpt_api_client import MPTClient, AccountScopedAuthentication
+
+client = MPTClient.from_config(
+    authentication=AccountScopedAuthentication(
         secret="<extension-secret>",
         account_id="<account-id>",
     ),
