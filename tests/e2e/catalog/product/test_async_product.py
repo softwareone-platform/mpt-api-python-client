@@ -1,21 +1,8 @@
 import pytest
 
 from mpt_api_client import RQLQuery
-from mpt_api_client.exceptions import MPTAPIError
 
 pytestmark = [pytest.mark.flaky]
-
-
-@pytest.fixture
-async def async_created_product(async_mpt_vendor, product_data, logo_fd):
-    product = await async_mpt_vendor.catalog.products.create(product_data, file=logo_fd)
-
-    yield product
-
-    try:
-        await async_mpt_vendor.catalog.products.delete(product.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete product {product.id}: {error.title}")  # noqa: WPS421
 
 
 def test_create_product(async_created_product, product_data):

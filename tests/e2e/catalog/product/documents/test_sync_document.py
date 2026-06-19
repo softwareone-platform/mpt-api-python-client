@@ -1,7 +1,11 @@
 import pytest
 
 from mpt_api_client.exceptions import MPTAPIError
-from mpt_api_client.rql.query_builder import RQLQuery
+from tests.e2e.helper import (
+    assert_service_filter_with_iterate,
+    assert_update_resource,
+    create_fixture_resource_and_delete,
+)
 
 pytestmark = [pytest.mark.flaky]
 
@@ -9,23 +13,17 @@ pytestmark = [pytest.mark.flaky]
 @pytest.fixture
 def created_document_from_file(vendor_document_service, document_data, pdf_fd):
     document_data["documentType"] = "File"
-    document = vendor_document_service.create(document_data, pdf_fd)
-    yield document
-    try:
-        vendor_document_service.delete(document.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete document {document.id}: {error.title}")
+    with create_fixture_resource_and_delete(
+        vendor_document_service, document_data, upload_file=pdf_fd
+    ) as document:
+        yield document
 
 
 @pytest.fixture
 def created_document_from_url(vendor_document_service, document_data, pdf_url):
     document_data["url"] = pdf_url
-    document = vendor_document_service.create(document_data)
-    yield document
-    try:
-        vendor_document_service.delete(document.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete document {document.id}: {error.title}")
+    with create_fixture_resource_and_delete(vendor_document_service, document_data) as document:
+        yield document
 
 
 def test_create_document(created_document_from_file, document_data):  # noqa: AAA01
@@ -39,24 +37,25 @@ def test_create_document_from_url(created_document_from_url, document_data):  # 
 
 
 def test_update_document(vendor_document_service, created_document_from_file):
-    update_data = {"name": "Updated e2e test document - please delete"}
-
-    result = vendor_document_service.update(created_document_from_file.id, update_data)
-
-    assert result.name == update_data["name"]
-
-
-def test_get_document(vendor_document_service, document_id):
-    result = vendor_document_service.get(document_id)
-
-    assert result.id == document_id
+    assert_update_resource(
+        vendor_document_service,
+        created_document_from_file.id,
+        "name",
+        "Updated e2e test document - please delete",
+    )  # act
 
 
-def test_download_document(vendor_document_service, document_id):
-    result = vendor_document_service.download(document_id)
+def test_get_document(vendor_document_service, created_document_from_file):
+    result = vendor_document_service.get(created_document_from_file.id)
+
+    assert result.id == created_document_from_file.id
+
+
+def test_download_document(vendor_document_service, created_document_from_file):
+    result = vendor_document_service.download(created_document_from_file.id)
 
     assert result.file_contents is not None
-    assert result.filename == "pdf - empty.pdf"
+    assert result.filename == "empty.pdf"
 
 
 def test_iterate_documents(vendor_document_service, created_document_from_file):
@@ -68,18 +67,16 @@ def test_iterate_documents(vendor_document_service, created_document_from_file):
 
 
 def test_filter_documents(vendor_document_service, created_document_from_file):
-    result = list(
-        vendor_document_service.filter(RQLQuery(id=created_document_from_file.id)).iterate()
-    )
-
-    assert len(result) == 1
-    assert result[0].id == created_document_from_file.id
+    assert_service_filter_with_iterate(
+        vendor_document_service, created_document_from_file.id, None
+    )  # act
 
 
-def test_review_and_publish_document(mpt_vendor, mpt_ops, created_document_from_file, product_id):
-    vendor_service = mpt_vendor.catalog.products.documents(product_id)
-    ops_service = mpt_ops.catalog.products.documents(product_id)
-    document = vendor_service.review(created_document_from_file.id)
+def test_review_and_publish_document(
+    vendor_document_service, mpt_ops, created_document_from_file, created_product
+):
+    ops_service = mpt_ops.catalog.products.documents(created_product.id)
+    document = vendor_document_service.review(created_document_from_file.id)
     assert document.status == "Pending"
     document = ops_service.publish(created_document_from_file.id)
     assert document.status == "Published"
