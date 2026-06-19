@@ -6,8 +6,8 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def vendor_media_service(mpt_vendor, product_id):
-    return mpt_vendor.catalog.products.media(product_id)
+def vendor_media_service(mpt_vendor, created_product):
+    return mpt_vendor.catalog.products.media(created_product.id)
 
 
 @pytest.fixture
