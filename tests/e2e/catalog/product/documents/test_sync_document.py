@@ -46,17 +46,17 @@ def test_update_document(vendor_document_service, created_document_from_file):
     assert result.name == update_data["name"]
 
 
-def test_get_document(vendor_document_service, document_id):
-    result = vendor_document_service.get(document_id)
+def test_get_document(vendor_document_service, created_document_from_file):
+    result = vendor_document_service.get(created_document_from_file.id)
 
-    assert result.id == document_id
+    assert result.id == created_document_from_file.id
 
 
-def test_download_document(vendor_document_service, document_id):
-    result = vendor_document_service.download(document_id)
+def test_download_document(vendor_document_service, created_document_from_file):
+    result = vendor_document_service.download(created_document_from_file.id)
 
     assert result.file_contents is not None
-    assert result.filename == "pdf - empty.pdf"
+    assert result.filename == "empty.pdf"
 
 
 def test_iterate_documents(vendor_document_service, created_document_from_file):
@@ -76,10 +76,11 @@ def test_filter_documents(vendor_document_service, created_document_from_file):
     assert result[0].id == created_document_from_file.id
 
 
-def test_review_and_publish_document(mpt_vendor, mpt_ops, created_document_from_file, product_id):
-    vendor_service = mpt_vendor.catalog.products.documents(product_id)
-    ops_service = mpt_ops.catalog.products.documents(product_id)
-    document = vendor_service.review(created_document_from_file.id)
+def test_review_and_publish_document(
+    vendor_document_service, mpt_ops, created_document_from_file, created_product
+):
+    ops_service = mpt_ops.catalog.products.documents(created_product.id)
+    document = vendor_document_service.review(created_document_from_file.id)
     assert document.status == "Pending"
     document = ops_service.publish(created_document_from_file.id)
     assert document.status == "Published"

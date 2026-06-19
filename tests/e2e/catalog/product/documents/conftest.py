@@ -2,11 +2,6 @@ import pytest
 
 
 @pytest.fixture
-def document_id(e2e_config):
-    return e2e_config["catalog.product.document.id"]
-
-
-@pytest.fixture
 def document_data():
     return {
         "name": "e2e test document - please delete",
@@ -17,10 +12,10 @@ def document_data():
 
 
 @pytest.fixture
-def vendor_document_service(mpt_vendor, product_id):
-    return mpt_vendor.catalog.products.documents(product_id)
+def vendor_document_service(mpt_vendor, created_product):
+    return mpt_vendor.catalog.products.documents(created_product.id)
 
 
 @pytest.fixture
-def async_vendor_document_service(async_mpt_vendor, product_id):
-    return async_mpt_vendor.catalog.products.documents(product_id)
+def async_vendor_document_service(async_mpt_vendor, async_created_product):
+    return async_mpt_vendor.catalog.products.documents(async_created_product.id)
