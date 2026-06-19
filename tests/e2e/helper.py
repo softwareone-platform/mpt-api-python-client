@@ -33,8 +33,11 @@ def _finalize_resource(finalize, resource, logger):
 
 
 @asynccontextmanager
-async def async_create_fixture_resource_and_delete(service, resource_data):
-    resource = await service.create(resource_data)
+async def async_create_fixture_resource_and_delete(service, resource_data, upload_file=None):
+    if upload_file is None:
+        resource = await service.create(resource_data)
+    else:
+        resource = await service.create(resource_data, file=upload_file)
 
     try:
         yield resource
@@ -43,8 +46,11 @@ async def async_create_fixture_resource_and_delete(service, resource_data):
 
 
 @contextmanager
-def create_fixture_resource_and_delete(service, resource_data):
-    resource = service.create(resource_data)
+def create_fixture_resource_and_delete(service, resource_data, upload_file=None):
+    if upload_file is None:
+        resource = service.create(resource_data)
+    else:
+        resource = service.create(resource_data, file=upload_file)
 
     try:
         yield resource
