@@ -33,7 +33,7 @@ class FileModel:
 
     @property
     def file_contents(self) -> bytes:
-        """Returns the content of the attachment.
+        """Content of the attachment.
 
         Returns:
             The content of the attachment in bytes
@@ -46,7 +46,7 @@ class FileModel:
 
     @property
     def content_type(self) -> str | None:
-        """Returns the content type of the attachment.
+        """Content type of the attachment.
 
         Returns:
             The content type of the attachment.

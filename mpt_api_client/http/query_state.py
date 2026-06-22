@@ -36,22 +36,22 @@ class QueryState:
 
     @property
     def filter(self) -> RQLQuery | None:
-        """Get the current filter query."""
+        """Current filter query."""
         return self._filter
 
     @property
     def order_by(self) -> list[str] | None:
-        """Get the current order by fields."""
+        """Current order by fields."""
         return self._order_by
 
     @property
     def select(self) -> list[str] | None:
-        """Get the current select fields."""
+        """Current select fields."""
         return self._select
 
     @property
     def options(self) -> QueryOptions:
-        """Get the current query options."""
+        """Current query options."""
         return self._options
 
     def build(self, query_params: dict[str, Any] | None = None) -> str:
