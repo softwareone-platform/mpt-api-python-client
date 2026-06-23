@@ -72,9 +72,3 @@ stacked = products.filter(recent).filter(has_docs)
 combined = recent & has_docs
 assert str(stacked.query_state.filter) == str(combined)
 ```
-
-
-
-
-
-
