@@ -6,13 +6,13 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def async_media_service(async_mpt_vendor, product_id):
-    return async_mpt_vendor.catalog.products.media(product_id)
+def async_media_service(async_mpt_vendor, async_created_product):
+    return async_mpt_vendor.catalog.products.media(async_created_product.id)
 
 
 @pytest.fixture
-def async_vendor_media_service(async_mpt_vendor, product_id):
-    return async_mpt_vendor.catalog.products.media(product_id)
+def async_vendor_media_service(async_mpt_vendor, async_created_product):
+    return async_mpt_vendor.catalog.products.media(async_created_product.id)
 
 
 @pytest.fixture
