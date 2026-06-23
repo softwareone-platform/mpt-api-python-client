@@ -35,5 +35,3 @@ make test args="-k test_create"    # run a specific test pattern
 ## Unit tests mocking
 
 [Unit tests mocks wiht examples](https://github.com/softwareone-platform/mpt-extension-skills/blob/main/standards/unittests.md#mocking-rules)
-
-

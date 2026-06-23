@@ -53,5 +53,3 @@ Set the required environment variables before invoking the suite to avoid creden
 validation failures.
 
 Test results are published to [Report Portal](https://report-portal.s1.team/).
-
-
