@@ -692,6 +692,15 @@ wheels = [
 ]
 
 [[package]]
+name = "iso4217"
+version = "1.16.20260101"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/98/a5f28006515c24de82c3d76f79e13dd3fbdf71431fdb158505ee45008908/iso4217-1.16.20260101.tar.gz", hash = "sha256:6a5afba6acb01cad8045f81e2b96f6adbea04f0c524ae21f317ac4ca11c3bdd6", size = 13695, upload-time = "2026-03-03T15:28:36.013Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/5b/725a6980401169ba9115f0b837d3af09134e43eaed9b2bebd8dbb50df733/iso4217-1.16.20260101-py2.py3-none-any.whl", hash = "sha256:69c591b93c7d783ec8c309ebee8df1aa28f8403d44bcce518ae8db050462084b", size = 11991, upload-time = "2026-03-03T15:28:34.523Z" },
+]
+
+[[package]]
 name = "jedi"
 version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -802,6 +811,7 @@ dev = [
     { name = "freezegun" },
     { name = "ipdb" },
     { name = "ipython" },
+    { name = "iso4217" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pyfakefs" },
@@ -837,6 +847,7 @@ dev = [
     { name = "freezegun", specifier = "==1.5.*" },
     { name = "ipdb", specifier = "==0.13.*" },
     { name = "ipython", specifier = "==9.*" },
+    { name = "iso4217", specifier = "==1.16.*" },
     { name = "mypy", specifier = "==2.1.*" },
     { name = "pre-commit", specifier = "==4.6.*" },
     { name = "pyfakefs", specifier = "==6.2.*" },

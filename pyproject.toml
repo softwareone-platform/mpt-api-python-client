@@ -33,9 +33,9 @@ dev = [
   "freezegun==1.5.*",
   "ipdb==0.13.*",
   "ipython==9.*",
-    "mypy==2.1.*",
+  "mypy==2.1.*",
   "pre-commit==4.6.*",
-    "pyfakefs==6.2.*",
+  "pyfakefs==6.2.*",
   "pytest==9.1.*",
   "pytest-asyncio==1.4.*",
   "pytest-cov==7.1.*",
@@ -46,11 +46,12 @@ dev = [
   "pytest-rerunfailures==16.3.*",
   "pytest-xdist==3.8.*",
   "responses==0.26.*",
-    "respx==0.23.*",
+  "respx==0.23.*",
   "ruff==0.15.*", # force ruff version to have same formatting everywhere
   "typing-extensions==4.15.*",
   "wemake-python-styleguide==1.6.*",
   "types-python-dateutil==2.9.*",
+  "iso4217==1.16.*",
 ]
 
 [tool.hatch.build.targets.sdist]
