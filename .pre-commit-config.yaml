@@ -41,3 +41,5 @@ repos:
         pass_filenames: false
         additional_dependencies:
           - python-box==7.3.2
+          - httpx==0.28.*
+          - httpx-retries==0.5.*
