@@ -1,8 +1,26 @@
+import logging
+import secrets
 import string
 
 import pytest
+from iso4217 import Currency
 
 from mpt_api_client.exceptions import MPTAPIError
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+CURRENCY_CODE_LENGTH = 3
+CURRENCY_CODE_ALPHABET = string.ascii_uppercase
+ISO_CURRENCY_CODES = frozenset(currency.code for currency in Currency)
+
+
+def _random_currency_code():
+    while True:
+        letters = (secrets.choice(CURRENCY_CODE_ALPHABET) for _ in range(CURRENCY_CODE_LENGTH))
+        code = "".join(letters)
+        if code not in ISO_CURRENCY_CODES:
+            return code
 
 
 @pytest.fixture
@@ -22,8 +40,8 @@ def currency_id(e2e_config):
 
 @pytest.fixture
 def currency_data(short_uuid):
-    digit_to_alpha = str.maketrans(string.digits, "GHIJKLMNOP")
-    code = short_uuid[:3].translate(digit_to_alpha).upper()
+    code = _random_currency_code()
+    logger.info("e2e generated currency code: %s", code)
     return {
         "name": f"e2e - please delete {short_uuid}",
         "code": code,
@@ -40,7 +58,7 @@ def created_currency(currencies_service, currency_data, logo_fd):
     try:
         currencies_service.delete(currency.id)
     except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete currency {currency.id}: {error.title}")  # noqa: WPS421
+        logger.warning("TEARDOWN - Unable to delete currency %s: %s", currency.id, error.title)
 
 
 @pytest.fixture
@@ -52,4 +70,4 @@ async def async_created_currency(async_currencies_service, currency_data, logo_f
     try:
         await async_currencies_service.delete(currency.id)
     except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete currency {currency.id}: {error.title}")  # noqa: WPS421
+        logger.warning("TEARDOWN - Unable to delete currency %s: %s", currency.id, error.title)
