@@ -7,6 +7,15 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "aenum"
+version = "3.1.17"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/e9/8b283567c1fef7c24d1f390b37daede8b61593d8cdaffb8e95d571699e83/aenum-3.1.17.tar.gz", hash = "sha256:a969a4516b194895de72c875ece355f17c0d272146f7fda346ef74f93cf4d5ba", size = 137648, upload-time = "2026-03-20T20:43:29.846Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/48/8d/1fe30c6fd8999b9d462547c4a1bb6690bda24af38f2913c4bec7decb81f2/aenum-3.1.17-py3-none-any.whl", hash = "sha256:8b883a37a04e74cc838ac442bdd28c266eae5bbf13e1342c7ef123ed25230139", size = 165560, upload-time = "2026-03-20T20:43:27.681Z" },
+]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -406,6 +415,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/ef/d715f4cd2e947fddc4c8763be1c4099793caf38aa1a099b6d621ecfeb768/dependency_injector-4.49.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:ba7e94e4323219c93dac35aabba7efa4e91c9afeac044b1d50bdc66a00a07238", size = 1845636, upload-time = "2026-06-18T17:51:07.023Z" },
     { url = "https://files.pythonhosted.org/packages/e7/32/03d1e5e0c6b79eaabf2ed4155302df05832e54789cc9f670cc62af20897b/dependency_injector-4.49.1-cp310-abi3-win32.whl", hash = "sha256:5a6e3a0df8cff636da3d7212473e30dff897c5bdbca2dd3049b5363012a495fa", size = 1548655, upload-time = "2026-06-18T17:51:08.721Z" },
     { url = "https://files.pythonhosted.org/packages/93/51/ce3ca96314f93f44358523cb8cdf81c8c1e002b4e097141e460bc598c87f/dependency_injector-4.49.1-cp310-abi3-win_amd64.whl", hash = "sha256:153f6b8d1db35d1fc9b001e41564a47ab2a7708038fecefadf3afada8ec7f814", size = 1676934, upload-time = "2026-06-18T17:51:10.465Z" },
+]
+
+[[package]]
+name = "dill"
+version = "0.4.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/e1/56027a71e31b02ddc53c7d65b01e68edf64dea2932122fe7746a516f75d5/dill-0.4.1.tar.gz", hash = "sha256:423092df4182177d4d8ba8290c8a5b640c66ab35ec7da59ccfa00f6fa3eea5fa", size = 187315, upload-time = "2026-01-19T02:36:56.85Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl", hash = "sha256:1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d", size = 120019, upload-time = "2026-01-19T02:36:55.663Z" },
 ]
 
 [[package]]
@@ -873,13 +891,13 @@ dev = [
     { name = "pytest-mock", specifier = "==3.15.*" },
     { name = "pytest-randomly", specifier = "==4.1.*" },
     { name = "pytest-reportportal", specifier = "==5.6.*" },
-    { name = "pytest-rerunfailures", specifier = "==16.3.*" },
+    { name = "pytest-rerunfailures", specifier = "==16.4.*" },
     { name = "pytest-xdist", specifier = "==3.8.*" },
     { name = "responses", specifier = "==0.26.*" },
     { name = "respx", specifier = "==0.23.*" },
     { name = "ruff", specifier = "==0.15.*" },
     { name = "types-python-dateutil", specifier = "==2.9.*" },
-    { name = "typing-extensions", specifier = "==4.15.*" },
+    { name = "typing-extensions", specifier = "==4.16.*" },
     { name = "wemake-python-styleguide", specifier = "==1.6.*" },
 ]
 
@@ -1376,27 +1394,30 @@ wheels = [
 
 [[package]]
 name = "pytest-reportportal"
-version = "5.6.9"
+version = "5.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "aenum" },
+    { name = "dill" },
+    { name = "pytest" },
     { name = "reportportal-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/a9/852126c4e0f821e398ca6b282ea2122f5fbe2b570977880c48b31b47090d/pytest_reportportal-5.6.9.tar.gz", hash = "sha256:d327436184cbda16c40935d4e58e50893a86b5009a73b95168b3b9876ca4f62b", size = 33152, upload-time = "2026-06-22T19:29:26.58Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/5b/e07104599cd5dbc11fb279f90fc0dc889dd52e6a930767841ac5c24db5a3/pytest_reportportal-5.6.1.tar.gz", hash = "sha256:349dfcaa74d050fa90a81d3137659751ff78b8d08a7e9baef870720fe339c760", size = 32927, upload-time = "2026-03-20T16:52:01.113Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/13/23387667cda49aaa1b117898d46d9c8357c42e28f7ae3db8fe4be9f6669b/pytest_reportportal-5.6.9-py2.py3-none-any.whl", hash = "sha256:f3b6a53beffb9fb5f1c568e35111d811989aad975ad2b67a60a4bc432f7ecfa2", size = 32520, upload-time = "2026-06-22T19:29:25.609Z" },
+    { url = "https://files.pythonhosted.org/packages/23/bd/efe02f636dda9f573d8d94822e561234beb26b55e53c61e3f4ccd5ff8203/pytest_reportportal-5.6.1-py2.py3-none-any.whl", hash = "sha256:a7751f4643b254539ad7cdb24d67683d3f34fda20f53b0511cf2576a076dd0c7", size = 32231, upload-time = "2026-03-20T16:52:00.122Z" },
 ]
 
 [[package]]
 name = "pytest-rerunfailures"
-version = "16.3"
+version = "16.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/f0/74f8e685be7ecd1572c1256132f18fce3a665d7e07649a3f23b7eb2d3bec/pytest_rerunfailures-16.3.tar.gz", hash = "sha256:37c9b1231c8083e9f4e724f50f7a21241822f9516c15c700ebbf218d6452355c", size = 34148, upload-time = "2026-05-22T06:51:22.292Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/60/a90ca1cc6cffcb97b4260ed0ad2b7934b999d7c48abe4ea0840344862a3b/pytest_rerunfailures-16.4.tar.gz", hash = "sha256:8222d17c37eb7b9e4d6fc96a3c724ff4e1a5c97a5cc7cbb2c19e9282cfd21a11", size = 36635, upload-time = "2026-07-01T06:30:56.813Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/98/58a71d68d3126d7f6a6ed1944c37ec207a4ff3dc66cad3bed7b59d38df61/pytest_rerunfailures-16.3-py3-none-any.whl", hash = "sha256:6bdfb8ffb46c46072e6c16bdedee38b6c13eac620d9415ed5b63152cbf283170", size = 15396, upload-time = "2026-05-22T06:51:20.547Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/93/3cdcc4033444e822e01b573414b03fd37fd5533070c750477b8f5fa5224b/pytest_rerunfailures-16.4-py3-none-any.whl", hash = "sha256:f69b5beb39622c90d1e44bd945d826eff6db545dcf0b68f52b7e4ad15eaf6d6c", size = 16955, upload-time = "2026-07-01T06:30:55.333Z" },
 ]
 
 [[package]]
@@ -1485,17 +1506,18 @@ wheels = [
 
 [[package]]
 name = "reportportal-client"
-version = "5.7.7"
+version = "5.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "aenum" },
     { name = "aiohttp" },
     { name = "certifi" },
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/df/354185fcfac1e13aa2a01490c66a8105357e0049f36b60314dc025163435/reportportal_client-5.7.7.tar.gz", hash = "sha256:a0380d98c259a1bc0dc00d02901305e207c450188909ca16254d378fd63ccdae", size = 73077, upload-time = "2026-06-16T10:07:40.502Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/b2/574237454ff21e9872943524b773a50b0d2733e4bf099312da1693a013f4/reportportal_client-5.7.0.tar.gz", hash = "sha256:8840f2b6e2e8505a557159c42e7fdbc4dc43259c427597093d83ef7d4fc36495", size = 65279, upload-time = "2025-12-01T14:48:43.025Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/7e/5a61c3fa2c0c440b7879df4e188139da4262b8d6706d4ae45df1a73c2762/reportportal_client-5.7.7-py2.py3-none-any.whl", hash = "sha256:080d0779ffccec153b8074bf892550c6a59347f8294bb731702d158fa45529b3", size = 88606, upload-time = "2026-06-16T10:07:39.385Z" },
+    { url = "https://files.pythonhosted.org/packages/0f/d8/2685e13b1f543541031b37308ac1b18f9f3c693c79caa56a0c5b8d797848/reportportal_client-5.7.0-py2.py3-none-any.whl", hash = "sha256:020e5a1a555ac08d0874e27fda723f67db388af42df6673c27b6e8011df40735", size = 81837, upload-time = "2025-12-01T14:48:42.141Z" },
 ]
 
 [[package]]
@@ -1607,11 +1629,11 @@ wheels = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.15.0"
+version = "4.16.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/72/94/1a15dd82efb362ac84269196e94cf00f187f7ed21c242792a923cdb1c61f/typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466", size = 109391, upload-time = "2025-08-25T13:49:26.313Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/cc/6253133b5bb138fc3306cebfbda2c520f545d36b5be2c7255cc528bb45d6/typing_extensions-4.16.0.tar.gz", hash = "sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5", size = 113555, upload-time = "2026-07-02T08:40:05.92Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/67/36e9267722cc04a6b9f15c7f3441c2363321a3ea07da7ae0c0707beb2a9c/typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548", size = 44614, upload-time = "2025-08-25T13:49:24.86Z" },
+    { url = "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl", hash = "sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8", size = 45571, upload-time = "2026-07-02T08:40:04.659Z" },
 ]
 
 [[package]]
