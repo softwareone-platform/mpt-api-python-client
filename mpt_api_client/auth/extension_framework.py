@@ -11,19 +11,13 @@ from typing import override
 
 import httpx
 
-from mpt_api_client.auth.base import Authentication, BearerTokenAuthentication
-from mpt_api_client.auth.jwt import JWTClaimsError, JWTFormatError, decode_unverified_jwt_claims
+from mpt_api_client.auth.base import InstallationTokenAuthentication
 from mpt_api_client.exceptions import MPTError
-from mpt_api_client.http import AsyncHTTPClient, HTTPClient
-from mpt_api_client.resources.integration.installations_token import (
-    AsyncInstallationsTokenService,
-    InstallationsTokenService,
-)
 
 DEFAULT_TOKEN_VALIDITY_LEEWAY_SECONDS = 60
 
 
-class ExtensionFrameworkAuthentication(Authentication):
+class ExtensionFrameworkAuthentication(InstallationTokenAuthentication):
     """Authenticate with a short-lived installation or account-scoped token.
 
     The token is fetched through the installations token service using the extension secret
@@ -53,23 +47,11 @@ class ExtensionFrameworkAuthentication(Authentication):
             account_id: When set, request a token scoped to this account.
             min_remaining_validity_seconds: Proactive refresh leeway before the JWT ``exp``.
         """
-        self._secret = secret
+        super().__init__(secret)
         self._account_id = account_id
         self._min_remaining_validity_seconds = min_remaining_validity_seconds
         self._token: str | None = None
         self._expires_at: dt.datetime | None = None
-        self._base_url: str | None = None
-        self._timeout: float = 20.0
-        self._retries: int = 5
-        self._sync_service: InstallationsTokenService | None = None
-        self._async_service: AsyncInstallationsTokenService | None = None
-
-    @override
-    def configure(self, *, base_url: str, timeout: float, retries: int) -> None:
-        """Store the owning client's configuration used to build the token client."""
-        self._base_url = base_url
-        self._timeout = timeout
-        self._retries = retries
 
     @override
     def sync_auth_flow(
@@ -109,56 +91,12 @@ class ExtensionFrameworkAuthentication(Authentication):
         token = await self._get_async_service().token(self._account_id)
         self._store(token.token)
 
-    def _get_sync_service(self) -> InstallationsTokenService:
-        """Return the cached sync token service, building it on first use."""
-        if self._sync_service is None:
-            token_client = HTTPClient(
-                authentication=BearerTokenAuthentication(self._secret),
-                base_url=self._require_base_url(),
-                timeout=self._timeout,
-                retries=self._retries,
-            )
-            self._sync_service = InstallationsTokenService(http_client=token_client)
-        return self._sync_service
-
-    def _get_async_service(self) -> AsyncInstallationsTokenService:
-        """Return the cached async token service, building it on first use."""
-        if self._async_service is None:
-            token_client = AsyncHTTPClient(
-                authentication=BearerTokenAuthentication(self._secret),
-                base_url=self._require_base_url(),
-                timeout=self._timeout,
-                retries=self._retries,
-            )
-            self._async_service = AsyncInstallationsTokenService(http_client=token_client)
-        return self._async_service
-
-    def _require_base_url(self) -> str:
-        """Return the configured base URL, raising when the provider is unconfigured."""
-        if self._base_url is None:
-            raise MPTError(
-                "ExtensionFrameworkAuthentication must be used with an MPT HTTPClient or "
-                "AsyncHTTPClient; the base URL was not configured.",
-            )
-        return self._base_url
-
     def _store(self, token: str | None) -> None:
         """Cache a freshly fetched token and its expiry."""
         if not token:
             raise MPTError("Installations token endpoint returned an empty token.")
         self._token = token
         self._expires_at = self._read_expiry(token)
-
-    def _read_expiry(self, token: str) -> dt.datetime | None:
-        """Read the ``exp`` claim from the token, ignoring tokens without one."""
-        try:
-            claims = decode_unverified_jwt_claims(token)
-        except (JWTFormatError, JWTClaimsError):
-            return None
-        exp = claims.get("exp")
-        if not isinstance(exp, int):
-            return None
-        return dt.datetime.fromtimestamp(exp, tz=dt.UTC)
 
     def _is_expired(self) -> bool:
         """Return whether the cached token is within the refresh leeway of expiry."""
