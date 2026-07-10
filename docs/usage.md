@@ -46,8 +46,9 @@ implementations are available:
 - `ExtensionFrameworkAuthentication` — a short-lived installation or account-scoped token
   fetched from an extension secret via `POST /installations/-/token`. It refreshes
   proactively once the token nears its JWT `exp` (default leeway 60s) and reactively on
-  `401`. Pass `account_id` to request a token scoped to a specific account
-  (`?account.id=<id>`); use one provider instance per account scope.
+  `401`. Request bodies are buffered in memory before sending so the `401` retry can
+  replay one-shot streamed bodies intact. Pass `account_id` to request a token scoped to
+  a specific account (`?account.id=<id>`); use one provider instance per account scope.
 
 ## Instantiate The Client
 
