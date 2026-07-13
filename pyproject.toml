@@ -33,7 +33,7 @@ dev = [
   "freezegun==1.5.*",
   "ipdb==0.13.*",
   "ipython==9.*",
-  "mypy==2.1.*",
+  "mypy==2.2.*",
   "pre-commit==4.6.*",
   "pyfakefs==6.2.*",
   "pytest==9.1.*",
