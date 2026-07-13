@@ -40,6 +40,12 @@ class ExtensionFrameworkAuthentication(Authentication):
     account scopes should construct one provider per scope.
     """
 
+    # The 401 retry re-sends the request, so one-shot streamed bodies (raw iterators,
+    # non-seekable files) must be buffered before the first send; otherwise the retry
+    # replays an already-consumed stream. httpx only honours this flag in the default
+    # ``auth_flow`` wrappers, so the overridden flows below also buffer explicitly.
+    requires_request_body = True
+
     def __init__(
         self,
         secret: str,
@@ -76,6 +82,7 @@ class ExtensionFrameworkAuthentication(Authentication):
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
         """Attach a cached token, refreshing it proactively and on 401."""
+        request.read()
         if self._token is None or self._is_expired():
             self._refresh_sync()
         request.headers["Authorization"] = f"Bearer {self._token}"
@@ -90,6 +97,7 @@ class ExtensionFrameworkAuthentication(Authentication):
         self, request: httpx.Request
     ) -> AsyncGenerator[httpx.Request, httpx.Response]:
         """Attach a cached token, refreshing it proactively and on 401."""
+        await request.aread()
         if self._token is None or self._is_expired():
             await self._refresh_async()
         request.headers["Authorization"] = f"Bearer {self._token}"
