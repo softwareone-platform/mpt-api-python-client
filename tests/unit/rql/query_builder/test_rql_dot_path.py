@@ -30,8 +30,8 @@ def test_dotted_path_comp_bool_and_str(op):
     result = getattr(RQLQuery().asset.id, op)
 
     assert str(result("value")) == f"{op}(asset.id,'value')"
-    assert str(result(True)) == f"{op}(asset.id,true)"  # noqa: FBT003
-    assert str(result(False)) == f"{op}(asset.id,false)"  # noqa: FBT003
+    assert str(result(True)) == f"{op}(asset.id,true)"  # ruff:ignore[boolean-positional-value-in-call]
+    assert str(result(False)) == f"{op}(asset.id,false)"  # ruff:ignore[boolean-positional-value-in-call]
 
 
 @pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])  # noqa: AAA01
@@ -100,4 +100,4 @@ def test_dotted_path_already_evaluated():
     query = RQLQuery().first.second.eq("value")
 
     with pytest.raises(AttributeError):
-        query.third  # noqa: B018
+        query.third  # ruff:ignore[useless-expression]

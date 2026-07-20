@@ -252,7 +252,7 @@ async def test_extension_framework_retry_resends_streamed_body_async(async_exten
     )
 
     # httpx AsyncClient requires an async iterable for streamed content
-    async def stream_body() -> AsyncGenerator[bytes]:  # noqa: RUF029
+    async def stream_body() -> AsyncGenerator[bytes]:  # ruff:ignore[unused-async]
         yield b"chunk-1"
         yield b"chunk-2"
 

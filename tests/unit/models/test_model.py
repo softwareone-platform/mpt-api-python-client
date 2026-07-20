@@ -290,7 +290,7 @@ def test_model_list_process_item_scalar():
 def test_base_model_getattr_from_dict():
     model = BaseModel(foo="bar")
 
-    result = model.__getattr__("foo")  # noqa: PLC2801
+    result = model.__getattr__("foo")  # ruff:ignore[unnecessary-dunder-call]
 
     assert result == "bar"
 
@@ -298,14 +298,14 @@ def test_base_model_getattr_from_dict():
 def test_base_model_setattr_private():
     model = BaseModel(foo="bar")
 
-    model._private = "secret"  # noqa: SLF001  # act
+    model._private = "secret"  # ruff:ignore[private-member-access]  # act
 
-    assert model._private == "secret"  # noqa: SLF001
+    assert model._private == "secret"  # ruff:ignore[private-member-access]
 
 
 def test_to_dict_excludes_private_attrs():
     model = BaseModel(foo="bar")
-    model._private = "secret"  # noqa: SLF001
+    model._private = "secret"  # ruff:ignore[private-member-access]
 
     result = model.to_dict()
 
