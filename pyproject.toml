@@ -33,7 +33,7 @@ dev = [
   "freezegun==1.5.*",
   "ipdb==0.13.*",
   "ipython==9.*",
-  "mypy==2.2.*",
+  "mypy==2.3.*",
   "pre-commit==4.6.*",
   "pyfakefs==6.2.*",
   "pytest==9.1.*",
@@ -239,6 +239,8 @@ ignore = [
   "PLR2004", # do not report magic numbers
   "PLR6301", # do not require classmethod / staticmethod when self not used
   "PT011", # pytest.raises({exception}) is too broad, set the match parameter or use a more specific exception
+  "RUF105", # noqa-comments (preview): allow `# noqa` comments instead of `# ruff:ignore`
+  "RUF201", # rule-codes-in-selectors (preview): allow rule codes instead of names in lint selectors
   "TRY003", # long exception messages from `tryceratops`
 ]
 external = ["AAA", "WPS"]
