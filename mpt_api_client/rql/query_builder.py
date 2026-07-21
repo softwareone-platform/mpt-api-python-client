@@ -283,7 +283,7 @@ class RQLQuery:
             expr=self.expr,
             negated=True,
         )
-        inverted_query._append(self)  # noqa: SLF001
+        inverted_query._append(self)  # ruff:ignore[private-member-access]
         return inverted_query
 
     def __getattr__(self, name: str) -> Self:
@@ -443,7 +443,7 @@ class RQLQuery:
         """
         return self._list("in", value)
 
-    def null(self, value: bool) -> Self:  # noqa: FBT001
+    def null(self, value: bool) -> Self:  # ruff:ignore[boolean-type-hint-positional-argument]
         """Applies the `null` operator to the field this `RQLQuery` object refers to.
 
         Args:
@@ -458,7 +458,7 @@ class RQLQuery:
         """
         return self._bool("null", value)
 
-    def empty(self, value: bool = True) -> Self:  # noqa: FBT001 FBT002
+    def empty(self, value: bool = True) -> Self:  # ruff:ignore[boolean-type-hint-positional-argument, boolean-default-value-positional-argument]
         """Apply the `empty` operator to the field this `RQLQuery` object refers to.
 
         Args:
@@ -555,8 +555,8 @@ class RQLQuery:
             return self._copy(other)
 
         query = self.new(op=op)
-        query._append(self)  # noqa: SLF001
-        query._append(other)  # noqa: SLF001
+        query._append(self)  # ruff:ignore[private-member-access]
+        query._append(other)  # ruff:ignore[private-member-access]
         return query
 
     def _append(self, query: "RQLQuery") -> "RQLQuery" | Self:
