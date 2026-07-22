@@ -39,7 +39,7 @@ MPT_API_BASE_URL=<YOUR_MPT_API_BASE_URL>
 
 ## Authentication
 
-Authentication is provided through an `Authentication` provider passed to the client. Two
+Authentication is provided through an `Authentication` provider passed to the client. Three
 implementations are available:
 
 - `BearerTokenAuthentication` — a single, long-lived token.
@@ -49,6 +49,12 @@ implementations are available:
   `401`. Request bodies are buffered in memory before sending so the `401` retry can
   replay one-shot streamed bodies intact. Pass `account_id` to request a token scoped to
   a specific account (`?account.id=<id>`); use one provider instance per account scope.
+- `CLIAccountAuthentication` — reuses the login of the SoftwareOne Marketplace CLI
+  (`mpt-cli`). It reads `~/.swocli/accounts.json` (override with `file_path`) and
+  authenticates with the token of the active account, or of a specific account when
+  `account_id` is passed. The account's API URL is exposed as `environment` so the client
+  base URL can be wired from the same source. Raises `CLIAccountError` when the file is
+  missing or no usable account matches.
 
 ## Instantiate The Client
 
@@ -83,6 +89,18 @@ client = MPTClient.from_config(
         account_id="<account-id>",
     ),
     base_url="https://api.s1.show/public",
+)
+```
+
+With the account you are logged into the marketplace CLI with:
+
+```python
+from mpt_api_client import CLIAccountAuthentication, MPTClient
+
+authentication = CLIAccountAuthentication()
+client = MPTClient.from_config(
+    authentication=authentication,
+    base_url=authentication.environment,
 )
 ```
 
