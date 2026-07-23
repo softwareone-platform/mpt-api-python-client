@@ -2,8 +2,14 @@ from collections.abc import AsyncIterator, Iterator
 
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import Response
+from mpt_api_client.models import AsyncProgress, ModelCollection, Progress
 from mpt_api_client.models import Model as BaseModel
-from mpt_api_client.models import ModelCollection
+
+
+def _pagination_total[Model: BaseModel](items_collection: ModelCollection[Model]) -> int:
+    if items_collection.meta:
+        return items_collection.meta.pagination.total
+    return 0
 
 
 class CollectionMixin[Model: BaseModel](QueryableMixin):
@@ -39,11 +45,17 @@ class CollectionMixin[Model: BaseModel](QueryableMixin):
 
         return resource_list[0]  # type: ignore[no-any-return]
 
-    def iterate(self, batch_size: int = 100) -> Iterator[Model]:
+    def iterate(
+        self, batch_size: int = 100, *, progress: Progress | None = None
+    ) -> Iterator[Model]:
         """Iterate over all resources, yielding GenericResource objects.
 
         Args:
             batch_size: Number of resources to fetch per request
+            progress: Optional progress receiver. `set_total_items` is called after
+                each page fetch with the current pagination total (0 when unknown),
+                `item_processed` once per record before it is yielded, and
+                `completed` once when iteration finishes normally.
 
         Returns:
             Iterator of resources.
@@ -54,13 +66,26 @@ class CollectionMixin[Model: BaseModel](QueryableMixin):
         while True:
             response = self._fetch_page_as_response(limit=limit, offset=offset)
             items_collection = self.make_collection(response)  # type: ignore[attr-defined]
-            yield from items_collection
+            yield from self._iterate_page(items_collection, progress)
 
             if not items_collection.meta:
                 break
             if not items_collection.meta.pagination.has_next():
                 break
             offset = items_collection.meta.pagination.next_offset()
+
+        if progress:
+            progress.completed()
+
+    def _iterate_page(
+        self, items_collection: ModelCollection[Model], progress: Progress | None
+    ) -> Iterator[Model]:
+        if progress:
+            progress.set_total_items(_pagination_total(items_collection))
+        for resource in items_collection:
+            if progress:
+                progress.item_processed()
+            yield resource
 
     def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> Response:
         """Fetch one page of resources.
@@ -108,11 +133,17 @@ class AsyncCollectionMixin[Model: BaseModel](QueryableMixin):
 
         return resource_list[0]  # type: ignore[no-any-return]
 
-    async def iterate(self, batch_size: int = 100) -> AsyncIterator[Model]:
+    async def iterate(
+        self, batch_size: int = 100, *, progress: AsyncProgress | None = None
+    ) -> AsyncIterator[Model]:
         """Iterate over all resources, yielding GenericResource objects.
 
         Args:
             batch_size: Number of resources to fetch per request
+            progress: Optional progress receiver. `set_total_items` is awaited after
+                each page fetch with the current pagination total (0 when unknown),
+                `item_processed` once per record before it is yielded, and
+                `completed` once when iteration finishes normally.
 
         Returns:
             Iterator of resources.
@@ -123,7 +154,7 @@ class AsyncCollectionMixin[Model: BaseModel](QueryableMixin):
         while True:
             response = await self._fetch_page_as_response(limit=limit, offset=offset)
             items_collection = self.make_collection(response)  # type: ignore[attr-defined]
-            for resource in items_collection:
+            async for resource in self._iterate_page(items_collection, progress):
                 yield resource
 
             if not items_collection.meta:
@@ -131,6 +162,19 @@ class AsyncCollectionMixin[Model: BaseModel](QueryableMixin):
             if not items_collection.meta.pagination.has_next():
                 break
             offset = items_collection.meta.pagination.next_offset()
+
+        if progress:
+            await progress.completed()
+
+    async def _iterate_page(
+        self, items_collection: ModelCollection[Model], progress: AsyncProgress | None
+    ) -> AsyncIterator[Model]:
+        if progress:
+            await progress.set_total_items(_pagination_total(items_collection))
+        for resource in items_collection:
+            if progress:
+                await progress.item_processed()  # noqa: WPS476
+            yield resource
 
     async def _fetch_page_as_response(self, limit: int = 100, offset: int = 0) -> Response:
         """Fetch one page of resources.

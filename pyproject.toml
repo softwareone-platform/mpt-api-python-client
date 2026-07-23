@@ -118,7 +118,9 @@ show-source = true
 statistics = false
 per-file-ignores = [
   "mpt_api_client/auth/extension_framework.py: WPS214",
+  "mpt_api_client/models/__init__.py: WPS235",
   "mpt_api_client/models/model.py: WPS215 WPS110",
+  "mpt_api_client/models/progress.py: WPS202",
   "mpt_api_client/mpt_client.py: WPS214 WPS235",
   "mpt_api_client/resources/*: WPS215",
   "mpt_api_client/resources/accounts/*.py: WPS202 WPS215 WPS214 WPS235 WPS453",
