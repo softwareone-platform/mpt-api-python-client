@@ -6,13 +6,16 @@ the extension secret.
 """
 
 import datetime as dt
+import os
 from collections.abc import AsyncGenerator, Generator
+from dataclasses import replace
 from typing import override
 
 import httpx
 
 from mpt_api_client.auth.base import Authentication, BearerTokenAuthentication
 from mpt_api_client.auth.jwt import JWTClaimsError, JWTFormatError, decode_unverified_jwt_claims
+from mpt_api_client.config import ClientConfig
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.resources.integration.installations_token import (
@@ -71,11 +74,26 @@ class ExtensionFrameworkAuthentication(Authentication):
         self._async_service: AsyncInstallationsTokenService | None = None
 
     @override
-    def configure(self, *, base_url: str, timeout: float, retries: int) -> None:
-        """Store the owning client's configuration used to build the token client."""
+    def configure(self, config: ClientConfig) -> ClientConfig:
+        """Store the owning client's configuration used to build the token client.
+
+        Resolves the ``MPT_API_BASE_URL`` fallback itself so the stored base URL
+        matches the one the owning client will use.
+
+        Args:
+            config: Configuration of the owning client as passed by the caller.
+
+        Returns:
+            The configuration with the base URL resolved from the environment
+            when it was not passed explicitly.
+        """
+        base_url = config.base_url
+        if base_url is None:
+            base_url = os.getenv("MPT_API_BASE_URL")
         self._base_url = base_url
-        self._timeout = timeout
-        self._retries = retries
+        self._timeout = config.timeout
+        self._retries = config.retries
+        return replace(config, base_url=base_url)
 
     @override
     def sync_auth_flow(

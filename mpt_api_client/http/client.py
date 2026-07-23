@@ -8,6 +8,7 @@ from httpx import Client, HTTPError, RequestError
 from httpx import Response as HTTPXResponse
 from httpx_retries import Retry, RetryTransport
 
+from mpt_api_client.config import ClientConfig
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError, MPTMaxRetryError
 from mpt_api_client.http.client_utils import get_query_params, validate_base_url
@@ -40,20 +41,28 @@ class HTTPClient:
         timeout: float = 20.0,
         retries: int = 5,
     ):
-        self._retries = retries
+        config = authentication.configure(
+            ClientConfig(base_url=base_url, timeout=timeout, retries=retries)
+        )
+        resolved_base_url = config.base_url
+        if resolved_base_url is None:
+            resolved_base_url = os.getenv("MPT_API_BASE_URL")
+        validated_base_url = validate_base_url(resolved_base_url)
+        self._config = ClientConfig(
+            base_url=validated_base_url,
+            timeout=config.timeout,
+            retries=config.retries,
+        )
         retry = Retry(
-            total=self._retries,
+            total=self._config.retries,
             allowed_methods={"DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"},
         )
         transport = RetryTransport(retry=retry)
-
-        base_url = validate_base_url(base_url or os.getenv("MPT_API_BASE_URL"))
-        authentication.configure(base_url=base_url, timeout=timeout, retries=self._retries)
         self.httpx_client = Client(
-            base_url=base_url,
+            base_url=validated_base_url,
             headers={"User-Agent": "swo-marketplace-client/1.0"},
             auth=authentication,
-            timeout=timeout,
+            timeout=self._config.timeout,
             transport=transport,
             follow_redirects=True,
         )
@@ -107,7 +116,7 @@ class HTTPClient:
                 headers=headers,
             )
         except RequestError as err:
-            raise MPTMaxRetryError(str(err), self._retries + 1) from err
+            raise MPTMaxRetryError(str(err), self._config.retries + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err
 
@@ -160,6 +169,6 @@ class HTTPClient:
                 handle_response_http_error(response)
                 yield response
         except RequestError as err:
-            raise MPTMaxRetryError(str(err), self._retries + 1) from err
+            raise MPTMaxRetryError(str(err), self._config.retries + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err

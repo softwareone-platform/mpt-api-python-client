@@ -9,7 +9,13 @@ from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
-from tests.unit.conftest import API_TOKEN, API_URL
+from tests.unit.conftest import (
+    API_TOKEN,
+    API_URL,
+    AUTH_API_URL,
+    AUTH_TIMEOUT,
+    EnvironmentBoundAuthentication,
+)
 
 
 def test_http_initialization(mocker):
@@ -40,6 +46,53 @@ def test_env_base_url_initialization(monkeypatch, mocker):
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=mocker.ANY,
         timeout=20.0,
+        transport=mocker.ANY,
+    )
+
+
+def test_auth_base_url_initialization(monkeypatch, mocker):
+    monkeypatch.delenv("MPT_API_BASE_URL", raising=False)
+    mock_client = mocker.patch("mpt_api_client.http.client.Client")
+
+    HTTPClient(authentication=EnvironmentBoundAuthentication(API_TOKEN))  # act
+
+    mock_client.assert_called_once_with(
+        base_url=AUTH_API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
+        timeout=AUTH_TIMEOUT,
+        transport=mocker.ANY,
+    )
+
+
+def test_explicit_base_url_beats_auth_base_url(mocker):
+    mock_client = mocker.patch("mpt_api_client.http.client.Client")
+
+    HTTPClient(base_url=API_URL, authentication=EnvironmentBoundAuthentication(API_TOKEN))  # act
+
+    mock_client.assert_called_once_with(
+        base_url=API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
+        timeout=AUTH_TIMEOUT,
+        transport=mocker.ANY,
+    )
+
+
+def test_auth_base_url_beats_env_base_url(monkeypatch, mocker):
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    mock_client = mocker.patch("mpt_api_client.http.client.Client")
+
+    HTTPClient(authentication=EnvironmentBoundAuthentication(API_TOKEN))  # act
+
+    mock_client.assert_called_once_with(
+        base_url=AUTH_API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
+        timeout=AUTH_TIMEOUT,
         transport=mocker.ANY,
     )
 

@@ -8,6 +8,7 @@ import pytest
 import respx
 
 from mpt_api_client.auth import ExtensionFrameworkAuthentication
+from mpt_api_client.config import ClientConfig
 from mpt_api_client.exceptions import MPTAPIError, MPTError
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from tests.unit.conftest import API_URL
@@ -15,6 +16,15 @@ from tests.unit.conftest import API_URL
 SECRET = "extension-secret"
 TOKEN_URL = f"{API_URL}/public/v1/integration/installations/-/token"
 ORDERS_URL = f"{API_URL}/orders"
+
+
+def test_configure_env_base_url(monkeypatch):
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    authentication = ExtensionFrameworkAuthentication(SECRET)
+
+    result = authentication.configure(ClientConfig())  # act
+
+    assert result.base_url == API_URL
 
 
 @pytest.fixture

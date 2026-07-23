@@ -9,22 +9,28 @@ from typing import override
 
 import httpx
 
+from mpt_api_client.config import ClientConfig
+
 
 class Authentication(httpx.Auth):
     """Base class for MPT API authentication providers."""
 
-    def configure(self, *, base_url: str, timeout: float, retries: int) -> None:
-        """Receive the owning HTTP client's configuration.
+    def configure(self, config: ClientConfig) -> ClientConfig:
+        """Receive the owning HTTP client's configuration and optionally amend it.
 
-        Called once by ``HTTPClient``/``AsyncHTTPClient`` at construction time. The base
-        implementation is a no-op; providers that need the client's configuration (such as
-        ``ExtensionFrameworkAuthentication``) override it.
+        Called once by ``HTTPClient``/``AsyncHTTPClient`` at construction time, before
+        the base URL falls back to ``MPT_API_BASE_URL`` and is validated. Providers
+        bound to a specific environment may fill ``base_url`` when it is ``None``;
+        explicitly passed values should be preserved. The base implementation returns
+        the configuration unchanged.
 
         Args:
-            base_url: Resolved base URL of the owning client.
-            timeout: HTTP request timeout in seconds.
-            retries: Number of retries configured on the owning client.
+            config: Configuration of the owning client as passed by the caller.
+
+        Returns:
+            The configuration to use, possibly amended.
         """
+        return config
 
 
 class BearerTokenAuthentication(Authentication):

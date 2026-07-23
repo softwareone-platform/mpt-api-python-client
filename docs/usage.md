@@ -20,16 +20,18 @@ uv add mpt-api-client
 
 ## Configuration
 
-The client requires a base URL and an authentication provider.
+The client requires a resolvable base URL and an authentication provider.
 
 Environment variables:
 
 | Variable           | Required | Description                        |
 |--------------------|----------|------------------------------------|
-| `MPT_API_BASE_URL` | yes      | SoftwareONE Marketplace API URL    |
+| `MPT_API_BASE_URL` | no       | SoftwareONE Marketplace API URL    |
 
-The base URL can be read from the environment; the authentication provider is always passed
-explicitly.
+The base URL is resolved in order from the `base_url` argument, the value amended by the
+authentication provider through `Authentication.configure(config)` (for providers bound
+to a specific environment), and the `MPT_API_BASE_URL` environment variable; the
+authentication provider is always passed explicitly.
 
 Example `.env` snippet:
 

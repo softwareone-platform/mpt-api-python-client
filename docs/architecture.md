@@ -162,8 +162,11 @@ class ProductsService(
 - error transformation into `MPTHttpError` / `MPTAPIError`
 - multipart file upload support
 
-The base URL is read from a constructor argument or the `MPT_API_BASE_URL` environment
-variable; the authentication provider is always passed explicitly.
+At construction time the client passes a `ClientConfig` (base URL, timeout, retries) to
+`Authentication.configure(config)`, which may return an amended copy — providers bound to
+a specific environment fill the base URL when it was not passed. The base URL is then
+resolved from that configuration, falling back to the `MPT_API_BASE_URL` environment
+variable, and validated; the authentication provider is always passed explicitly.
 
 ## Cross-Cutting Concerns
 
