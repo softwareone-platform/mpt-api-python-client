@@ -9,7 +9,13 @@ from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTError, MPTMaxRetryError
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.query_options import QueryOptions
-from tests.unit.conftest import API_TOKEN, API_URL
+from tests.unit.conftest import (
+    API_TOKEN,
+    API_URL,
+    AUTH_API_URL,
+    AUTH_TIMEOUT,
+    EnvironmentBoundAuthentication,
+)
 
 
 @pytest.fixture
@@ -50,6 +56,54 @@ def test_async_env_base_url_initialization(monkeypatch, mocker):
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=mocker.ANY,
         timeout=20.0,
+        transport=mocker.ANY,
+    )
+
+
+def test_async_auth_base_url_initialization(monkeypatch, mocker):
+    monkeypatch.delenv("MPT_API_BASE_URL", raising=False)
+    mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
+
+    AsyncHTTPClient(authentication=EnvironmentBoundAuthentication(API_TOKEN))  # act
+
+    mock_async_client.assert_called_once_with(
+        base_url=AUTH_API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
+        timeout=AUTH_TIMEOUT,
+        transport=mocker.ANY,
+    )
+
+
+def test_async_explicit_url_beats_auth_base_url(mocker):
+    mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
+    authentication = EnvironmentBoundAuthentication(API_TOKEN)
+
+    AsyncHTTPClient(base_url=API_URL, authentication=authentication)  # act
+
+    mock_async_client.assert_called_once_with(
+        base_url=API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=authentication,
+        timeout=AUTH_TIMEOUT,
+        transport=mocker.ANY,
+    )
+
+
+def test_async_auth_base_url_beats_env_base_url(monkeypatch, mocker):
+    monkeypatch.setenv("MPT_API_BASE_URL", API_URL)
+    mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
+
+    AsyncHTTPClient(authentication=EnvironmentBoundAuthentication(API_TOKEN))  # act
+
+    mock_async_client.assert_called_once_with(
+        base_url=AUTH_API_URL,
+        follow_redirects=True,
+        headers={"User-Agent": "swo-marketplace-client/1.0"},
+        auth=mocker.ANY,
+        timeout=AUTH_TIMEOUT,
         transport=mocker.ANY,
     )
 

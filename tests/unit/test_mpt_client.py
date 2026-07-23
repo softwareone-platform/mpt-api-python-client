@@ -27,7 +27,12 @@ from mpt_api_client.resources import (
     Program,
     Spotlight,
 )
-from tests.unit.conftest import API_TOKEN, API_URL
+from tests.unit.conftest import (
+    API_TOKEN,
+    API_URL,
+    AUTH_API_URL,
+    EnvironmentBoundAuthentication,
+)
 
 
 def get_mpt_client():
@@ -74,6 +79,16 @@ def test_mpt_client_from_config(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(result.http_client, HTTPClient)
 
 
+def test_from_config_auth_base_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("MPT_API_BASE_URL", raising=False)
+
+    result = MPTClient.from_config(authentication=EnvironmentBoundAuthentication(API_TOKEN))
+
+    assert result.http_client.httpx_client.base_url == AUTH_API_URL
+
+
 @pytest.mark.parametrize(
     ("resource_name", "expected_type"),
     [
@@ -110,3 +125,13 @@ def test_async_mpt_client_from_config(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert isinstance(result, AsyncMPTClient)
     assert isinstance(result.http_client, AsyncHTTPClient)
+
+
+def test_async_from_config_auth_base_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("MPT_API_BASE_URL", raising=False)
+
+    result = AsyncMPTClient.from_config(authentication=EnvironmentBoundAuthentication(API_TOKEN))
+
+    assert result.http_client.httpx_client.base_url == AUTH_API_URL

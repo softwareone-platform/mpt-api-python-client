@@ -1,15 +1,31 @@
+from dataclasses import replace
+
 import pytest
 
 from mpt_api_client.auth import BearerTokenAuthentication
+from mpt_api_client.config import ClientConfig
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
 from mpt_api_client.models import Model
 
 API_TOKEN = "test-token"
 API_URL = "https://api.example.com"
+AUTH_API_URL = "https://auth.example.com"
+AUTH_TIMEOUT = 99.0
 
 
 class DummyModel(Model):
     """Dummy resource for testing."""
+
+
+class EnvironmentBoundAuthentication(BearerTokenAuthentication):
+    """Bearer token authentication bound to a fixed environment for testing."""
+
+    def configure(self, config: ClientConfig) -> ClientConfig:
+        """Amend the timeout and fill the base URL when it was not passed."""
+        config = replace(config, timeout=AUTH_TIMEOUT)
+        if config.base_url is None:
+            config = replace(config, base_url=AUTH_API_URL)
+        return config
 
 
 @pytest.fixture

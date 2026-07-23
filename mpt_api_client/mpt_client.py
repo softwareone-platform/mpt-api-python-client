@@ -41,14 +41,16 @@ class AsyncMPTClient:
     def from_config(
         cls,
         authentication: Authentication,
-        base_url: str,
+        base_url: str | None = None,
         timeout: float = 60.0,
     ) -> Self:
         """Create MPT client from configuration.
 
         Args:
             authentication: Authentication provider (e.g. BearerTokenAuthentication).
-            base_url: MPT Base URL
+            base_url: MPT Base URL. When omitted, the authentication provider may
+                supply it via ``Authentication.configure``, with the
+                ``MPT_API_BASE_URL`` environment variable as the final fallback.
             timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
         Returns:
@@ -128,14 +130,16 @@ class MPTClient:
     def from_config(
         cls,
         authentication: Authentication,
-        base_url: str,
+        base_url: str | None = None,
         timeout: float = 60.0,
     ) -> Self:
         """Create MPT client from configuration.
 
         Args:
             authentication: Authentication provider (e.g. BearerTokenAuthentication).
-            base_url: MPT Base URL
+            base_url: MPT Base URL. When omitted, the authentication provider may
+                supply it via ``Authentication.configure``, with the
+                ``MPT_API_BASE_URL`` environment variable as the final fallback.
             timeout: HTTP request timeout in seconds. Defaults to 60.0.
 
         Returns:
