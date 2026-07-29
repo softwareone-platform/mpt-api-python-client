@@ -33,6 +33,48 @@ class AsyncDummyService(  # noqa: WPS215
     _model_class = DummyModel
 
 
+class RecordingProgress:
+    """Progress fake recording every event as a tuple, in call order."""
+
+    def __init__(self):
+        self.events = []
+
+    def set_total_items(self, total):
+        self.events.append(("set_total_items", total))
+
+    def item_processed(self):
+        self.events.append(("item_processed",))
+
+    def completed(self):
+        self.events.append(("completed",))
+
+
+class AsyncRecordingProgress:
+    """AsyncProgress fake recording every event as a tuple, in call order."""
+
+    def __init__(self):
+        self.events = []
+
+    async def set_total_items(self, total):
+        self.events.append(("set_total_items", total))
+
+    async def item_processed(self):
+        self.events.append(("item_processed",))
+
+    async def completed(self):
+        self.events.append(("completed",))
+
+
+@pytest.fixture
+def recording_progress():
+    return RecordingProgress()
+
+
+@pytest.fixture
+def async_recording_progress():
+    return AsyncRecordingProgress()
+
+
 @pytest.fixture
 def dummy_service(http_client):
     return DummyService(http_client=http_client)

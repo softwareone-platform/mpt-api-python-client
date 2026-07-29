@@ -6,10 +6,29 @@ from mpt_api_client.models.media_model import MediaModel
 from mpt_api_client.models.meta import Meta, Pagination
 from mpt_api_client.models.model import Model, ResourceData
 from mpt_api_client.models.model_collection import ModelCollection
+from mpt_api_client.models.progress import (
+    AsyncBatchProgressReport,
+    AsyncConsoleProgress,
+    AsyncProgress,
+    AsyncProgressReport,
+    AsyncTimeProgressReport,
+    BatchProgressReport,
+    ConsoleProgress,
+    Progress,
+    ProgressReport,
+    TimeProgressReport,
+)
 from mpt_api_client.models.term_variant_model import TermVariantModel
 
 __all__ = [  # noqa: WPS410
+    "AsyncBatchProgressReport",
+    "AsyncConsoleProgress",
+    "AsyncProgress",
+    "AsyncProgressReport",
+    "AsyncTimeProgressReport",
     "AttachmentModel",
+    "BatchProgressReport",
+    "ConsoleProgress",
     "DocumentModel",
     "FileModel",
     "FileResourceModel",
@@ -18,6 +37,9 @@ __all__ = [  # noqa: WPS410
     "Model",
     "ModelCollection",
     "Pagination",
+    "Progress",
+    "ProgressReport",
     "ResourceData",
     "TermVariantModel",
+    "TimeProgressReport",
 ]

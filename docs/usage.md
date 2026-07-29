@@ -118,6 +118,54 @@ for invoice in client.billing.invoices.iterate():
     print(invoice.id)
 ```
 
+Report progress while iterating by passing an object that implements the `Progress`
+protocol (`mpt_api_client.models.Progress`). `set_total_items` is called after each
+page fetch, `item_processed` once per record, and `completed` when iteration finishes.
+The client ships `ConsoleProgress`, which prints `Fetched X of Y - P%` to stderr
+at most once per configurable interval:
+
+```python
+import datetime as dt
+
+from mpt_api_client.models import ConsoleProgress
+
+progress = ConsoleProgress(interval=dt.timedelta(seconds=5))
+for invoice in client.billing.invoices.iterate(batch_size=50, progress=progress):
+    print(invoice.id)
+```
+
+Any object implementing the three protocol methods works the same way. For custom
+renderers, extend one of the abstract `ProgressReport` bases instead of implementing
+the protocol from scratch: `TimeProgressReport` reports at most once per time interval
+and `BatchProgressReport` once every `batch_size` records. Both track the count and
+total for you — implement only `report(current, total, *, completed)`:
+
+```python
+from mpt_api_client.models import BatchProgressReport
+
+
+class LogProgress(BatchProgressReport):
+    def report(self, current, total, *, completed):
+        logger.info("Processed %s of %s records", current, total)
+
+
+for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1000)):
+    print(invoice.id)
+```
+
+`report` is called with `completed=True` exactly once, when iteration finishes.
+
+> **Note:** when a response carries no pagination total (missing `$meta`),
+> `set_total_items` is still called but receives `0` — treat a total of `0` as
+> unknown when rendering progress.
+
+The `progress` parameter is also accepted by `stream()` on JSONL endpoints; there
+`set_total_items` is never called because JSONL responses carry no total, so design
+progress implementations for an unknown total. The async `iterate()` and `stream()` accept an
+`AsyncProgress` implementation whose methods are `async def` and are awaited —
+`AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
+`AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
+
 ## Asynchronous Usage Patterns
 
 ```python

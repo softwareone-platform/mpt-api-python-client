@@ -4,7 +4,26 @@ import respx
 
 from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import MPTAPIError
-from tests.unit.http.conftest import AsyncDummyService, DummyService
+from tests.unit.http.conftest import (
+    AsyncDummyService,
+    AsyncRecordingProgress,
+    DummyService,
+    RecordingProgress,
+)
+
+
+class FailingProgress(RecordingProgress):
+    """Progress fake raising when an item is processed."""
+
+    def item_processed(self):
+        raise RuntimeError("progress failure")
+
+
+class AsyncFailingProgress(AsyncRecordingProgress):
+    """AsyncProgress fake raising when an item is processed."""
+
+    async def item_processed(self):
+        raise RuntimeError("progress failure")
 
 
 def test_col_mx_fetch_one_success(
@@ -257,6 +276,113 @@ def test_col_mx_iterate_handles_api_errors(dummy_service: DummyService) -> None:
             list(iterator)
 
 
+def test_col_mx_iterate_progress_one_page(
+    dummy_service: DummyService,
+    single_page_response: httpx.Response,
+    recording_progress: RecordingProgress,
+) -> None:
+    """Test progress events while iterating over a single page."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+
+        list(dummy_service.iterate(progress=recording_progress))  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+def test_col_mx_iterate_progress_multi_page(
+    dummy_service: DummyService,
+    multi_page_response_page1: httpx.Response,
+    multi_page_response_page2: httpx.Response,
+    recording_progress: RecordingProgress,
+) -> None:
+    """Test progress events while iterating over multiple pages."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 0}).mock(
+            return_value=multi_page_response_page1
+        )
+        respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 2}).mock(
+            return_value=multi_page_response_page2
+        )
+
+        list(dummy_service.iterate(2, progress=recording_progress))  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 4),
+        ("item_processed",),
+        ("item_processed",),
+        ("set_total_items", 4),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+def test_col_mx_iterate_progress_empty(
+    dummy_service: DummyService,
+    empty_response: httpx.Response,
+    recording_progress: RecordingProgress,
+) -> None:
+    """Test progress events while iterating over an empty set of resources."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=empty_response)
+
+        list(dummy_service.iterate(progress=recording_progress))  # act
+
+    assert recording_progress.events == [("set_total_items", 0), ("completed",)]
+
+
+def test_col_mx_iterate_progress_no_meta(
+    dummy_service: DummyService,
+    no_meta_response: httpx.Response,
+    recording_progress: RecordingProgress,
+) -> None:
+    """Test progress events when the response carries no metadata."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=no_meta_response)
+
+        list(dummy_service.iterate(progress=recording_progress))  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 0),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+def test_col_mx_iterate_progress_abandoned(
+    dummy_service: DummyService,
+    single_page_response: httpx.Response,
+    recording_progress: RecordingProgress,
+) -> None:
+    """Test that completed is not reported when iteration is abandoned early."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+        iterator = dummy_service.iterate(progress=recording_progress)
+        next(iterator)
+
+        iterator.close()  # act
+
+    assert recording_progress.events == [("set_total_items", 2), ("item_processed",)]
+
+
+def test_col_mx_iterate_progress_error(
+    dummy_service: DummyService, single_page_response: httpx.Response
+) -> None:
+    """Test that exceptions raised by the progress receiver propagate."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+
+        with pytest.raises(RuntimeError, match="progress failure"):
+            list(dummy_service.iterate(progress=FailingProgress()))
+
+
 async def test_async_col_mx_fetch_one_success(
     async_dummy_service: AsyncDummyService, single_result_response: httpx.Response
 ) -> None:
@@ -507,3 +633,125 @@ async def test_async_col_mx_iterate_handles_api_errors(
 
         with pytest.raises(MPTAPIError):
             [resource async for resource in async_dummy_service.iterate()]
+
+
+async def test_async_col_mx_iterate_progress_one_page(
+    async_dummy_service: AsyncDummyService,
+    single_page_response: httpx.Response,
+    async_recording_progress: AsyncRecordingProgress,
+) -> None:
+    """Test progress events while iterating over a single page."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+
+        [
+            resource
+            async for resource in async_dummy_service.iterate(progress=async_recording_progress)
+        ]
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+async def test_async_col_mx_iterate_progress_multi_page(
+    async_dummy_service: AsyncDummyService,
+    multi_page_response_page1: httpx.Response,
+    multi_page_response_page2: httpx.Response,
+    async_recording_progress: AsyncRecordingProgress,
+) -> None:
+    """Test progress events while iterating over multiple pages."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 0}).mock(
+            return_value=multi_page_response_page1
+        )
+        respx.get("https://api.example.com/api/v1/test", params={"limit": 2, "offset": 2}).mock(
+            return_value=multi_page_response_page2
+        )
+
+        [
+            resource
+            async for resource in async_dummy_service.iterate(2, progress=async_recording_progress)
+        ]
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 4),
+        ("item_processed",),
+        ("item_processed",),
+        ("set_total_items", 4),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+async def test_async_col_mx_iterate_progress_empty(
+    async_dummy_service: AsyncDummyService,
+    empty_response: httpx.Response,
+    async_recording_progress: AsyncRecordingProgress,
+) -> None:
+    """Test progress events while iterating over an empty set of resources."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=empty_response)
+
+        [
+            resource
+            async for resource in async_dummy_service.iterate(progress=async_recording_progress)
+        ]
+
+    assert async_recording_progress.events == [("set_total_items", 0), ("completed",)]
+
+
+async def test_async_col_mx_iterate_progress_no_meta(
+    async_dummy_service: AsyncDummyService,
+    no_meta_response: httpx.Response,
+    async_recording_progress: AsyncRecordingProgress,
+) -> None:
+    """Test progress events when the response carries no metadata."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=no_meta_response)
+
+        [
+            resource
+            async for resource in async_dummy_service.iterate(progress=async_recording_progress)
+        ]
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 0),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+async def test_async_col_mx_iterate_progress_abandoned(
+    async_dummy_service: AsyncDummyService,
+    single_page_response: httpx.Response,
+    async_recording_progress: AsyncRecordingProgress,
+) -> None:
+    """Test that completed is not reported when iteration is abandoned early."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+        iterator = async_dummy_service.iterate(progress=async_recording_progress)
+
+        await anext(iterator)
+        await iterator.aclose()
+
+    assert async_recording_progress.events == [("set_total_items", 2), ("item_processed",)]
+
+
+async def test_async_col_mx_iterate_progress_error(
+    async_dummy_service: AsyncDummyService, single_page_response: httpx.Response
+) -> None:
+    """Test that exceptions raised by the progress receiver propagate."""
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=single_page_response)
+
+        with pytest.raises(RuntimeError, match="progress failure"):
+            [
+                resource
+                async for resource in async_dummy_service.iterate(progress=AsyncFailingProgress())
+            ]
