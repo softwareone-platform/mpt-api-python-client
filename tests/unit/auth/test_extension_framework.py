@@ -9,7 +9,7 @@ import respx
 
 from mpt_api_client.auth import ExtensionFrameworkAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTError
-from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.http import AsyncHTTPClient, HTTPClient, TransportSettings
 from tests.unit.conftest import API_URL
 
 SECRET = "extension-secret"
@@ -19,13 +19,17 @@ ORDERS_URL = f"{API_URL}/orders"
 
 @pytest.fixture
 def extension_http_client() -> HTTPClient:
-    return HTTPClient(base_url=API_URL, authentication=ExtensionFrameworkAuthentication(SECRET))
+    return HTTPClient(
+        transport=TransportSettings(base_url=API_URL),
+        authentication=ExtensionFrameworkAuthentication(SECRET),
+    )
 
 
 @pytest.fixture
 def async_extension_http_client() -> AsyncHTTPClient:
     return AsyncHTTPClient(
-        base_url=API_URL, authentication=ExtensionFrameworkAuthentication(SECRET)
+        transport=TransportSettings(base_url=API_URL),
+        authentication=ExtensionFrameworkAuthentication(SECRET),
     )
 
 
@@ -315,7 +319,7 @@ def test_extension_framework_account_scoped_token_request():
     )
     respx.get(ORDERS_URL).mock(return_value=httpx.Response(200, json={"data": []}))
     client = HTTPClient(
-        base_url=API_URL,
+        transport=TransportSettings(base_url=API_URL),
         authentication=ExtensionFrameworkAuthentication(SECRET, account_id="ACC-123"),
     )
 

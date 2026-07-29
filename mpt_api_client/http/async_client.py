@@ -1,18 +1,18 @@
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
 from httpx import AsyncClient, HTTPError, RequestError
 from httpx import Response as HTTPXResponse
-from httpx_retries import Retry, RetryTransport
+from httpx_retries import RetryTransport
 
 from mpt_api_client.constants import APPLICATION_JSON
 from mpt_api_client.exceptions import MPTError, MPTMaxRetryError
 from mpt_api_client.http.client import json_to_file_payload
-from mpt_api_client.http.client_utils import get_query_params, validate_base_url
+from mpt_api_client.http.client_utils import get_query_params
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.request_response_utils import handle_response_http_error
+from mpt_api_client.http.transport_settings import EnvTransportSettings, TransportSettings
 from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
 
 if TYPE_CHECKING:
@@ -24,27 +24,26 @@ class AsyncHTTPClient:
 
     def __init__(
         self,
+        transport: TransportSettings | None = None,
         *,
         authentication: "Authentication",
-        base_url: str | None = None,
-        timeout: float = 20.0,
-        retries: int = 5,
     ):
-        self._retries = retries
-        retry = Retry(
-            total=retries,
-            allowed_methods={"DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"},
-        )
-        transport = RetryTransport(retry=retry)
+        """Initialize the client.
 
-        base_url = validate_base_url(base_url or os.getenv("MPT_API_BASE_URL"))
-        authentication.configure(base_url=base_url, timeout=timeout, retries=self._retries)
+        Args:
+            transport: Transport settings. Defaults to ``EnvTransportSettings()``,
+                which reads the base URL from the ``MPT_API_BASE_URL`` environment
+                variable.
+            authentication: Authentication provider used for every request.
+        """
+        self._transport = transport or EnvTransportSettings()
+        authentication.configure(self._transport)
         self.httpx_client = AsyncClient(
-            base_url=base_url,
+            base_url=self._transport.url,
             headers={"User-Agent": "swo-marketplace-client/1.0"},
             auth=authentication,
-            timeout=timeout,
-            transport=transport,
+            timeout=self._transport.timeout,
+            transport=RetryTransport(retry=self._transport.retry),
             follow_redirects=True,
         )
 
@@ -98,7 +97,7 @@ class AsyncHTTPClient:
                 headers=headers,
             )
         except RequestError as err:
-            raise MPTMaxRetryError(str(err), self._retries + 1) from err
+            raise MPTMaxRetryError(str(err), self._transport.retry.total + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err
 
@@ -151,6 +150,6 @@ class AsyncHTTPClient:
                 handle_response_http_error(response)
                 yield response
         except RequestError as err:
-            raise MPTMaxRetryError(str(err), self._retries + 1) from err
+            raise MPTMaxRetryError(str(err), self._transport.retry.total + 1) from err
         except HTTPError as err:
             raise MPTError(f"HTTP Error: {err}") from err

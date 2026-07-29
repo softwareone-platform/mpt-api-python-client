@@ -9,6 +9,7 @@ from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTError, MPTMaxRetryError
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.query_options import QueryOptions
+from mpt_api_client.http.transport_settings import TransportSettings
 from tests.unit.conftest import API_TOKEN, API_URL
 
 
@@ -26,7 +27,9 @@ def test_async_http_initialization(mocker):
     mock_async_client = mocker.patch("mpt_api_client.http.async_client.AsyncClient")
     authentication = BearerTokenAuthentication(API_TOKEN)
 
-    AsyncHTTPClient(base_url=API_URL, authentication=authentication)  # act
+    AsyncHTTPClient(
+        transport=TransportSettings(base_url=API_URL), authentication=authentication
+    )  # act
 
     mock_async_client.assert_called_once_with(
         base_url=API_URL,

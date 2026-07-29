@@ -9,6 +9,7 @@ from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
+from mpt_api_client.http.transport_settings import TransportSettings
 from tests.unit.conftest import API_TOKEN, API_URL
 
 
@@ -16,7 +17,7 @@ def test_http_initialization(mocker):
     mock_client = mocker.patch("mpt_api_client.http.client.Client")
     authentication = BearerTokenAuthentication(API_TOKEN)
 
-    HTTPClient(base_url=API_URL, authentication=authentication)  # act
+    HTTPClient(transport=TransportSettings(base_url=API_URL), authentication=authentication)  # act
 
     mock_client.assert_called_once_with(
         base_url=API_URL,

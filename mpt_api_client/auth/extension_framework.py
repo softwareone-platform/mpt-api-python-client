@@ -15,6 +15,7 @@ from mpt_api_client.auth.base import Authentication, BearerTokenAuthentication
 from mpt_api_client.auth.jwt import JWTClaimsError, JWTFormatError, decode_unverified_jwt_claims
 from mpt_api_client.exceptions import MPTError
 from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.http.transport_settings import TransportSettings
 from mpt_api_client.resources.integration.installations_token import (
     AsyncInstallationsTokenService,
     InstallationsTokenService,
@@ -64,18 +65,14 @@ class ExtensionFrameworkAuthentication(Authentication):
         self._min_remaining_validity_seconds = min_remaining_validity_seconds
         self._token: str | None = None
         self._expires_at: dt.datetime | None = None
-        self._base_url: str | None = None
-        self._timeout: float = 20.0
-        self._retries: int = 5
+        self._transport: TransportSettings | None = None
         self._sync_service: InstallationsTokenService | None = None
         self._async_service: AsyncInstallationsTokenService | None = None
 
     @override
-    def configure(self, *, base_url: str, timeout: float, retries: int) -> None:
-        """Store the owning client's configuration used to build the token client."""
-        self._base_url = base_url
-        self._timeout = timeout
-        self._retries = retries
+    def configure(self, transport: TransportSettings) -> None:
+        """Store the owning client's transport settings used to build the token client."""
+        self._transport = transport
 
     @override
     def sync_auth_flow(
@@ -122,9 +119,7 @@ class ExtensionFrameworkAuthentication(Authentication):
         if self._sync_service is None:
             token_client = HTTPClient(
                 authentication=BearerTokenAuthentication(self._secret),
-                base_url=self._require_base_url(),
-                timeout=self._timeout,
-                retries=self._retries,
+                transport=self._require_transport(),
             )
             self._sync_service = InstallationsTokenService(http_client=token_client)
         return self._sync_service
@@ -134,21 +129,19 @@ class ExtensionFrameworkAuthentication(Authentication):
         if self._async_service is None:
             token_client = AsyncHTTPClient(
                 authentication=BearerTokenAuthentication(self._secret),
-                base_url=self._require_base_url(),
-                timeout=self._timeout,
-                retries=self._retries,
+                transport=self._require_transport(),
             )
             self._async_service = AsyncInstallationsTokenService(http_client=token_client)
         return self._async_service
 
-    def _require_base_url(self) -> str:
-        """Return the configured base URL, raising when the provider is unconfigured."""
-        if self._base_url is None:
+    def _require_transport(self) -> TransportSettings:
+        """Return the configured transport settings, raising when the provider is unconfigured."""
+        if self._transport is None:
             raise MPTError(
                 "ExtensionFrameworkAuthentication must be used with an MPT HTTPClient or "
-                "AsyncHTTPClient; the base URL was not configured.",
+                "AsyncHTTPClient; the transport settings were not configured.",
             )
-        return self._base_url
+        return self._transport
 
     def _store(self, token: str | None) -> None:
         """Cache a freshly fetched token and its expiry."""
