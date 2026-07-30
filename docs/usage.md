@@ -42,13 +42,9 @@ MPT_API_BASE_URL=<YOUR_MPT_API_BASE_URL>
 Authentication is provided through an `Authentication` provider passed to the client. Two
 implementations are available:
 
-- `BearerTokenAuthentication` — a single, long-lived token.
-- `ExtensionFrameworkAuthentication` — a short-lived installation or account-scoped token
-  fetched from an extension secret via `POST /installations/-/token`. It refreshes
-  proactively once the token nears its JWT `exp` (default leeway 60s) and reactively on
-  `401`. Request bodies are buffered in memory before sending so the `401` retry can
-  replay one-shot streamed bodies intact. Pass `account_id` to request a token scoped to
-  a specific account (`?account.id=<id>`); use one provider instance per account scope.
+- `BearerTokenAuthentication` — a single, long-lived token passed explicitly.
+- `EnvTokenAuthentication` — a long-lived token read from an environment variable
+  (default `MPT_API_TOKEN`, configurable via the `env_var` argument).
 
 ## Instantiate The Client
 
@@ -63,25 +59,13 @@ client = MPTClient.from_config(
 )
 ```
 
-With the extension framework (short-lived installation tokens):
+With the token read from the environment (`MPT_API_TOKEN`):
 
 ```python
-from mpt_api_client import MPTClient, ExtensionFrameworkAuthentication
+from mpt_api_client import MPTClient, EnvTokenAuthentication
 
 client = MPTClient.from_config(
-    authentication=ExtensionFrameworkAuthentication(secret="<extension-secret>"),
-    base_url="https://api.s1.show/public",
-)
-```
-
-For an account-scoped token, pass `account_id`:
-
-```python
-client = MPTClient.from_config(
-    authentication=ExtensionFrameworkAuthentication(
-        secret="<extension-secret>",
-        account_id="<account-id>",
-    ),
+    authentication=EnvTokenAuthentication(),
     base_url="https://api.s1.show/public",
 )
 ```

@@ -1,7 +1,7 @@
 from typing import Self
 
 from mpt_api_client.auth import Authentication
-from mpt_api_client.http import AsyncHTTPClient, HTTPClient
+from mpt_api_client.http import AsyncHTTPClient, HTTPClient, TransportSettings
 from mpt_api_client.resources import (
     Accounts,
     AsyncAccounts,
@@ -55,9 +55,8 @@ class AsyncMPTClient:
             MPT Client
 
         """
-        return cls(
-            AsyncHTTPClient(authentication=authentication, base_url=base_url, timeout=timeout)
-        )
+        transport = TransportSettings(base_url=base_url, timeout=timeout)
+        return cls(AsyncHTTPClient(authentication=authentication, transport=transport))
 
     @property
     def catalog(self) -> AsyncCatalog:
@@ -142,7 +141,8 @@ class MPTClient:
             MPT Client
 
         """
-        return cls(HTTPClient(authentication=authentication, base_url=base_url, timeout=timeout))
+        transport = TransportSettings(base_url=base_url, timeout=timeout)
+        return cls(HTTPClient(authentication=authentication, transport=transport))
 
     @property
     def commerce(self) -> Commerce:

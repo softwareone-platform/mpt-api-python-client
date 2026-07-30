@@ -156,14 +156,20 @@ class ProductsService(
 `HTTPClient` and `AsyncHTTPClient` wrap `httpx.Client` / `httpx.AsyncClient` with:
 
 - pluggable authentication via an `Authentication` provider (`BearerTokenAuthentication`,
-  `ExtensionFrameworkAuthentication`)
+  `EnvTokenAuthentication`)
 - base URL resolution
 - retry transport (configurable)
 - error transformation into `MPTHttpError` / `MPTAPIError`
 - multipart file upload support
 
-The base URL is read from a constructor argument or the `MPT_API_BASE_URL` environment
-variable; the authentication provider is always passed explicitly.
+Transport-level settings (`base_url`, `timeout`, `retries`) are grouped in the
+`TransportSettings` dataclass (`http/transport_settings.py`), passed to the client
+constructors as `transport=TransportSettings(...)`. To resolve the base URL from the
+`MPT_API_BASE_URL` environment variable instead, pass `EnvTransportSettings()` (the
+default when no transport is given); the clients themselves never read the environment.
+The resolved settings are handed to the authentication provider through
+`Authentication.configure(transport)` at client construction time. The authentication
+provider is always passed explicitly.
 
 ## Cross-Cutting Concerns
 
