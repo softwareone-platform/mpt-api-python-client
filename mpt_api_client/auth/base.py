@@ -21,8 +21,8 @@ class Authentication(httpx.Auth):
         """Receive the owning HTTP client's transport settings.
 
         Called once by ``HTTPClient``/``AsyncHTTPClient`` at construction time. The base
-        implementation is a no-op; providers that need the client's configuration (such as
-        ``ExtensionFrameworkAuthentication``) override it.
+        implementation is a no-op; providers that need the client's configuration
+        override it.
 
         Args:
             transport: Resolved transport settings of the owning client.

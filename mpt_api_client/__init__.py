@@ -2,7 +2,6 @@ from mpt_api_client.auth import (
     Authentication,
     BearerTokenAuthentication,
     EnvTokenAuthentication,
-    ExtensionFrameworkAuthentication,
 )
 from mpt_api_client.http import EnvTransportSettings, TransportSettings
 from mpt_api_client.mpt_client import AsyncMPTClient, MPTClient
@@ -14,7 +13,6 @@ __all__ = [  # noqa: WPS410
     "BearerTokenAuthentication",
     "EnvTokenAuthentication",
     "EnvTransportSettings",
-    "ExtensionFrameworkAuthentication",
     "MPTClient",
     "RQLQuery",
     "TransportSettings",

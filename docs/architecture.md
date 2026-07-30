@@ -156,7 +156,7 @@ class ProductsService(
 `HTTPClient` and `AsyncHTTPClient` wrap `httpx.Client` / `httpx.AsyncClient` with:
 
 - pluggable authentication via an `Authentication` provider (`BearerTokenAuthentication`,
-  `ExtensionFrameworkAuthentication`)
+  `EnvTokenAuthentication`)
 - base URL resolution
 - retry transport (configurable)
 - error transformation into `MPTHttpError` / `MPTAPIError`
