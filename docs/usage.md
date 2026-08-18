@@ -72,6 +72,43 @@ client = MPTClient.from_config(
 
 `from_config` also accepts a `timeout` argument (HTTP request timeout in seconds, default `60.0`).
 
+### Timeouts
+
+`timeout` sets every connection phase at once. To tune them separately, pass a
+`TransportSettings` instance and set only the phases you care about; each unset phase falls
+back to `timeout`:
+
+```python
+from mpt_api_client import BearerTokenAuthentication, MPTClient, TransportSettings
+from mpt_api_client.http import HTTPClient
+
+client = MPTClient(
+    http_client=HTTPClient(
+        transport=TransportSettings(
+            base_url="https://api.s1.show/public",
+            timeout=20.0,
+            connect_timeout=5.0,
+            read_timeout=60.0,
+        ),
+        authentication=BearerTokenAuthentication("<token>"),
+    )
+)
+```
+
+Two things are worth knowing:
+
+- The **read** timeout, not the connect timeout, governs how long the client waits for a
+  response to start arriving. A server that accepts the connection and then thinks before
+  replying is bounded by `read_timeout`.
+- Streaming requests use `stream_read_timeout` (default `120.0`) in place of the regular read
+  timeout, because a streamed response commits its status only after the server has built the
+  result set — so the first byte can be deferred far longer than for a regular call. The
+  effective streaming read timeout is never lower than `read_timeout`, so raising that raises
+  both.
+
+No total-duration timeout is applied. A long export runs for as long as the server keeps
+sending; the limits are per phase, not overall.
+
 ## Synchronous Usage Patterns
 
 Read a single resource:
