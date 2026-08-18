@@ -54,7 +54,7 @@ class PricingPoliciesServiceConfig:
     _collection_key = "data"
 
 
-class PricingPoliciesService(  # noqa: WPS215
+class PricingPoliciesService(
     ManagedResourceMixin[PricingPolicy],
     CollectionMixin[PricingPolicy],
     Service[PricingPolicy],

@@ -100,7 +100,7 @@ class OrdersServiceConfig:
     _collection_key = "data"
 
 
-class OrdersService(  # noqa: WPS215 WPS214
+class OrdersService(  # noqa: WPS214
     RenderMixin[Order],
     TemplateMixin[Order],
     ManagedResourceMixin[Order],
@@ -205,7 +205,7 @@ class OrdersService(  # noqa: WPS215 WPS214
         )
 
 
-class AsyncOrdersService(  # noqa: WPS215 WPS214
+class AsyncOrdersService(  # noqa: WPS214
     AsyncRenderMixin[Order],
     AsyncTemplateMixin[Order],
     AsyncManagedResourceMixin[Order],
