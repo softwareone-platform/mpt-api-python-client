@@ -44,7 +44,7 @@ class OrdersAssetServiceConfig:
     _collection_key = "data"
 
 
-class OrdersAssetService(  # noqa: WPS215
+class OrdersAssetService(
     RenderMixin[OrdersAsset],
     ManagedResourceMixin[OrdersAsset],
     CollectionMixin[OrdersAsset],
@@ -54,7 +54,7 @@ class OrdersAssetService(  # noqa: WPS215
     """Orders Asset service."""
 
 
-class AsyncOrdersAssetService(  # noqa: WPS215
+class AsyncOrdersAssetService(
     AsyncRenderMixin[OrdersAsset],
     AsyncManagedResourceMixin[OrdersAsset],
     AsyncCollectionMixin[OrdersAsset],

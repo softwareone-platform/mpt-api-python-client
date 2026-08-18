@@ -15,7 +15,7 @@ from mpt_api_client.http.mixins import (
 from tests.unit.conftest import DummyModel
 
 
-class DummyService(  # noqa: WPS215
+class DummyService(
     ManagedResourceMixin[DummyModel],
     CollectionMixin[DummyModel],
     Service[DummyModel],
@@ -24,7 +24,7 @@ class DummyService(  # noqa: WPS215
     _model_class = DummyModel
 
 
-class AsyncDummyService(  # noqa: WPS215
+class AsyncDummyService(
     AsyncManagedResourceMixin[DummyModel],
     AsyncCollectionMixin[DummyModel],
     AsyncService[DummyModel],

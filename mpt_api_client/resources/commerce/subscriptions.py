@@ -78,7 +78,7 @@ class SubscriptionsServiceConfig:
     _collection_key = "data"
 
 
-class SubscriptionsService(  # noqa: WPS215
+class SubscriptionsService(
     CreateMixin[Subscription],
     UpdateMixin[Subscription],
     GetMixin[Subscription],
@@ -91,7 +91,7 @@ class SubscriptionsService(  # noqa: WPS215
     """Subscription service."""
 
 
-class AsyncSubscriptionsService(  # noqa: WPS215
+class AsyncSubscriptionsService(
     AsyncCreateMixin[Subscription],
     AsyncUpdateMixin[Subscription],
     AsyncGetMixin[Subscription],

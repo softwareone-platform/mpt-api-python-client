@@ -55,7 +55,7 @@ class OrderSubscriptionsServiceConfig:
     _collection_key = "data"
 
 
-class OrderSubscriptionsService(  # noqa: WPS215
+class OrderSubscriptionsService(
     ManagedResourceMixin[OrderSubscription],
     CollectionMixin[OrderSubscription],
     Service[OrderSubscription],
@@ -64,7 +64,7 @@ class OrderSubscriptionsService(  # noqa: WPS215
     """Orders Subscription service."""
 
 
-class AsyncOrderSubscriptionsService(  # noqa: WPS215
+class AsyncOrderSubscriptionsService(
     AsyncManagedResourceMixin[OrderSubscription],
     AsyncCollectionMixin[OrderSubscription],
     AsyncService[OrderSubscription],

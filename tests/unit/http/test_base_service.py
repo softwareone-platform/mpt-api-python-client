@@ -4,7 +4,7 @@ from tests.unit.conftest import DummyModel
 from tests.unit.http.conftest import DummyService
 
 
-class ParametrisedDummyService(  # noqa: WPS215
+class ParametrisedDummyService(
     Service[DummyModel],
 ):
     _endpoint = "/api/{version}/test/{tenant}"

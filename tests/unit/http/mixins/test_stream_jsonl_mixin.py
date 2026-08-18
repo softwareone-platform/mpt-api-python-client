@@ -12,7 +12,7 @@ JSONL_BODY = b'{"id": "ID-1", "name": "Charge 1"}\n\n{"id": "ID-2", "name": "Cha
 MALFORMED_JSONL_BODY = b'not-json\n{"id": "ID-1", "name": "Charge 1"}\n'
 
 
-class DummyStreamService(  # noqa: WPS215
+class DummyStreamService(
     StreamJSONLMixin[DummyModel],
     Service[DummyModel],
 ):
@@ -20,7 +20,7 @@ class DummyStreamService(  # noqa: WPS215
     _model_class = DummyModel
 
 
-class AsyncDummyStreamService(  # noqa: WPS215
+class AsyncDummyStreamService(
     AsyncStreamJSONLMixin[DummyModel],
     AsyncService[DummyModel],
 ):
