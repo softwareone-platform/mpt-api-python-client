@@ -45,6 +45,8 @@ mpt_api_client/
 │       ├── disable_mixin.py
 │       ├── download_file_mixin.py
 │       ├── file_operations_mixin.py
+│       ├── stream_jsonl_mixin.py
+│       ├── streaming_mixin.py
 │       ├── queryable_mixin.py
 │       └── resource_mixins.py
 │
@@ -133,8 +135,20 @@ Services are composed using **mixins** that add HTTP operations:
 | `DownloadFileMixin` | download binary content |
 | `EnableMixin` / `DisableMixin` | enable/disable actions |
 | `QueryableMixin` | `filter()`, `order_by()`, `select()` — RQL query chaining |
-| `StreamJSONLMixin` | `stream()` — stream JSONL records line by line (e.g. billing charges) |
+| `StreamingMixin` | `stream()` — streaming read mode, opted into with the `MPT-Streaming` header |
+| `StreamJSONLMixin` | `stream()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
 | `FilesOperationsMixin` | combined file create / update / download operations |
+
+The table lists the synchronous names; every mixin except `QueryableMixin`, which is shared,
+has an `Async*` counterpart for composition with `AsyncService`.
+
+The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) and the
+endpoint-specific JSONL contract (`StreamJSONLMixin` / `AsyncStreamJSONLMixin`) both expose
+`stream()`, and a service must compose only one of them. The platform mixins request the
+streaming read mode on a regular collection route and require the API to echo the
+`MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. The
+JSONL mixins serve endpoints that assign `application/jsonl` their own meaning outside
+streaming mode.
 
 Example service definition:
 
@@ -193,10 +207,12 @@ See [the RQL guide](rql.md) for the fluent query builder, filter chaining, and u
 
 ### Error Handling — `exceptions.py`
 
-All API errors are wrapped in a hierarchy:
+Client, transport, and API errors use the following hierarchy:
 
 ```text
 MPTError
-├── MPTHttpError          # generic HTTP error (status_code, message, body)
-│   └── MPTAPIError       # structured API error (payload, title, detail, trace_id)
+├── MPTStreamingNotEnabledError  # streaming request the API did not answer in streaming mode
+├── MPTMaxRetryError             # retry attempts exhausted
+└── MPTHttpError                 # generic HTTP error (status_code, message, body)
+    └── MPTAPIError              # structured API error (payload, title, detail, trace_id)
 ```

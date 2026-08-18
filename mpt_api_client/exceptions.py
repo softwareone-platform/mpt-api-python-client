@@ -3,9 +3,30 @@ from typing import override
 
 from httpx import HTTPStatusError
 
+from mpt_api_client.constants import MPT_STREAMING_ENABLED, MPT_STREAMING_HEADER
+
 
 class MPTError(Exception):
     """Represents a generic MPT error."""
+
+
+class MPTStreamingNotEnabledError(MPTError):
+    """Represents a streaming request the API did not answer in streaming mode.
+
+    The API confirms streaming mode by echoing the ``MPT-Streaming`` response header.
+    Without that confirmation the body is a regular paged response, and consuming it as
+    a stream would yield a silently incomplete result, so the response is not read.
+    """
+
+    def __init__(self, path: str, echoed_value: str | None):
+        self.path = path
+        self.echoed_value = echoed_value
+        received = "no header" if echoed_value is None else f"'{echoed_value}'"
+        super().__init__(
+            f"The API did not confirm streaming mode for '{path}': expected the "
+            f"{MPT_STREAMING_HEADER} response header to be '{MPT_STREAMING_ENABLED}', "
+            f"got {received}. The response body was not consumed."
+        )
 
 
 class MPTHttpError(MPTError):
