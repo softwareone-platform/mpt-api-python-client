@@ -1,12 +1,17 @@
 import json
 from collections.abc import AsyncIterator, Iterator, Mapping
+from contextlib import AsyncExitStack, ExitStack
 
 from mpt_api_client.constants import (
     APPLICATION_JSONL,
     MPT_STREAMING_ENABLED,
     MPT_STREAMING_HEADER,
 )
-from mpt_api_client.exceptions import MPTStreamingNotEnabledError
+from mpt_api_client.exceptions import (
+    MPTHttpError,
+    MPTStreamingNotEnabledError,
+    raise_streaming_error,
+)
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, Progress
@@ -66,13 +71,21 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
+            MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
+            MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
         path = self.build_path()  # type: ignore[attr-defined]
-        with self.http_client.stream(  # type: ignore[attr-defined]
-            "GET",
-            path,
-            headers=streaming_request_headers(),
-        ) as response:
+        with ExitStack() as stack:
+            try:
+                response = stack.enter_context(
+                    self.http_client.stream(  # type: ignore[attr-defined]
+                        "GET",
+                        path,
+                        headers=streaming_request_headers(),
+                    )
+                )
+            except MPTHttpError as http_error:
+                raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             for line in response.iter_lines():
                 if not line.strip():
@@ -111,13 +124,21 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
+            MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
+            MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
         path = self.build_path()  # type: ignore[attr-defined]
-        async with self.http_client.stream(  # type: ignore[attr-defined]
-            "GET",
-            path,
-            headers=streaming_request_headers(),
-        ) as response:
+        async with AsyncExitStack() as stack:
+            try:
+                response = await stack.enter_async_context(
+                    self.http_client.stream(  # type: ignore[attr-defined]
+                        "GET",
+                        path,
+                        headers=streaming_request_headers(),
+                    )
+                )
+            except MPTHttpError as http_error:
+                raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             async for line in response.aiter_lines():
                 if not line.strip():
