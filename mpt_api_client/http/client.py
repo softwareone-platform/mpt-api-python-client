@@ -52,7 +52,7 @@ class HTTPClient:
             base_url=self._transport.url,
             headers={"User-Agent": "swo-marketplace-client/1.0"},
             auth=authentication,
-            timeout=self._transport.timeout,
+            timeout=self._transport.request_timeout,
             transport=RetryTransport(retry=self._transport.retry),
             follow_redirects=True,
         )
@@ -152,7 +152,11 @@ class HTTPClient:
         params_str = get_query_params(query_params, options)
         try:
             with self.httpx_client.stream(
-                method, url, params=params_str or None, headers=headers
+                method,
+                url,
+                params=params_str or None,
+                headers=headers,
+                timeout=self._transport.stream_timeout,
             ) as response:
                 if response.is_error:
                     response.read()

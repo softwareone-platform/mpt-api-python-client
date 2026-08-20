@@ -3,7 +3,7 @@ import json
 
 import pytest
 import respx
-from httpx import ConnectTimeout, Request, Response, codes
+from httpx import ConnectTimeout, Request, Response, Timeout, codes
 
 from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTError, MPTMaxRetryError
@@ -36,7 +36,7 @@ def test_async_http_initialization(mocker):
         follow_redirects=True,
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=authentication,
-        timeout=20.0,
+        timeout=Timeout(connect=20.0, read=20.0, write=20.0, pool=20.0),
         transport=mocker.ANY,
     )
 
@@ -52,7 +52,7 @@ def test_async_env_base_url_initialization(monkeypatch, mocker):
         follow_redirects=True,
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=mocker.ANY,
-        timeout=20.0,
+        timeout=Timeout(connect=20.0, read=20.0, write=20.0, pool=20.0),
         transport=mocker.ANY,
     )
 

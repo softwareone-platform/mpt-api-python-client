@@ -3,14 +3,20 @@ import json
 
 import pytest
 import respx
-from httpx import ConnectTimeout, Response, codes
+from httpx import ConnectTimeout, Response, Timeout, codes
 
 from mpt_api_client.auth import BearerTokenAuthentication
 from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
-from mpt_api_client.http.transport_settings import TransportSettings
+from mpt_api_client.http.transport_settings import (
+    DEFAULT_STREAM_READ_TIMEOUT,
+    TransportSettings,
+)
 from tests.unit.conftest import API_TOKEN, API_URL
+
+STREAM_PATH = "/api/v1/stream"
+STREAM_URL = f"{API_URL}{STREAM_PATH}"
 
 
 def test_http_initialization(mocker):
@@ -24,7 +30,7 @@ def test_http_initialization(mocker):
         follow_redirects=True,
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=authentication,
-        timeout=20.0,
+        timeout=Timeout(connect=20.0, read=20.0, write=20.0, pool=20.0),
         transport=mocker.ANY,
     )
 
@@ -40,7 +46,7 @@ def test_env_base_url_initialization(monkeypatch, mocker):
         follow_redirects=True,
         headers={"User-Agent": "swo-marketplace-client/1.0"},
         auth=mocker.ANY,
-        timeout=20.0,
+        timeout=Timeout(connect=20.0, read=20.0, write=20.0, pool=20.0),
         transport=mocker.ANY,
     )
 
@@ -160,3 +166,37 @@ def test_request_with_render_and_query_params(mocker, http_client, mock_httpx_re
     result = parent_request.call_args[1]
 
     assert result["params"] == "select=id%2Cname&render()"
+
+
+def test_client_uses_request_timeout_profile():
+    transport = TransportSettings(base_url=API_URL, timeout=11.0, read_timeout=33.0)
+
+    client = HTTPClient(  # act
+        transport=transport, authentication=BearerTokenAuthentication(API_TOKEN)
+    )
+
+    assert client.httpx_client.timeout == transport.request_timeout
+    assert client.httpx_client.timeout.read == pytest.approx(33.0)
+
+
+def read_stream(client):
+    """Open and fully consume a streaming response."""
+    with client.stream("GET", STREAM_PATH) as response:
+        return response.read()
+
+
+@respx.mock
+def test_stream_uses_the_longer_stream_timeout(mocker):
+    client = HTTPClient(
+        transport=TransportSettings(base_url=API_URL, timeout=11.0),
+        authentication=BearerTokenAuthentication(API_TOKEN),
+    )
+    respx.get(STREAM_URL).mock(return_value=Response(codes.OK, content=b"{}\n"))
+    spy = mocker.spy(client.httpx_client, "stream")
+
+    read_stream(client)  # act
+
+    passed_timeout = spy.call_args.kwargs["timeout"]
+    assert passed_timeout.read == pytest.approx(DEFAULT_STREAM_READ_TIMEOUT)
+    assert passed_timeout.read > client.httpx_client.timeout.read
+    assert passed_timeout.connect == pytest.approx(11.0)

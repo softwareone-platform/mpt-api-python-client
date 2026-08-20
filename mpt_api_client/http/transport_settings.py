@@ -2,12 +2,15 @@ import os
 from dataclasses import dataclass
 from typing import cast, override
 
+from httpx import Timeout
 from httpx_retries import Retry
 
 from mpt_api_client.http.client_utils import validate_base_url
 
 RETRY_ALLOWED_METHODS = frozenset(("DELETE", "GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH"))
 ENV_BASE_URL = "MPT_API_BASE_URL"
+DEFAULT_TIMEOUT = 20.0
+DEFAULT_STREAM_READ_TIMEOUT = 120.0
 
 
 @dataclass
@@ -18,14 +21,35 @@ class TransportSettings:
         base_url: Base URL of the MPT API; validated and sanitized at construction
             time. Use ``EnvTransportSettings`` to resolve it from the environment
             instead of passing it explicitly.
-        timeout: HTTP request timeout in seconds.
+        timeout: Default timeout in seconds applied to every connection phase that
+            does not set its own value.
+        connect_timeout: Timeout for establishing the connection. Falls back to
+            ``timeout``.
+        read_timeout: Timeout for a single socket read, which includes waiting for the
+            response status line. Falls back to ``timeout``.
+        write_timeout: Timeout for a single socket write. Falls back to ``timeout``.
+        pool_timeout: Timeout for acquiring a connection from the pool. Falls back to
+            ``timeout``.
+        stream_read_timeout: Read timeout applied to streaming requests instead of the
+            regular read timeout. Streaming responses commit their status only after
+            the server has built the result set, so the first byte can be deferred far
+            longer than a regular response; the default covers that wait with headroom.
+            The effective streaming read timeout is never lower than ``read_timeout``.
         retries: Retry policy; either the number of retries for failed requests or a
             fully configured ``httpx_retries.Retry`` instance used as is. Normalized
             to a ``Retry`` instance at construction time.
+
+    No total-duration timeout is applied. A streamed export runs for as long as the
+    server keeps sending, bounded per phase rather than overall.
     """
 
     base_url: str | None = None
-    timeout: float = 20.0
+    timeout: float = DEFAULT_TIMEOUT
+    connect_timeout: float | None = None
+    read_timeout: float | None = None
+    write_timeout: float | None = None
+    pool_timeout: float | None = None
+    stream_read_timeout: float = DEFAULT_STREAM_READ_TIMEOUT
     retries: int | Retry = 5
 
     def __post_init__(self) -> None:
@@ -46,6 +70,30 @@ class TransportSettings:
     def retry(self) -> Retry:
         """Normalized retry policy."""
         return cast("Retry", self.retries)
+
+    @property
+    def request_timeout(self) -> Timeout:
+        """Per-phase timeout for regular requests."""
+        return Timeout(
+            connect=self._phase_timeout(self.connect_timeout),
+            read=self._phase_timeout(self.read_timeout),
+            write=self._phase_timeout(self.write_timeout),
+            pool=self._phase_timeout(self.pool_timeout),
+        )
+
+    @property
+    def stream_timeout(self) -> Timeout:
+        """Per-phase timeout for streaming requests, with a longer read timeout."""
+        return Timeout(
+            connect=self._phase_timeout(self.connect_timeout),
+            read=max(self.stream_read_timeout, self._phase_timeout(self.read_timeout)),
+            write=self._phase_timeout(self.write_timeout),
+            pool=self._phase_timeout(self.pool_timeout),
+        )
+
+    def _phase_timeout(self, phase_value: float | None) -> float:
+        """Return the phase timeout, falling back to the default timeout when unset."""
+        return self.timeout if phase_value is None else phase_value
 
     def _build_retry(self) -> Retry:
         """Return the retry policy, building one when ``retries`` is a plain count."""

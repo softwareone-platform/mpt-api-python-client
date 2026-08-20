@@ -164,7 +164,11 @@ class ProductsService(
 
 Transport-level settings (`base_url`, `timeout`, `retries`) are grouped in the
 `TransportSettings` dataclass (`http/transport_settings.py`), passed to the client
-constructors as `transport=TransportSettings(...)`. To resolve the base URL from the
+constructors as `transport=TransportSettings(...)`. Timeouts resolve per connection phase:
+`connect_timeout`, `read_timeout`, `write_timeout` and `pool_timeout` each fall back to
+`timeout`, and the dataclass exposes two profiles — `request_timeout` for regular requests and
+`stream_timeout`, which substitutes the longer `stream_read_timeout` for the read phase because
+a streamed response defers its first byte until the server has built the result set. To resolve the base URL from the
 `MPT_API_BASE_URL` environment variable instead, pass `EnvTransportSettings()` (the
 default when no transport is given); the clients themselves never read the environment.
 The resolved settings are handed to the authentication provider through
