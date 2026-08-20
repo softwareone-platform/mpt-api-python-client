@@ -150,6 +150,11 @@ streaming read mode on a regular collection route and require the API to echo th
 JSONL mixins serve endpoints that assign `application/jsonl` their own meaning outside
 streaming mode.
 
+`StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
+unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
+the server owns pagination-input validation, and the inputs it accepts in streaming mode are
+still changing.
+
 Example service definition:
 
 ```python
