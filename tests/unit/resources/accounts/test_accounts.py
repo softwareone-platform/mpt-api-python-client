@@ -1,6 +1,10 @@
 import pytest
 
 from mpt_api_client.resources.accounts.account import AccountsService, AsyncAccountsService
+from mpt_api_client.resources.accounts.account_users import (
+    AccountUsersService,
+    AsyncAccountUsersService,
+)
 from mpt_api_client.resources.accounts.accounts import Accounts, AsyncAccounts
 from mpt_api_client.resources.accounts.api_tokens import (
     ApiTokensService,
@@ -15,6 +19,7 @@ from mpt_api_client.resources.accounts.erp_links import AsyncErpLinksService, Er
 from mpt_api_client.resources.accounts.licensees import AsyncLicenseesService, LicenseesService
 from mpt_api_client.resources.accounts.modules import AsyncModulesService, ModulesService
 from mpt_api_client.resources.accounts.sellers import AsyncSellersService, SellersService
+from mpt_api_client.resources.accounts.services import AsyncServicesService, ServicesService
 from mpt_api_client.resources.accounts.user_groups import (
     AsyncUserGroupsService,
     UserGroupsService,
@@ -45,6 +50,8 @@ def async_accounts(async_http_client):
         ("cloud_tenants", CloudTenantsService),
         ("buyers", BuyersService),
         ("erp_links", ErpLinksService),
+        ("account_users", AccountUsersService),
+        ("services", ServicesService),
     ],
 )
 def test_accounts_properties(accounts, property_name, expected_service_class):
@@ -67,6 +74,8 @@ def test_accounts_properties(accounts, property_name, expected_service_class):
         ("cloud_tenants", AsyncCloudTenantsService),
         ("buyers", AsyncBuyersService),
         ("erp_links", AsyncErpLinksService),
+        ("account_users", AsyncAccountUsersService),
+        ("services", AsyncServicesService),
     ],
 )
 def test_async_accounts_properties(async_accounts, property_name, expected_service_class):
