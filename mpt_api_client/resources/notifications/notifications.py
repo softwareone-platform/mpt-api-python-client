@@ -6,10 +6,19 @@ from mpt_api_client.resources.notifications.categories import (
     CategoriesService,
 )
 from mpt_api_client.resources.notifications.contacts import AsyncContactsService, ContactsService
+from mpt_api_client.resources.notifications.directories import (
+    AsyncDirectoriesService,
+    DirectoriesService,
+)
+from mpt_api_client.resources.notifications.footers import AsyncFootersService, FootersService
 from mpt_api_client.resources.notifications.messages import AsyncMessagesService, MessagesService
 from mpt_api_client.resources.notifications.subscribers import (
     AsyncSubscribersService,
     SubscribersService,
+)
+from mpt_api_client.resources.notifications.webhooks import (
+    AsyncWebhooksService,
+    WebhooksService,
 )
 
 
@@ -52,6 +61,16 @@ class Notifications:
         return ContactsService(http_client=self.http_client)
 
     @property
+    def directories(self) -> DirectoriesService:
+        """Directories service."""
+        return DirectoriesService(http_client=self.http_client)
+
+    @property
+    def footers(self) -> FootersService:
+        """Footers service."""
+        return FootersService(http_client=self.http_client)
+
+    @property
     def messages(self) -> MessagesService:
         """Messages service."""
         return MessagesService(http_client=self.http_client)
@@ -60,6 +79,11 @@ class Notifications:
     def subscribers(self) -> SubscribersService:
         """Subscriptions service."""
         return SubscribersService(http_client=self.http_client)
+
+    @property
+    def webhooks(self) -> WebhooksService:
+        """Webhooks service."""
+        return WebhooksService(http_client=self.http_client)
 
 
 class AsyncNotifications:
@@ -101,6 +125,16 @@ class AsyncNotifications:
         return AsyncContactsService(http_client=self.http_client)
 
     @property
+    def directories(self) -> AsyncDirectoriesService:
+        """Async Directories service."""
+        return AsyncDirectoriesService(http_client=self.http_client)
+
+    @property
+    def footers(self) -> AsyncFootersService:
+        """Async Footers service."""
+        return AsyncFootersService(http_client=self.http_client)
+
+    @property
     def messages(self) -> AsyncMessagesService:
         """Async Messages service."""
         return AsyncMessagesService(http_client=self.http_client)
@@ -109,3 +143,8 @@ class AsyncNotifications:
     def subscribers(self) -> AsyncSubscribersService:
         """Subscriptions service."""
         return AsyncSubscribersService(http_client=self.http_client)
+
+    @property
+    def webhooks(self) -> AsyncWebhooksService:
+        """Async Webhooks service."""
+        return AsyncWebhooksService(http_client=self.http_client)
