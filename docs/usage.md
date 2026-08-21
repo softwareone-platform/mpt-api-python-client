@@ -180,9 +180,10 @@ for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1
 > `set_total_items` is still called but receives `0` — treat a total of `0` as
 > unknown when rendering progress.
 
-The `progress` parameter is also accepted by `stream()` on JSONL endpoints; there
-`set_total_items` is never called because JSONL responses carry no total, so design
-progress implementations for an unknown total. The async `iterate()` and `stream()` accept an
+The `progress` parameter is also accepted by both `stream()` variants described in
+[Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is never
+called because a streamed response carries no pagination total, so design progress
+implementations for an unknown total. The async `iterate()` and `stream()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
 `AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
 `AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
@@ -210,6 +211,97 @@ async def main():
 
 asyncio.run(main())
 ```
+
+## Streaming Large Result Sets
+
+The platform can return a full filtered result set as a single stream instead of a paged
+collection. Streaming is opted into per request with the `MPT-Streaming` header, which
+`StreamingMixin` and `AsyncStreamingMixin` send on your behalf. Records are yielded one at a
+time without buffering the whole body, so memory stays flat regardless of result size.
+
+No shipped service composes these mixins yet, so compose a service to reach streaming:
+
+```python
+from mpt_api_client import MPTClient, BearerTokenAuthentication, RQLQuery
+from mpt_api_client.http import Service
+from mpt_api_client.http.mixins import StreamingMixin
+from mpt_api_client.models import Model
+
+
+class OrdersStreamService(StreamingMixin[Model], Service[Model]):
+    _endpoint = "/public/v1/commerce/orders"
+    _model_class = Model
+
+
+client = MPTClient.from_config(
+    authentication=BearerTokenAuthentication("your-token"),
+    base_url="https://api.example.com",
+)
+service = OrdersStreamService(http_client=client.http_client)
+
+for order in service.filter(RQLQuery(status="Processing")).stream():
+    print(order.id)
+```
+
+Streaming mixins extend `QueryableMixin`, so `filter()`, `order_by()` and `select()` chain
+before `stream()` exactly as they do before `iterate()`. Membership is fixed when the stream
+opens: records created afterwards are not included.
+
+The async form yields from an async generator:
+
+```python
+import asyncio
+
+from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication
+from mpt_api_client.http import AsyncService
+from mpt_api_client.http.mixins import AsyncStreamingMixin
+from mpt_api_client.models import Model
+
+
+class AsyncOrdersStreamService(AsyncStreamingMixin[Model], AsyncService[Model]):
+    _endpoint = "/public/v1/commerce/orders"
+    _model_class = Model
+
+
+async def main():
+    client = AsyncMPTClient.from_config(
+        authentication=BearerTokenAuthentication("<token>"),
+        base_url="https://api.s1.show/public",
+    )
+    service = AsyncOrdersStreamService(http_client=client.http_client)
+
+    async for order in service.stream():
+        print(order.id)
+
+
+asyncio.run(main())
+```
+
+### Streaming Confirmation
+
+The API confirms streaming mode by echoing the `MPT-Streaming` response header. When it does
+not, the body is an ordinary paged response, and consuming it as a stream would silently
+return only the first page. `stream()` raises `MPTStreamingNotEnabledError` before reading the
+body instead:
+
+```python
+from mpt_api_client.exceptions import MPTStreamingNotEnabledError
+
+try:
+    for order in service.stream():
+        print(order.id)
+except MPTStreamingNotEnabledError as error:
+    logger.error("Endpoint did not stream: %s", error)
+```
+
+Treat this as a request-shape or endpoint-support problem, not a transient failure: retrying
+the same call against an endpoint that does not support streaming mode fails the same way.
+
+> **Note:** `StreamJSONLMixin` also exposes `stream()`, but it serves endpoints that assign
+> `application/jsonl` their own meaning outside streaming mode, such as billing statement
+> charges. It sends no `MPT-Streaming` header and performs no confirmation check. A service
+> composes one streaming mixin or the other, never both. See
+> [architecture.md](architecture.md) for the distinction.
 
 ## Navigate The API Surface
 
