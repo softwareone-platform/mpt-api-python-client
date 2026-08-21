@@ -5,6 +5,7 @@ from mpt_api_client.resources.exchange.currencies import (
     CurrenciesService,
 )
 from mpt_api_client.resources.exchange.exchange import AsyncExchange, Exchange
+from mpt_api_client.resources.exchange.pairs import AsyncPairsService, PairsService
 
 
 @pytest.fixture
@@ -40,4 +41,18 @@ def test_async_exchange_currencies_property(async_exchange):
     result = async_exchange.currencies
 
     assert isinstance(result, AsyncCurrenciesService)
+    assert result.http_client is async_exchange.http_client
+
+
+def test_exchange_pairs_property(exchange):
+    result = exchange.pairs
+
+    assert isinstance(result, PairsService)
+    assert result.http_client is exchange.http_client
+
+
+def test_async_exchange_pairs_property(async_exchange):
+    result = async_exchange.pairs
+
+    assert isinstance(result, AsyncPairsService)
     assert result.http_client is async_exchange.http_client
