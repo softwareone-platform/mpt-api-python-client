@@ -211,8 +211,11 @@ Client, transport, and API errors use the following hierarchy:
 
 ```text
 MPTError
-├── MPTStreamingNotEnabledError  # streaming request the API did not answer in streaming mode
-├── MPTMaxRetryError             # retry attempts exhausted
-└── MPTHttpError                 # generic HTTP error (status_code, message, body)
-    └── MPTAPIError              # structured API error (payload, title, detail, trace_id)
+├── MPTStreamingError                    # base for streaming-mode failures
+│   └── MPTStreamingNotEnabledError      # response did not confirm streaming mode
+├── MPTMaxRetryError                     # retry attempts exhausted
+└── MPTHttpError                         # generic HTTP error (status_code, message, body)
+    ├── MPTAPIError                      # structured API error (payload, title, detail, trace_id)
+    ├── MPTStreamingNotSupportedError    # 501, resource cannot stream (also MPTStreamingError)
+    └── MPTStreamingNotAcceptableError   # 406, format unsupported (also MPTStreamingError)
 ```

@@ -277,25 +277,46 @@ async def main():
 asyncio.run(main())
 ```
 
-### Streaming Confirmation
+### Streaming Errors
 
-The API confirms streaming mode by echoing the `MPT-Streaming` response header. When it does
-not, the body is an ordinary paged response, and consuming it as a stream would silently
-return only the first page. `stream()` raises `MPTStreamingNotEnabledError` before reading the
-body instead:
+All streaming-specific failures derive from `MPTStreamingError`, so one handler covers them:
+
+| Exception | Raised when |
+|---|---|
+| `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
+| `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
+| `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
 
 ```python
-from mpt_api_client.exceptions import MPTStreamingNotEnabledError
+from mpt_api_client.exceptions import MPTStreamingError
 
 try:
     for order in service.stream():
         print(order.id)
-except MPTStreamingNotEnabledError as error:
-    logger.error("Endpoint did not stream: %s", error)
+except MPTStreamingError as error:
+    logger.error("Streaming unavailable: %s", error)
 ```
 
-Treat this as a request-shape or endpoint-support problem, not a transient failure: retrying
-the same call against an endpoint that does not support streaming mode fails the same way.
+Catch the specific types when the response should differ — for example falling back to
+`iterate()` on `MPTStreamingNotSupportedError`, but treating
+`MPTStreamingNotAcceptableError` as a bug in the request:
+
+```python
+from mpt_api_client.exceptions import MPTStreamingNotSupportedError
+
+try:
+    records = list(service.stream())
+except MPTStreamingNotSupportedError:
+    records = list(service.iterate())
+```
+
+Treat all three as request-shape or endpoint-support problems rather than transient failures:
+retrying the same call against the same endpoint fails the same way. The two HTTP-backed types
+also subclass `MPTHttpError`, so existing `except MPTHttpError` handlers keep working and
+`status_code` remains available. Any other HTTP status passes through unchanged.
+
+`MPTStreamingNotEnabledError` is raised before the body is read, so no partial data is
+consumed.
 
 > **Note:** `StreamJSONLMixin` also exposes `stream()`, but it serves endpoints that assign
 > `application/jsonl` their own meaning outside streaming mode, such as billing statement
