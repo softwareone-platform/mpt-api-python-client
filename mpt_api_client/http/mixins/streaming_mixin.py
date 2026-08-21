@@ -75,6 +75,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
         path = self.build_path()  # type: ignore[attr-defined]
+        # ExitStack scopes the error guard to the stream open: the negotiation failure is
+        # raised by __enter__, and a plain `with` would force the record loop into the try.
         with ExitStack() as stack:
             try:
                 response = stack.enter_context(
@@ -128,6 +130,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
         path = self.build_path()  # type: ignore[attr-defined]
+        # AsyncExitStack scopes the error guard to the stream open: the negotiation failure
+        # is raised by __aenter__, and a plain `async with` would force the record loop
+        # into the try.
         async with AsyncExitStack() as stack:
             try:
                 response = await stack.enter_async_context(
