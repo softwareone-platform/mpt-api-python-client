@@ -3,7 +3,13 @@ import pytest
 import respx
 
 from mpt_api_client import RQLQuery
-from mpt_api_client.exceptions import MPTStreamingNotEnabledError
+from mpt_api_client.exceptions import (
+    MPTHttpError,
+    MPTStreamingError,
+    MPTStreamingNotAcceptableError,
+    MPTStreamingNotEnabledError,
+    MPTStreamingNotSupportedError,
+)
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamingMixin
 from tests.unit.conftest import API_URL, DummyModel
@@ -163,3 +169,72 @@ async def test_async_stream_progress_events(
         ("item_processed",),
         ("completed",),
     ]
+
+
+@respx.mock
+def test_stream_raises_when_not_implemented(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_IMPLEMENTED))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingNotSupportedError, match="does not support streaming mode"):
+        next(iterator)
+
+
+@respx.mock
+def test_stream_raises_when_not_acceptable(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_ACCEPTABLE))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingNotAcceptableError, match="requested streaming format"):
+        next(iterator)
+
+
+@respx.mock
+def test_streaming_errors_stay_catchable_as_http(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_IMPLEMENTED))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTHttpError) as raised:
+        next(iterator)
+
+    assert raised.value.status_code == httpx.codes.NOT_IMPLEMENTED
+    assert isinstance(raised.value, MPTStreamingError)
+
+
+@respx.mock
+def test_other_http_errors_are_not_translated(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.FORBIDDEN))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTHttpError) as raised:
+        next(iterator)
+
+    assert raised.value.status_code == httpx.codes.FORBIDDEN
+    assert not isinstance(raised.value, MPTStreamingError)
+
+
+@respx.mock
+def test_not_enabled_error_is_a_streaming_error(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=jsonl_response())
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingError):
+        next(iterator)
+
+
+@respx.mock
+async def test_async_stream_raises_not_supported(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_IMPLEMENTED))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingNotSupportedError):
+        await anext(iterator)
+
+
+@respx.mock
+async def test_async_stream_raises_not_acceptable(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_ACCEPTABLE))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingNotAcceptableError):
+        await anext(iterator)

@@ -1,16 +1,23 @@
 import json
-from typing import override
+from typing import NoReturn, override
 
-from httpx import HTTPStatusError
+from httpx import HTTPStatusError, codes
 
 from mpt_api_client.constants import MPT_STREAMING_ENABLED, MPT_STREAMING_HEADER
+
+STREAMING_NOT_ACCEPTABLE_STATUS = codes.NOT_ACCEPTABLE
+STREAMING_NOT_IMPLEMENTED_STATUS = codes.NOT_IMPLEMENTED
 
 
 class MPTError(Exception):
     """Represents a generic MPT error."""
 
 
-class MPTStreamingNotEnabledError(MPTError):
+class MPTStreamingError(MPTError):
+    """Base class for failures specific to the streaming read mode."""
+
+
+class MPTStreamingNotEnabledError(MPTStreamingError):
     """Represents a streaming request the API did not answer in streaming mode.
 
     The API confirms streaming mode by echoing the ``MPT-Streaming`` response header.
@@ -36,6 +43,62 @@ class MPTHttpError(MPTError):
         self.status_code = status_code
         self.body = body
         super().__init__(f"HTTP {status_code}: {message}")
+
+
+class MPTStreamingNotSupportedError(MPTStreamingError, MPTHttpError):
+    """Represents a resource whose query service cannot stream.
+
+    The API answers ``501`` when the resource provides no streaming-capable execution
+    strategy, rather than silently degrading to a buffered read. Use ``iterate()`` for
+    such resources.
+    """
+
+    def __init__(self, path: str, body: str):
+        self.path = path
+        MPTHttpError.__init__(
+            self,
+            STREAMING_NOT_IMPLEMENTED_STATUS,
+            f"'{path}' does not support streaming mode: the resource provides no "
+            "streaming-capable execution strategy. Use iterate() instead.",
+            body,
+        )
+
+
+class MPTStreamingNotAcceptableError(MPTStreamingError, MPTHttpError):
+    """Represents a streaming request whose requested format the API cannot serve.
+
+    The API answers ``406`` when the ``Accept`` header cannot be satisfied for the
+    requested read mode.
+    """
+
+    def __init__(self, path: str, body: str):
+        self.path = path
+        MPTHttpError.__init__(
+            self,
+            STREAMING_NOT_ACCEPTABLE_STATUS,
+            f"'{path}' cannot serve the requested streaming format. Check the Accept "
+            "header against the formats the endpoint negotiates for streaming mode.",
+            body,
+        )
+
+
+def raise_streaming_error(http_error: MPTHttpError, path: str) -> NoReturn:
+    """Re-raise an HTTP error as a typed streaming error when it is a negotiation failure.
+
+    Args:
+        http_error: The HTTP error raised while opening the streaming response.
+        path: Requested path, used to build the error message.
+
+    Raises:
+        MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
+        MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+        MPTHttpError: Unchanged, for any other status.
+    """
+    if http_error.status_code == STREAMING_NOT_IMPLEMENTED_STATUS:
+        raise MPTStreamingNotSupportedError(path, http_error.body) from http_error
+    if http_error.status_code == STREAMING_NOT_ACCEPTABLE_STATUS:
+        raise MPTStreamingNotAcceptableError(path, http_error.body) from http_error
+    raise http_error
 
 
 class MPTMaxRetryError(MPTError):
