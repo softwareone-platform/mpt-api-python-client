@@ -3,7 +3,11 @@ from typing import NoReturn, override
 
 from httpx import HTTPStatusError, codes
 
-from mpt_api_client.constants import MPT_STREAMING_ENABLED, MPT_STREAMING_HEADER
+from mpt_api_client.constants import (
+    MPT_ITEM_COUNT_HEADER,
+    MPT_STREAMING_ENABLED,
+    MPT_STREAMING_HEADER,
+)
 
 STREAMING_NOT_ACCEPTABLE_STATUS = codes.NOT_ACCEPTABLE
 STREAMING_NOT_IMPLEMENTED_STATUS = codes.NOT_IMPLEMENTED
@@ -33,6 +37,44 @@ class MPTStreamingNotEnabledError(MPTStreamingError):
             f"The API did not confirm streaming mode for '{path}': expected the "
             f"{MPT_STREAMING_HEADER} response header to be '{MPT_STREAMING_ENABLED}', "
             f"got {received}. The response body was not consumed."
+        )
+
+
+class MPTStreamingItemCountMissingError(MPTStreamingError):
+    """Represents a streaming response that did not declare a usable item count.
+
+    Streaming mode commits the ``MPT-Item-Count`` response header together with the
+    status, and it is the only completeness signal the contract provides. Without a
+    usable count the stream cannot be verified complete, so the response is not read.
+    """
+
+    def __init__(self, path: str, header_value: str | None):
+        self.path = path
+        self.header_value = header_value
+        received = "no header" if header_value is None else f"'{header_value}'"
+        super().__init__(
+            f"The API did not declare the item count for '{path}': expected the "
+            f"{MPT_ITEM_COUNT_HEADER} response header to be a non-negative integer, "
+            f"got {received}. The response body was not consumed."
+        )
+
+
+class MPTStreamingIncompleteError(MPTStreamingError):
+    """Represents a fully consumed stream that did not match its declared item count.
+
+    Every member of the export yields exactly one record, so a gracefully terminated
+    stream whose record count differs from ``MPT-Item-Count`` is an incomplete or
+    duplicated result set and must not be processed as if it were complete.
+    """
+
+    def __init__(self, path: str, expected_count: int, received_count: int):
+        self.path = path
+        self.expected_count = expected_count
+        self.received_count = received_count
+        super().__init__(
+            f"The stream for '{path}' did not match its declared item count: the "
+            f"{MPT_ITEM_COUNT_HEADER} response header declared {expected_count}, "
+            f"received {received_count}."
         )
 
 

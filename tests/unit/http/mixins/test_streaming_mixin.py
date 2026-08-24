@@ -6,18 +6,23 @@ from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import (
     MPTHttpError,
     MPTStreamingError,
+    MPTStreamingIncompleteError,
+    MPTStreamingItemCountMissingError,
     MPTStreamingNotAcceptableError,
     MPTStreamingNotEnabledError,
     MPTStreamingNotSupportedError,
 )
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamingMixin
+from mpt_api_client.http.mixins.streaming_mixin import declared_item_count
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
 
 STREAM_URL = f"{API_URL}/api/v1/orders"
 JSONL_BODY = b'{"id": "ID-1", "name": "Order 1"}\n\n{"id": "ID-2", "name": "Order 2"}\n'
 NOT_CONFIRMED_MATCH = "did not confirm streaming mode"
+COUNT_MISSING_MATCH = "did not declare the item count"
+COUNT_MISMATCH_MATCH = "declared 3, received 2"
 BOUNDED_LIMIT = 100
 PASSED_OFFSET = 50
 BOUNDED_QUERY = "limit=100&offset=50"
@@ -35,6 +40,14 @@ PAGINATION_CASES = (
     pytest.param(
         {"limit": BOUNDED_LIMIT, "offset": PASSED_OFFSET}, BOUNDED_QUERY, id="both together"
     ),
+)
+
+# Every unusable MPT-Item-Count value takes the same failure path before the body is read.
+UNUSABLE_COUNT_CASES = (
+    pytest.param({"MPT-Streaming": "true"}, id="absent"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "-1"}, id="negative"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "abc"}, id="not a number"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": ""}, id="empty"),
 )
 
 
@@ -64,8 +77,8 @@ def async_streaming_service(async_http_client):
     return AsyncDummyStreamingService(http_client=async_http_client)
 
 
-def streaming_response():
-    return jsonl_response({"MPT-Streaming": "true"})
+def streaming_response(item_count="2"):
+    return jsonl_response({"MPT-Streaming": "true", "MPT-Item-Count": item_count})
 
 
 def jsonl_response(headers=None):
@@ -83,11 +96,18 @@ def test_stream_sends_streaming_opt_in_headers(streaming_service):
     assert request.headers["Accept"] == "application/jsonl"
 
 
+@pytest.mark.parametrize(
+    "pagination",
+    [
+        pytest.param({}, id="full snapshot"),
+        pytest.param({"limit": BOUNDED_LIMIT}, id="bounded export"),
+    ],
+)
 @respx.mock
-def test_stream_yields_models(streaming_service):
+def test_stream_yields_models(streaming_service, pagination):
     respx.get(STREAM_URL).mock(return_value=streaming_response())
 
-    result = list(streaming_service.stream())
+    result = list(streaming_service.stream(**pagination))
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
@@ -126,36 +146,27 @@ def test_stream_combines_limit_with_query_state(streaming_service):
     assert request.url.query.decode() == "limit=100&select=id&eq(status,'active')"
 
 
+@pytest.mark.parametrize(
+    ("headers", "error_match"),
+    [
+        pytest.param(None, NOT_CONFIRMED_MATCH, id="header absent"),
+        pytest.param({"MPT-Streaming": "false"}, "got 'false'", id="explicit false"),
+    ],
+)
 @respx.mock
-def test_stream_yields_bounded_export(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=streaming_response())
-
-    result = list(streaming_service.stream(limit=BOUNDED_LIMIT))
-
-    assert [order.id for order in result] == ["ID-1", "ID-2"]
-
-
-@respx.mock
-def test_stream_raises_when_not_confirmed(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=jsonl_response())
+def test_stream_raises_when_not_confirmed(streaming_service, headers, error_match):
+    respx.get(STREAM_URL).mock(return_value=jsonl_response(headers))
     iterator = streaming_service.stream()
 
-    with pytest.raises(MPTStreamingNotEnabledError, match=NOT_CONFIRMED_MATCH):
-        next(iterator)
-
-
-@respx.mock
-def test_stream_raises_on_false_header(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=jsonl_response({"MPT-Streaming": "false"}))
-    iterator = streaming_service.stream()
-
-    with pytest.raises(MPTStreamingNotEnabledError, match="got 'false'"):
+    with pytest.raises(MPTStreamingNotEnabledError, match=error_match):
         next(iterator)
 
 
 @respx.mock
 def test_stream_accepts_uppercase_value(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=jsonl_response({"MPT-Streaming": "True"}))
+    respx.get(STREAM_URL).mock(
+        return_value=jsonl_response({"MPT-Streaming": "True", "MPT-Item-Count": "2"})
+    )
 
     result = list(streaming_service.stream())
 
@@ -234,21 +245,31 @@ async def test_async_stream_progress_events(
     ]
 
 
+@pytest.mark.parametrize(
+    ("status_code", "error_class", "error_match"),
+    [
+        pytest.param(
+            httpx.codes.NOT_IMPLEMENTED,
+            MPTStreamingNotSupportedError,
+            "does not support streaming mode",
+            id="501 not supported",
+        ),
+        pytest.param(
+            httpx.codes.NOT_ACCEPTABLE,
+            MPTStreamingNotAcceptableError,
+            "requested streaming format",
+            id="406 not acceptable",
+        ),
+    ],
+)
 @respx.mock
-def test_stream_raises_when_not_implemented(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_IMPLEMENTED))
+def test_stream_raises_typed_negotiation_error(
+    streaming_service, status_code, error_class, error_match
+):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(status_code))
     iterator = streaming_service.stream()
 
-    with pytest.raises(MPTStreamingNotSupportedError, match="does not support streaming mode"):
-        next(iterator)
-
-
-@respx.mock
-def test_stream_raises_when_not_acceptable(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_ACCEPTABLE))
-    iterator = streaming_service.stream()
-
-    with pytest.raises(MPTStreamingNotAcceptableError, match="requested streaming format"):
+    with pytest.raises(error_class, match=error_match):
         next(iterator)
 
 
@@ -264,52 +285,151 @@ def test_streaming_errors_stay_catchable_as_http(streaming_service):
     assert isinstance(raised.value, MPTStreamingError)
 
 
+@pytest.mark.parametrize(
+    ("pagination", "status_code"),
+    [
+        pytest.param({"offset": PASSED_OFFSET}, httpx.codes.BAD_REQUEST, id="offset rejection"),
+        pytest.param({}, httpx.codes.FORBIDDEN, id="unrelated failure"),
+    ],
+)
 @respx.mock
-def test_stream_surfaces_offset_response(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.BAD_REQUEST))
-    iterator = streaming_service.stream(offset=PASSED_OFFSET)
+def test_other_http_errors_are_not_translated(streaming_service, pagination, status_code):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(status_code))
+    iterator = streaming_service.stream(**pagination)
 
     with pytest.raises(MPTHttpError) as raised:
         next(iterator)
 
-    assert raised.value.status_code == httpx.codes.BAD_REQUEST
+    assert raised.value.status_code == status_code
     assert not isinstance(raised.value, MPTStreamingError)
 
 
+@pytest.mark.parametrize(
+    "headers",
+    [
+        pytest.param(None, id="not enabled"),
+        pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "3"}, id="incomplete"),
+    ],
+)
 @respx.mock
-def test_other_http_errors_are_not_translated(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.FORBIDDEN))
-    iterator = streaming_service.stream()
-
-    with pytest.raises(MPTHttpError) as raised:
-        next(iterator)
-
-    assert raised.value.status_code == httpx.codes.FORBIDDEN
-    assert not isinstance(raised.value, MPTStreamingError)
-
-
-@respx.mock
-def test_not_enabled_error_is_a_streaming_error(streaming_service):
-    respx.get(STREAM_URL).mock(return_value=jsonl_response())
+def test_errors_are_streaming_errors(streaming_service, headers):
+    respx.get(STREAM_URL).mock(return_value=jsonl_response(headers))
     iterator = streaming_service.stream()
 
     with pytest.raises(MPTStreamingError):
+        list(iterator)
+
+
+@pytest.mark.parametrize(
+    ("status_code", "error_class"),
+    [
+        pytest.param(httpx.codes.NOT_IMPLEMENTED, MPTStreamingNotSupportedError, id="501"),
+        pytest.param(httpx.codes.NOT_ACCEPTABLE, MPTStreamingNotAcceptableError, id="406"),
+    ],
+)
+@respx.mock
+async def test_async_stream_raises_negotiation_error(
+    async_streaming_service, status_code, error_class
+):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(status_code))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(error_class):
+        await anext(iterator)
+
+
+def test_declared_item_count_reads_header():
+    headers = {"MPT-Item-Count": "0"}
+
+    result = declared_item_count(headers, "/api/v1/orders")
+
+    assert result == 0
+
+
+@pytest.mark.parametrize(
+    ("item_count", "mismatch_match"),
+    [
+        pytest.param("3", COUNT_MISMATCH_MATCH, id="short stream"),
+        pytest.param("1", "declared 1, received 2", id="extra records"),
+    ],
+)
+@respx.mock
+def test_stream_raises_on_count_mismatch(streaming_service, item_count, mismatch_match):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count=item_count))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingIncompleteError, match=mismatch_match):
+        list(iterator)
+
+
+@respx.mock
+def test_stream_incomplete_error_counts(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingIncompleteError) as raised:
+        list(iterator)
+
+    assert (raised.value.expected_count, raised.value.received_count) == (3, 2)
+
+
+@pytest.mark.parametrize("headers", UNUSABLE_COUNT_CASES)
+@respx.mock
+def test_stream_raises_on_unusable_item_count(streaming_service, headers):
+    respx.get(STREAM_URL).mock(return_value=jsonl_response(headers))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
         next(iterator)
 
 
 @respx.mock
-async def test_async_stream_raises_not_supported(async_streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_IMPLEMENTED))
+def test_stream_early_close_skips_verification(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    iterator = streaming_service.stream()
+    first = next(iterator)
+
+    iterator.close()  # act
+
+    assert first.id == "ID-1"
+
+
+@respx.mock
+def test_incomplete_skips_progress_completed(streaming_service, recording_progress):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    iterator = streaming_service.stream(progress=recording_progress)
+
+    with pytest.raises(MPTStreamingIncompleteError):
+        list(iterator)
+
+    assert recording_progress.events == [("item_processed",), ("item_processed",)]
+
+
+@respx.mock
+async def test_async_stream_raises_when_stream_is_short(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
     iterator = async_streaming_service.stream()
 
-    with pytest.raises(MPTStreamingNotSupportedError):
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        [order async for order in iterator]
+
+
+@pytest.mark.parametrize("headers", UNUSABLE_COUNT_CASES)
+@respx.mock
+async def test_async_stream_raises_on_unusable_count(async_streaming_service, headers):
+    respx.get(STREAM_URL).mock(return_value=jsonl_response(headers))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
         await anext(iterator)
 
 
 @respx.mock
-async def test_async_stream_raises_not_acceptable(async_streaming_service):
-    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.NOT_ACCEPTABLE))
+async def test_async_early_close_skips_verification(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
     iterator = async_streaming_service.stream()
+    first = await anext(iterator)
 
-    with pytest.raises(MPTStreamingNotAcceptableError):
-        await anext(iterator)
+    await iterator.aclose()  # act
+
+    assert first.id == "ID-1"

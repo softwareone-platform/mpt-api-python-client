@@ -2,13 +2,18 @@ import json
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
 
+from httpx import Response as HTTPXResponse
+
 from mpt_api_client.constants import (
     APPLICATION_JSONL,
+    MPT_ITEM_COUNT_HEADER,
     MPT_STREAMING_ENABLED,
     MPT_STREAMING_HEADER,
 )
 from mpt_api_client.exceptions import (
     MPTHttpError,
+    MPTStreamingIncompleteError,
+    MPTStreamingItemCountMissingError,
     MPTStreamingNotEnabledError,
     raise_streaming_error,
 )
@@ -67,6 +72,98 @@ def confirm_streaming_mode(response_headers: Mapping[str, str], path: str) -> No
         raise MPTStreamingNotEnabledError(path, echoed_value)
 
 
+def declared_item_count(response_headers: Mapping[str, str], path: str) -> int:
+    """Read the item count a streaming response declared.
+
+    Args:
+        response_headers: Headers of the streaming response.
+        path: Requested path, used to build the error message.
+
+    Returns:
+        The number of records the stream declared it will emit.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the ``MPT-Item-Count`` response header
+            is absent or is not a non-negative integer.
+    """
+    header_value = response_headers.get(MPT_ITEM_COUNT_HEADER)
+    if header_value is None:
+        raise MPTStreamingItemCountMissingError(path, header_value)
+    try:
+        expected_count = int(header_value)
+    except ValueError as parse_error:
+        raise MPTStreamingItemCountMissingError(path, header_value) from parse_error
+    if expected_count < 0:
+        raise MPTStreamingItemCountMissingError(path, header_value)
+    return expected_count
+
+
+def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
+    """Iterate the record lines of a streaming response, verifying completeness.
+
+    The declared record count is read from the ``MPT-Item-Count`` header before the
+    first line is yielded, and compared with the number of yielded lines when the body
+    ends, because a truncated body that terminates gracefully carries no other failure
+    signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
+    the iterator early skips the comparison: only a body consumed to the end is verified.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+
+    Yields:
+        Non-blank body lines, one per record.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body emitted a number of
+            records different from the declared item count.
+    """
+    expected_count = declared_item_count(response.headers, path)
+    received_count = 0
+    for line in response.iter_lines():
+        if not line.strip():
+            continue
+        received_count += 1
+        yield line
+    if received_count != expected_count:
+        raise MPTStreamingIncompleteError(path, expected_count, received_count)
+
+
+async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncIterator[str]:
+    """Iterate the record lines of an async streaming response, verifying completeness.
+
+    The declared record count is read from the ``MPT-Item-Count`` header before the
+    first line is yielded, and compared with the number of yielded lines when the body
+    ends, because a truncated body that terminates gracefully carries no other failure
+    signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
+    the iterator early skips the comparison: only a body consumed to the end is verified.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+
+    Yields:
+        Non-blank body lines, one per record.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body emitted a number of
+            records different from the declared item count.
+    """
+    expected_count = declared_item_count(response.headers, path)
+    received_count = 0
+    async for line in response.aiter_lines():
+        if not line.strip():
+            continue
+        received_count += 1
+        yield line
+    if received_count != expected_count:
+        raise MPTStreamingIncompleteError(path, expected_count, received_count)
+
+
 class StreamingMixin[Model: BaseModel](QueryableMixin):
     """Mixin providing the platform streaming read mode for a collection endpoint.
 
@@ -88,6 +185,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
+        Once the body is fully consumed, the record count is verified against the
+        ``MPT-Item-Count`` response header, so a short export raises instead of ending as
+        a silently partial result. Closing the iterator early skips that check.
 
         Args:
             limit: Number of records to export, counted from the start of the stream
@@ -98,7 +198,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is called once per
                 record before it is yielded and `completed` once when the response body
-                is fully consumed. `set_total_items` is never called.
+                is fully consumed and verified complete. `set_total_items` is never
+                called.
 
         Yields:
             Resources, one per non-empty line of the response.
@@ -107,6 +208,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+            MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingIncompleteError: If the fully consumed stream does not match the
+                declared item count.
         """
         path = self.build_path(  # type: ignore[attr-defined]
             streaming_pagination_params(limit, offset),
@@ -125,9 +229,7 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             except MPTHttpError as http_error:
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
-            for line in response.iter_lines():
-                if not line.strip():
-                    continue
+            for line in iter_verified_lines(response, path):
                 model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
                 if progress:
                     progress.item_processed()
@@ -157,6 +259,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
+        Once the body is fully consumed, the record count is verified against the
+        ``MPT-Item-Count`` response header, so a short export raises instead of ending as
+        a silently partial result. Closing the iterator early skips that check.
 
         Args:
             limit: Number of records to export, counted from the start of the stream
@@ -167,7 +272,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is awaited once per
                 record before it is yielded and `completed` once when the response body
-                is fully consumed. `set_total_items` is never called.
+                is fully consumed and verified complete. `set_total_items` is never
+                called.
 
         Yields:
             Resources, one per non-empty line of the response.
@@ -176,6 +282,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+            MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingIncompleteError: If the fully consumed stream does not match the
+                declared item count.
         """
         path = self.build_path(  # type: ignore[attr-defined]
             streaming_pagination_params(limit, offset),
@@ -195,9 +304,7 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             except MPTHttpError as http_error:
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
-            async for line in response.aiter_lines():
-                if not line.strip():
-                    continue
+            async for line in aiter_verified_lines(response, path):
                 model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
                 if progress:
                     await progress.item_processed()  # noqa: WPS476

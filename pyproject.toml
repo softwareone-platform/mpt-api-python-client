@@ -121,6 +121,7 @@ per-file-ignores = [
   "mpt_api_client/models/__init__.py: WPS235",
   "mpt_api_client/models/model.py: WPS110",
   "mpt_api_client/exceptions.py: WPS202",
+  "mpt_api_client/http/mixins/streaming_mixin.py: WPS202",
   "mpt_api_client/models/progress.py: WPS202",
   "mpt_api_client/mpt_client.py: WPS214 WPS235",
   "mpt_api_client/resources/*: WPS215",
