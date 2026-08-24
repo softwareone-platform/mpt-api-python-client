@@ -19,8 +19,9 @@ from mpt_api_client.exceptions import (
 )
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import HeaderTypes
-from mpt_api_client.models import AsyncProgress, Progress
+from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
 from mpt_api_client.models import Model as BaseModel
+from mpt_api_client.models.model import Resource
 
 
 def streaming_request_headers() -> HeaderTypes:
@@ -164,6 +165,34 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
         raise MPTStreamingIncompleteError(path, expected_count, received_count)
 
 
+def deserialize_stream_record[Model: BaseModel](
+    record: Resource,
+    model_class: type[Model],
+) -> Model | DeletionStub:
+    """Deserialize one streamed record into a model or a deletion stub.
+
+    A record marked with ``$meta.deleted`` becomes a `DeletionStub` instead of a model,
+    because the contract guarantees only its ``id``: as a model it would carry a full set
+    of None fields, indistinguishable from a record whose values really are unset, and
+    writing it back would overwrite the stored record with nulls. Every record still
+    produces exactly one object, stubs included, so a stub counts towards the declared
+    item count.
+
+    Args:
+        record: Deserialized record read from one line of the stream.
+        model_class: Model class of the streamed resource.
+
+    Returns:
+        A model for a data record, or a `DeletionStub` for a deletion stub.
+
+    Raises:
+        TypeError: If a deletion stub carries no string ``id``.
+    """
+    if is_deletion_stub(record):
+        return DeletionStub.from_record(record)
+    return model_class(record)
+
+
 class StreamingMixin[Model: BaseModel](QueryableMixin):
     """Mixin providing the platform streaming read mode for a collection endpoint.
 
@@ -179,12 +208,14 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         limit: int | None = None,
         offset: int | None = None,
         progress: Progress | None = None,
-    ) -> Iterator[Model]:
-        """Stream a result set in streaming mode, yielding one model per record.
+    ) -> Iterator[Model | DeletionStub]:
+        """Stream a result set in streaming mode, yielding one object per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
+        A member hard-deleted after that snapshot arrives as a deletion stub and is yielded
+        as a `DeletionStub` rather than a model, so it cannot be ingested as a record.
         Once the body is fully consumed, the record count is verified against the
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
@@ -197,12 +228,13 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             offset: Offset to send with the request. Sent as given rather than checked
                 locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is called once per
-                record before it is yielded and `completed` once when the response body
-                is fully consumed and verified complete. `set_total_items` is never
-                called.
+                yielded object, stubs included, before it is yielded, and `completed` once
+                when the response body is fully consumed and verified complete.
+                `set_total_items` is never called.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per non-empty line of the response, each either a model or a
+            `DeletionStub` for a member deleted after the membership snapshot.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -231,10 +263,13 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             for line in iter_verified_lines(response, path):
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                result = deserialize_stream_record(
+                    json.loads(line),
+                    self._model_class,  # type: ignore[attr-defined]
+                )
                 if progress:
                     progress.item_processed()
-                yield model
+                yield result
         if progress:
             progress.completed()
 
@@ -254,12 +289,14 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         limit: int | None = None,
         offset: int | None = None,
         progress: AsyncProgress | None = None,
-    ) -> AsyncIterator[Model]:
-        """Stream a result set in streaming mode, yielding one model per record.
+    ) -> AsyncIterator[Model | DeletionStub]:
+        """Stream a result set in streaming mode, yielding one object per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
+        A member hard-deleted after that snapshot arrives as a deletion stub and is yielded
+        as a `DeletionStub` rather than a model, so it cannot be ingested as a record.
         Once the body is fully consumed, the record count is verified against the
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
@@ -272,12 +309,13 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             offset: Offset to send with the request. Sent as given rather than checked
                 locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is awaited once per
-                record before it is yielded and `completed` once when the response body
-                is fully consumed and verified complete. `set_total_items` is never
-                called.
+                yielded object, stubs included, before it is yielded, and `completed` once
+                when the response body is fully consumed and verified complete.
+                `set_total_items` is never called.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per non-empty line of the response, each either a model or a
+            `DeletionStub` for a member deleted after the membership snapshot.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -307,9 +345,12 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             async for line in aiter_verified_lines(response, path):
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                result = deserialize_stream_record(
+                    json.loads(line),
+                    self._model_class,  # type: ignore[attr-defined]
+                )
                 if progress:
                     await progress.item_processed()  # noqa: WPS476
-                yield model
+                yield result
         if progress:
             await progress.completed()

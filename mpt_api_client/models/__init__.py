@@ -1,4 +1,5 @@
 from mpt_api_client.models.attachment_model import AttachmentModel
+from mpt_api_client.models.deletion_stub import DeletionStub, is_deletion_stub
 from mpt_api_client.models.document_model import DocumentModel
 from mpt_api_client.models.file_model import FileModel
 from mpt_api_client.models.file_resource_model import FileResourceModel
@@ -29,6 +30,7 @@ __all__ = [  # noqa: WPS410
     "AttachmentModel",
     "BatchProgressReport",
     "ConsoleProgress",
+    "DeletionStub",
     "DocumentModel",
     "FileModel",
     "FileResourceModel",
@@ -42,4 +44,5 @@ __all__ = [  # noqa: WPS410
     "ResourceData",
     "TermVariantModel",
     "TimeProgressReport",
+    "is_deletion_stub",
 ]

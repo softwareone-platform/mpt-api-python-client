@@ -247,6 +247,11 @@ Streaming mixins extend `QueryableMixin`, so `filter()`, `order_by()` and `selec
 before `stream()` exactly as they do before `iterate()`. Membership is fixed when the stream
 opens: records created afterwards are not included.
 
+The minimal loop above reads `id`, which every streamed object carries. Anything that touches
+other fields must first check for a deletion stub: a member deleted after the snapshot arrives
+as a `DeletionStub`, not a model. See [Deletion Stubs](#deletion-stubs) — the async example
+below shows the branch.
+
 ### Bounding An Export
 
 By default `stream()` sends no `limit`, which exports the full snapshot; passing `limit=-1`
@@ -275,7 +280,7 @@ import asyncio
 from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication
 from mpt_api_client.http import AsyncService
 from mpt_api_client.http.mixins import AsyncStreamingMixin
-from mpt_api_client.models import Model
+from mpt_api_client.models import DeletionStub, Model
 
 
 class AsyncOrdersStreamService(AsyncStreamingMixin[Model], AsyncService[Model]):
@@ -290,12 +295,60 @@ async def main():
     )
     service = AsyncOrdersStreamService(http_client=client.http_client)
 
-    async for order in service.stream():
-        print(order.id)
+    async for result in service.stream():
+        if isinstance(result, DeletionStub):
+            await delete_local_record(result.id)
+        else:
+            await upsert_local_record(result)
 
 
 asyncio.run(main())
 ```
+
+### Deletion Stubs
+
+A member of the snapshot whose row is hard-deleted before the stream reaches it is still a
+member of the export, so the platform emits it as a deletion stub instead of a record:
+
+```json
+{"id": "ORD-1234-5678", "$meta": {"deleted": true}}
+```
+
+`$meta.deleted` is the platform's metadata channel for that signal. A **truthy** `deleted`
+marker is what identifies a stub; anything else — no `$meta`, no `deleted` key, or
+`"deleted": false` — is data rather than a deletion. In practice the platform omits `$meta`
+entirely on a normal record, so the falsy cases are defensive rather than expected. Only `id`
+is guaranteed on a stub: no other property of the deleted row is carried.
+
+`stream()` yields these as `DeletionStub`, never as a model, so the object cannot be handed
+to code that expects a record. Deserializing a stub as a model would instead produce an
+instance whose every declared field is `None` — indistinguishable from a record whose values
+really are unset — and a sync job writing that back would overwrite the stored record with
+nulls. Branch on the type before ingesting the object; there is nothing else on a stub to
+inspect:
+
+```python
+from mpt_api_client.models import DeletionStub
+
+for result in service.stream():
+    if isinstance(result, DeletionStub):
+        delete_local_record(result.id)
+    else:
+        upsert_local_record(result)
+```
+
+A stub is not the same thing as a `DELETED` domain status. `DELETED` arrives on a full,
+existing record and is a state of that record, so it stays a model; a stub marks a row that
+no longer exists at all and carries no state.
+
+Every member selected for the stream yields exactly one object, stubs included, so a stub
+counts towards `MPT-Item-Count`. Do not filter stubs out before the completeness check
+described below, or a complete export reads as short.
+
+If you validate incoming payloads against a strict schema, relax the required-member
+validation for stubs: a stub satisfies only `id`, so checking it against a schema that
+requires the full record fails on a conformant payload. Branch on `DeletionStub` first and
+skip the record validation for stubs, rather than loosening the schema for records too.
 
 ### Streaming Errors
 

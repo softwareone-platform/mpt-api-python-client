@@ -150,8 +150,11 @@ streaming read mode on a regular collection route and require the API to echo th
 also verify completeness: the declared `MPT-Item-Count` is read before the first record —
 raising `MPTStreamingItemCountMissingError` when absent or unusable — and compared with the
 yielded record count once the body is fully consumed, raising `MPTStreamingIncompleteError`
-on mismatch. An iterator closed early skips the comparison. The JSONL mixins serve endpoints
-that assign `application/jsonl` their own meaning outside streaming mode.
+on mismatch. An iterator closed early skips the comparison. A record marked with
+`$meta.deleted` is a deletion stub rather than data, and is yielded as a `DeletionStub`
+instead of a model, so it still counts towards the declared item count but cannot be ingested
+as a record. The JSONL mixins serve endpoints that assign `application/jsonl` their own
+meaning outside streaming mode.
 
 `StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
 unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
@@ -212,6 +215,12 @@ See [the RQL guide](rql.md) for the fluent query builder, filter chaining, and u
 - provides `to_dict()` serialization back to `camelCase`
 
 `Collection[Model]` wraps paginated API responses with metadata (`Meta`, `Pagination`).
+
+`DeletionStub` (`models/deletion_stub.py`) is deliberately not a `Model`. It carries only the
+`id` of a row deleted after a stream's membership snapshot, which is the only property the
+platform guarantees on a `$meta.deleted` stub, so the type keeps a stub from being mistaken
+for a record with unset fields. It is distinct from the domain `DELETED` status, which is a
+state of a full record.
 
 ### Error Handling — `exceptions.py`
 

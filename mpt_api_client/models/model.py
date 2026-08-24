@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from types import MappingProxyType
 from typing import Any, Self, get_args, get_origin, override
 
+from mpt_api_client.constants import MPT_META_FIELD
 from mpt_api_client.http.types import Response
 from mpt_api_client.models.meta import Meta
 from mpt_api_client.models.model_collection import ModelCollection
@@ -240,7 +241,7 @@ class Model(BaseModel):
 
         if isinstance(response_data, dict):
             meta = Meta.from_response(response)
-            response_data.pop("$meta", None)
+            response_data.pop(MPT_META_FIELD, None)
             return cls(response_data, meta)
         if isinstance(response_data, list):
             return ModelCollection([cls(data_item) for data_item in response_data])

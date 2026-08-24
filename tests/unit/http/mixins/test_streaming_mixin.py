@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 import respx
@@ -15,7 +17,11 @@ from mpt_api_client.exceptions import (
 )
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamingMixin
-from mpt_api_client.http.mixins.streaming_mixin import declared_item_count
+from mpt_api_client.http.mixins.streaming_mixin import (
+    declared_item_count,
+    deserialize_stream_record,
+)
+from mpt_api_client.models import DeletionStub, Model
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
 
@@ -68,14 +74,62 @@ class AsyncDummyStreamingService(
     _model_class = DummyModel
 
 
+class NullableFieldsModel(Model):
+    """Model declaring nullable fields, as the shipped resource models do.
+
+    Attributes:
+        name: Record name.
+        status: Domain status of the record.
+    """
+
+    name: str | None = None
+    status: str | None = None
+
+
+class NullableFieldsStreamingService(
+    StreamingMixin[NullableFieldsModel],
+    Service[NullableFieldsModel],
+):
+    _endpoint = "/api/v1/orders"
+    _model_class = NullableFieldsModel
+
+
+class AsyncNullableFieldsStreamingService(
+    AsyncStreamingMixin[NullableFieldsModel],
+    AsyncService[NullableFieldsModel],
+):
+    _endpoint = "/api/v1/orders"
+    _model_class = NullableFieldsModel
+
+
 @pytest.fixture
 def streaming_service(http_client):
     return DummyStreamingService(http_client=http_client)
 
 
 @pytest.fixture
+def nullable_fields_service(http_client):
+    return NullableFieldsStreamingService(http_client=http_client)
+
+
+@pytest.fixture
+def async_nullable_fields_service(async_http_client):
+    return AsyncNullableFieldsStreamingService(http_client=async_http_client)
+
+
+@pytest.fixture
 def async_streaming_service(async_http_client):
     return AsyncDummyStreamingService(http_client=async_http_client)
+
+
+@pytest.fixture
+def data_record():
+    return {"id": "ID-1", "name": "Order 1"}
+
+
+@pytest.fixture
+def deleted_status_record():
+    return {"id": "ID-3", "name": "Order 3", "status": "DELETED"}
 
 
 def streaming_response(item_count="2"):
@@ -84,6 +138,16 @@ def streaming_response(item_count="2"):
 
 def jsonl_response(headers=None):
     return httpx.Response(httpx.codes.OK, content=JSONL_BODY, headers=headers)
+
+
+def records_response(records, item_count=None):
+    body = "\n".join(json.dumps(record) for record in records).encode()
+    declared = str(len(records)) if item_count is None else item_count
+    return httpx.Response(
+        httpx.codes.OK,
+        content=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": declared},
+    )
 
 
 @respx.mock
@@ -475,3 +539,162 @@ async def test_async_stream_raises_when_over_cap(async_streaming_service):
         await anext(iterator)
 
     assert raised.value.payload == over_cap_problem()
+
+
+@respx.mock
+def test_stream_yields_stub_for_deleted_row(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+
+    result = list(nullable_fields_service.stream())
+
+    assert isinstance(result[0], NullableFieldsModel)
+    assert isinstance(result[1], DeletionStub)
+    assert [entry.id for entry in result] == ["ID-1", "ID-2"]
+
+
+@respx.mock
+def test_stream_stub_is_not_a_model(nullable_fields_service, deletion_stub_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([deletion_stub_record]))
+
+    result = list(nullable_fields_service.stream())
+
+    assert not isinstance(result[0], Model)
+
+
+@respx.mock
+def test_stream_stub_exposes_no_record_fields(nullable_fields_service, deletion_stub_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([deletion_stub_record]))
+
+    result = list(nullable_fields_service.stream())
+
+    assert not hasattr(result[0], "name")
+    assert not hasattr(result[0], "status")
+
+
+@respx.mock
+def test_stream_counts_stub_towards_item_count(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="2"))
+
+    result = list(nullable_fields_service.stream())
+
+    assert len(result) == 2
+
+
+@respx.mock
+def test_stream_stub_short_of_item_count_raises(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = nullable_fields_service.stream()
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        list(iterator)
+
+
+@respx.mock
+def test_stream_progress_counts_stub(
+    nullable_fields_service, deletion_stub_record, recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+
+    list(nullable_fields_service.stream(progress=recording_progress))  # act
+
+    assert recording_progress.events == [
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_keeps_deleted_status_as_a_record(nullable_fields_service, deleted_status_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([deleted_status_record]))
+
+    result = list(nullable_fields_service.stream())
+
+    assert isinstance(result[0], NullableFieldsModel)
+    assert result[0].status == "DELETED"
+
+
+@respx.mock
+async def test_async_stream_yields_deletion_stub(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream()
+
+    result = [entry async for entry in stream]
+
+    assert isinstance(result[0], NullableFieldsModel)
+    assert isinstance(result[1], DeletionStub)
+    assert [entry.id for entry in result] == ["ID-1", "ID-2"]
+
+
+@respx.mock
+async def test_async_stub_short_count_raises(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = async_nullable_fields_service.stream()
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        [entry async for entry in iterator]
+
+
+@respx.mock
+async def test_async_stream_progress_counts_stub(
+    async_nullable_fields_service, deletion_stub_record, async_recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream(progress=async_recording_progress)
+
+    [entry async for entry in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+def test_deserialize_stream_record_builds_a_model(data_record):
+    result = deserialize_stream_record(data_record, NullableFieldsModel)
+
+    assert isinstance(result, NullableFieldsModel)
+    assert result.name == "Order 1"
+
+
+def test_deserialize_stream_record_builds_a_stub(deletion_stub_record):
+    result = deserialize_stream_record(deletion_stub_record, NullableFieldsModel)
+
+    assert result == DeletionStub(id="ID-2")
+
+
+@pytest.mark.parametrize(
+    "record",
+    [
+        pytest.param({"id": "ID-1"}, id="no $meta at all"),
+        pytest.param({"id": "ID-1", "$meta": {}}, id="$meta without the deleted marker"),
+        pytest.param({"id": "ID-1", "$meta": {"deleted": False}}, id="marker explicitly false"),
+        pytest.param({"id": "ID-1", "$meta": "deleted"}, id="$meta is not a mapping"),
+        pytest.param(
+            {"id": "ID-3", "name": "Order 3", "status": "DELETED"},
+            id="domain DELETED status is not a stub",
+        ),
+    ],
+)
+def test_deserialize_keeps_unmarked_records(record):
+    result = deserialize_stream_record(dict(record), NullableFieldsModel)
+
+    assert isinstance(result, NullableFieldsModel)

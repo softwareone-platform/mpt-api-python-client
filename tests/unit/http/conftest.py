@@ -211,6 +211,12 @@ def multiple_results_response():
 
 
 @pytest.fixture
+def deletion_stub_record():
+    # Row hard-deleted after the membership snapshot: only "id" is guaranteed on a stub.
+    return {"id": "ID-2", "$meta": {"deleted": True}}
+
+
+@pytest.fixture
 def filter_status_active():
     return RQLQuery(status="active")
 
