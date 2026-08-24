@@ -11,6 +11,7 @@ from mpt_api_client.exceptions import (
     MPTStreamingNotAcceptableError,
     MPTStreamingNotEnabledError,
     MPTStreamingNotSupportedError,
+    MPTStreamingOverCapError,
 )
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamingMixin
@@ -433,3 +434,44 @@ async def test_async_early_close_skips_verification(async_streaming_service):
     await iterator.aclose()  # act
 
     assert first.id == "ID-1"
+
+
+def over_cap_problem():
+    return {
+        "type": "https://api.s1.show/problems/export-too-large",
+        "title": "Export too large",
+        "status": 413,
+        "detail": "the result set exceeds the configured MaxExportKeys of 500000",
+        "maxExportKeys": 500000,
+    }
+
+
+def over_cap_response():
+    return httpx.Response(
+        httpx.codes.REQUEST_ENTITY_TOO_LARGE,
+        json=over_cap_problem(),
+        headers={"Content-Type": "application/problem+json"},
+    )
+
+
+@respx.mock
+def test_stream_raises_when_over_cap(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=over_cap_response())
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingOverCapError) as raised:
+        next(iterator)
+
+    assert raised.value.payload == over_cap_problem()
+    assert raised.value.status_code == httpx.codes.REQUEST_ENTITY_TOO_LARGE
+
+
+@respx.mock
+async def test_async_stream_raises_when_over_cap(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=over_cap_response())
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingOverCapError) as raised:
+        await anext(iterator)
+
+    assert raised.value.payload == over_cap_problem()

@@ -1,5 +1,7 @@
 import json
-from typing import NoReturn, override
+from collections.abc import Callable, Mapping
+from types import MappingProxyType
+from typing import Any, NoReturn, override
 
 from httpx import HTTPStatusError, codes
 
@@ -11,6 +13,7 @@ from mpt_api_client.constants import (
 
 STREAMING_NOT_ACCEPTABLE_STATUS = codes.NOT_ACCEPTABLE
 STREAMING_NOT_IMPLEMENTED_STATUS = codes.NOT_IMPLEMENTED
+STREAMING_OVER_CAP_STATUS = codes.REQUEST_ENTITY_TOO_LARGE
 
 
 class MPTError(Exception):
@@ -124,23 +127,73 @@ class MPTStreamingNotAcceptableError(MPTStreamingError, MPTHttpError):
         )
 
 
+def parse_problem_payload(body: str) -> dict[str, Any]:
+    """Parse a ``problem+json`` response body, tolerating a body that carries no JSON.
+
+    Args:
+        body: Raw response body.
+
+    Returns:
+        The decoded members, or an empty mapping when the body is not a JSON object.
+    """
+    try:
+        payload = json.loads(body)
+    except ValueError:
+        return {}
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+class MPTStreamingOverCapError(MPTStreamingError, MPTHttpError):
+    """Represents an export the API refuses because it exceeds the configured key cap.
+
+    The API answers ``413`` when the result set is larger than the ``MaxExportKeys`` cap,
+    with a ``problem+json`` body naming the configured cap and the ways forward: narrow
+    the filter, set an explicit ``limit=N``, or split the export into key or date ranges.
+
+    The body is parsed and kept on ``payload`` rather than flattened into the message,
+    because the cap value is the part a caller acts on. It is an empty mapping when the
+    response carries no JSON body.
+    """
+
+    def __init__(self, path: str, body: str):
+        self.path = path
+        self.payload = parse_problem_payload(body)
+        detail = self.payload.get("detail") or "the result set exceeds the configured cap"
+        MPTHttpError.__init__(
+            self,
+            STREAMING_OVER_CAP_STATUS,
+            f"'{path}' cannot be exported in one stream: {detail}. Narrow the filter, set "
+            "an explicit limit=N, or split the export into key or date ranges.",
+            body,
+        )
+
+
+STREAMING_ERROR_TYPES: Mapping[int, Callable[[str, str], MPTHttpError]] = MappingProxyType({
+    STREAMING_NOT_IMPLEMENTED_STATUS: MPTStreamingNotSupportedError,
+    STREAMING_NOT_ACCEPTABLE_STATUS: MPTStreamingNotAcceptableError,
+    STREAMING_OVER_CAP_STATUS: MPTStreamingOverCapError,
+})
+
+
 def raise_streaming_error(http_error: MPTHttpError, path: str) -> NoReturn:
-    """Re-raise an HTTP error as a typed streaming error when it is a negotiation failure.
+    """Re-raise an HTTP error as a typed streaming error when the status has one.
 
     Args:
         http_error: The HTTP error raised while opening the streaming response.
         path: Requested path, used to build the error message.
 
     Raises:
-        MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
-        MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+        MPTStreamingError: The typed error mapped to the status: the resource cannot
+            stream (``501``), the requested format is unsupported (``406``), or the
+            export exceeds the configured cap (``413``).
         MPTHttpError: Unchanged, for any other status.
     """
-    if http_error.status_code == STREAMING_NOT_IMPLEMENTED_STATUS:
-        raise MPTStreamingNotSupportedError(path, http_error.body) from http_error
-    if http_error.status_code == STREAMING_NOT_ACCEPTABLE_STATUS:
-        raise MPTStreamingNotAcceptableError(path, http_error.body) from http_error
-    raise http_error
+    streaming_error_type = STREAMING_ERROR_TYPES.get(http_error.status_code)
+    if streaming_error_type is None:
+        raise http_error
+    raise streaming_error_type(path, http_error.body) from http_error
 
 
 class MPTMaxRetryError(MPTError):

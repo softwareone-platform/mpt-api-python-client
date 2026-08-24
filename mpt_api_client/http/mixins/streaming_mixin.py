@@ -208,6 +208,7 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+            MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
@@ -282,6 +283,7 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
+            MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.

@@ -1,13 +1,16 @@
 import json
 
 import pytest
-from httpx import HTTPStatusError, Request, Response
+from httpx import HTTPStatusError, Request, Response, codes
 
 from mpt_api_client.exceptions import (
     MPTAPIError,
     MPTHttpError,
+    MPTStreamingError,
     MPTStreamingIncompleteError,
     MPTStreamingItemCountMissingError,
+    MPTStreamingOverCapError,
+    raise_streaming_error,
     transform_http_status_exception,
 )
 
@@ -166,3 +169,85 @@ def test_transform_http_status_exception():
     assert result.status_code == 500
     assert result.body == "Internal Server Error"
     assert str(result) == "HTTP 500: Error message"
+
+
+def over_cap_problem():
+    return {
+        "type": "https://api.s1.show/problems/export-too-large",
+        "title": "Export too large",
+        "status": 413,
+        "detail": "the result set exceeds the configured MaxExportKeys of 500000",
+        "maxExportKeys": 500000,
+    }
+
+
+def over_cap_message(detail):
+    return (
+        f"HTTP 413: '/commerce/orders' cannot be exported in one stream: {detail}. "
+        "Narrow the filter, set an explicit limit=N, or split the export into key or "
+        "date ranges."
+    )
+
+
+def test_over_cap_error_keeps_the_problem_payload():
+    result = MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
+
+    assert result.payload == over_cap_problem()
+    assert result.path == "/commerce/orders"
+    assert result.status_code == codes.REQUEST_ENTITY_TOO_LARGE
+
+
+def test_over_cap_error_is_streaming_and_http():
+    result = MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
+
+    assert isinstance(result, MPTStreamingError)
+    assert isinstance(result, MPTHttpError)
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        pytest.param("", id="empty body"),
+        pytest.param("Request Entity Too Large", id="plain text body"),
+        pytest.param("[1, 2]", id="json that is not an object"),
+    ],
+)
+def test_over_cap_error_without_a_problem_payload(body):
+    result = MPTStreamingOverCapError("/commerce/orders", body)
+
+    assert result.payload == {}
+
+
+@pytest.mark.parametrize(
+    ("body", "expected_detail"),
+    [
+        pytest.param(
+            json.dumps(over_cap_problem()),
+            "the result set exceeds the configured MaxExportKeys of 500000",
+            id="detail taken from the problem+json body",
+        ),
+        pytest.param(
+            "",
+            "the result set exceeds the configured cap",
+            id="fallback detail when the body carries none",
+        ),
+    ],
+)
+def test_over_cap_error_message(body, expected_detail):
+    result = MPTStreamingOverCapError("/commerce/orders", body)
+
+    assert str(result) == over_cap_message(expected_detail)
+
+
+def test_raise_streaming_maps_over_cap():
+    http_error = MPTAPIError(
+        status_code=codes.REQUEST_ENTITY_TOO_LARGE,
+        message="Content Too Large",
+        payload=over_cap_problem(),
+    )
+
+    with pytest.raises(MPTStreamingOverCapError) as raised:
+        raise_streaming_error(http_error, "/commerce/orders")
+
+    assert raised.value.payload == over_cap_problem()
+    assert raised.value.__cause__ is http_error

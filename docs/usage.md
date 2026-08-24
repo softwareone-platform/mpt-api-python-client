@@ -306,6 +306,7 @@ All streaming-specific failures derive from `MPTStreamingError`, so one handler 
 | `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
 | `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
 | `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
+| `MPTStreamingOverCapError` | `413` — the result set exceeds the configured `MaxExportKeys` cap |
 | `MPTStreamingItemCountMissingError` | The response declares no usable `MPT-Item-Count`, so completeness cannot be verified |
 | `MPTStreamingIncompleteError` | The fully consumed stream yielded a different number of records than `MPT-Item-Count` declared |
 
@@ -339,13 +340,14 @@ except MPTStreamingNotSupportedError:
     records = list(service.iterate())
 ```
 
-Treat the negotiation failures — `MPTStreamingNotEnabledError`, `MPTStreamingNotSupportedError`,
-`MPTStreamingNotAcceptableError` and `MPTStreamingItemCountMissingError` — as request-shape or
-endpoint-support problems rather than transient failures: retrying the same call against the
-same endpoint fails the same way. `MPTStreamingIncompleteError` is different: it reports a
+Treat the request-shape and endpoint-support failures — `MPTStreamingNotEnabledError`,
+`MPTStreamingNotSupportedError`, `MPTStreamingNotAcceptableError`, `MPTStreamingOverCapError`
+and `MPTStreamingItemCountMissingError` — as exactly that rather than transient failures:
+retrying the same call against the same endpoint fails the same way, and an over-cap export
+needs a narrower request, not a retry. `MPTStreamingIncompleteError` is different: it reports a
 stream that terminated gracefully but did not match its declared count, for example after an
 intermediary swallowed part of the body. Discard the partial records and re-run the export.
-The two HTTP-backed types also subclass `MPTHttpError`, so existing `except MPTHttpError`
+The three HTTP-backed types also subclass `MPTHttpError`, so existing `except MPTHttpError`
 handlers keep working and `status_code` remains available. Any other HTTP status passes
 through unchanged.
 
@@ -355,6 +357,27 @@ once the body has been consumed to the end — records already yielded have been
 then, which is why the count must pass before the result set is treated as complete. Closing
 the stream early on purpose, such as breaking out of the loop, does not raise: the check
 applies only to a stream consumed to completion.
+
+### Over-Cap Exports
+
+The API answers `413` when the result set is larger than the configured `MaxExportKeys` cap.
+`MPTStreamingOverCapError` keeps the `problem+json` body as structured data on `payload`
+rather than flattening it into the message, because the configured cap is the value a caller
+acts on:
+
+```python
+from mpt_api_client.exceptions import MPTStreamingOverCapError
+
+try:
+    records = list(service.stream())
+except MPTStreamingOverCapError as error:
+    logger.error("Export refused: %s", error.payload)
+    records = list(service.stream(limit=10_000))
+```
+
+`payload` is an empty mapping when the response carries no JSON body, so read it defensively.
+The ways forward are the ones the body names: narrow the filter, set an explicit `limit=N`, or
+split the export into key or date ranges.
 
 > **Note:** `StreamJSONLMixin` also exposes `stream()`, but it serves endpoints that assign
 > `application/jsonl` their own meaning outside streaming mode, such as billing statement
