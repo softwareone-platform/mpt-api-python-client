@@ -247,6 +247,26 @@ Streaming mixins extend `QueryableMixin`, so `filter()`, `order_by()` and `selec
 before `stream()` exactly as they do before `iterate()`. Membership is fixed when the stream
 opens: records created afterwards are not included.
 
+### Bounding An Export
+
+By default `stream()` sends no `limit`, which exports the full snapshot; passing `limit=-1`
+requests the same thing explicitly. An explicit `limit=N` bounds the export to the first `N`
+records of the stream order, for a "first 100K by this sort" read that does not page:
+
+```python
+for order in service.order_by("-audit.created.at").stream(limit=100_000):
+    print(order.id)
+```
+
+Under a bounded limit the counts the response reports — the `MPT-Item-Count` header and
+`$meta.pagination.total` — describe the stream itself, `min(matches, N)`, not the uncapped
+number of matches.
+
+`stream()` also accepts `offset`. Pagination inputs are sent exactly as given and are never
+checked locally, because the server owns their validation: it currently rejects `offset` in
+streaming mode with `400`, and support for it is scheduled. Passing through is correct either
+way, so no client release is coupled to that change.
+
 The async form yields from an async generator:
 
 ```python

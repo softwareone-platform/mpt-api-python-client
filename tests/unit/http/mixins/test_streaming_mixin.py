@@ -18,6 +18,24 @@ from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
 STREAM_URL = f"{API_URL}/api/v1/orders"
 JSONL_BODY = b'{"id": "ID-1", "name": "Order 1"}\n\n{"id": "ID-2", "name": "Order 2"}\n'
 NOT_CONFIRMED_MATCH = "did not confirm streaming mode"
+BOUNDED_LIMIT = 100
+PASSED_OFFSET = 50
+BOUNDED_QUERY = "limit=100&offset=50"
+
+# Pagination inputs reach the server exactly as given, and an unset input is omitted rather
+# than defaulted. Nothing here is validated locally: the server owns pagination-input
+# validation, and offset is scheduled for support there, so a client-side guard would expire.
+PAGINATION_CASES = (
+    pytest.param({}, "", id="unset - absent limit is the full snapshot"),
+    pytest.param({"limit": -1}, "limit=-1", id="-1 - the same thing, said explicitly"),
+    pytest.param({"limit": 0}, "limit=0", id="zero - passed through, not corrected"),
+    pytest.param({"limit": BOUNDED_LIMIT}, "limit=100", id="bounded prefix of the t0 order"),
+    pytest.param({"offset": 0}, "offset=0", id="offset zero is still sent"),
+    pytest.param({"offset": PASSED_OFFSET}, "offset=50", id="offset - the server decides"),
+    pytest.param(
+        {"limit": BOUNDED_LIMIT, "offset": PASSED_OFFSET}, BOUNDED_QUERY, id="both together"
+    ),
+)
 
 
 class DummyStreamingService(
@@ -86,6 +104,37 @@ def test_stream_applies_query_filters(streaming_service):
     assert "status" in request.url.query.decode()
 
 
+@pytest.mark.parametrize(("pagination", "expected_query"), PAGINATION_CASES)
+@respx.mock
+def test_stream_sends_pagination_params(streaming_service, pagination, expected_query):
+    route = respx.get(STREAM_URL).mock(return_value=streaming_response())
+
+    list(streaming_service.stream(**pagination))  # act
+
+    request = route.calls[0].request
+    assert request.url.query.decode() == expected_query
+
+
+@respx.mock
+def test_stream_combines_limit_with_query_state(streaming_service):
+    route = respx.get(STREAM_URL).mock(return_value=streaming_response())
+    bounded_service = streaming_service.filter(RQLQuery(status="active")).select("id")
+
+    list(bounded_service.stream(limit=BOUNDED_LIMIT))  # act
+
+    request = route.calls[0].request
+    assert request.url.query.decode() == "limit=100&select=id&eq(status,'active')"
+
+
+@respx.mock
+def test_stream_yields_bounded_export(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response())
+
+    result = list(streaming_service.stream(limit=BOUNDED_LIMIT))
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
 @respx.mock
 def test_stream_raises_when_not_confirmed(streaming_service):
     respx.get(STREAM_URL).mock(return_value=jsonl_response())
@@ -147,6 +196,20 @@ async def test_async_stream_yields_models(async_streaming_service):
     assert all(isinstance(order, DummyModel) for order in result)
 
 
+@pytest.mark.parametrize(("pagination", "expected_query"), PAGINATION_CASES)
+@respx.mock
+async def test_async_stream_sends_pagination_params(
+    async_streaming_service, pagination, expected_query
+):
+    route = respx.get(STREAM_URL).mock(return_value=streaming_response())
+    stream = async_streaming_service.stream(**pagination)
+
+    [order async for order in stream]  # act
+
+    request = route.calls[0].request
+    assert request.url.query.decode() == expected_query
+
+
 @respx.mock
 async def test_async_stream_raises_not_confirmed(async_streaming_service):
     respx.get(STREAM_URL).mock(return_value=jsonl_response())
@@ -199,6 +262,18 @@ def test_streaming_errors_stay_catchable_as_http(streaming_service):
 
     assert raised.value.status_code == httpx.codes.NOT_IMPLEMENTED
     assert isinstance(raised.value, MPTStreamingError)
+
+
+@respx.mock
+def test_stream_surfaces_offset_response(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(httpx.codes.BAD_REQUEST))
+    iterator = streaming_service.stream(offset=PASSED_OFFSET)
+
+    with pytest.raises(MPTHttpError) as raised:
+        next(iterator)
+
+    assert raised.value.status_code == httpx.codes.BAD_REQUEST
+    assert not isinstance(raised.value, MPTStreamingError)
 
 
 @respx.mock

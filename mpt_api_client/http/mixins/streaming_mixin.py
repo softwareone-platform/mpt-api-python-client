@@ -30,6 +30,28 @@ def streaming_request_headers() -> HeaderTypes:
     }
 
 
+def streaming_pagination_params(limit: int | None, offset: int | None) -> dict[str, int]:
+    """Build the pagination query parameters of a streaming request.
+
+    Unset values are omitted rather than defaulted, because streaming mode reads an
+    absent ``limit`` as the full snapshot. Supplied values are sent as given: the server
+    owns pagination-input validation, so the client adds no guard of its own.
+
+    Args:
+        limit: Maximum number of records to export, or None to omit the parameter.
+        offset: Offset to send with the request, or None to omit the parameter.
+
+    Returns:
+        Query parameters for the request, without the parameters left unset.
+    """
+    supplied_params = {"limit": limit, "offset": offset}
+    return {
+        param_name: param_value
+        for param_name, param_value in supplied_params.items()
+        if param_value is not None
+    }
+
+
 def confirm_streaming_mode(response_headers: Mapping[str, str], path: str) -> None:
     """Verify the API answered a streaming request in streaming mode.
 
@@ -54,14 +76,26 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
     ``application/jsonl`` their own meaning outside streaming mode.
     """
 
-    def stream(self, *, progress: Progress | None = None) -> Iterator[Model]:
-        """Stream the full result set in streaming mode, yielding one model per record.
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        progress: Progress | None = None,
+    ) -> Iterator[Model]:
+        """Stream a result set in streaming mode, yielding one model per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
 
         Args:
+            limit: Number of records to export, counted from the start of the stream
+                order. Left unset by default, which exports the full snapshot, as does
+                an explicit ``-1``. Under a bounded limit the server reports the capped
+                count rather than the uncapped number of matches.
+            offset: Offset to send with the request. Sent as given rather than checked
+                locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is called once per
                 record before it is yielded and `completed` once when the response body
                 is fully consumed. `set_total_items` is never called.
@@ -74,7 +108,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
-        path = self.build_path()  # type: ignore[attr-defined]
+        path = self.build_path(  # type: ignore[attr-defined]
+            streaming_pagination_params(limit, offset),
+        )
         # ExitStack scopes the error guard to the stream open: the negotiation failure is
         # raised by __enter__, and a plain `with` would force the record loop into the try.
         with ExitStack() as stack:
@@ -109,14 +145,26 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
     ``application/jsonl`` their own meaning outside streaming mode.
     """
 
-    async def stream(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
-        """Stream the full result set in streaming mode, yielding one model per record.
+    async def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        progress: AsyncProgress | None = None,
+    ) -> AsyncIterator[Model]:
+        """Stream a result set in streaming mode, yielding one model per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
         pages, this consumes a single line-delimited response without buffering the body.
         Membership is fixed when the stream opens, so records added afterwards are absent.
 
         Args:
+            limit: Number of records to export, counted from the start of the stream
+                order. Left unset by default, which exports the full snapshot, as does
+                an explicit ``-1``. Under a bounded limit the server reports the capped
+                count rather than the uncapped number of matches.
+            offset: Offset to send with the request. Sent as given rather than checked
+                locally, so the server decides whether it is a valid input.
             progress: Optional progress receiver. `item_processed` is awaited once per
                 record before it is yielded and `completed` once when the response body
                 is fully consumed. `set_total_items` is never called.
@@ -129,7 +177,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotSupportedError: If the resource cannot stream (``501``).
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
         """
-        path = self.build_path()  # type: ignore[attr-defined]
+        path = self.build_path(  # type: ignore[attr-defined]
+            streaming_pagination_params(limit, offset),
+        )
         # AsyncExitStack scopes the error guard to the stream open: the negotiation failure
         # is raised by __aenter__, and a plain `async with` would force the record loop
         # into the try.
