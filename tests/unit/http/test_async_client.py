@@ -1,12 +1,18 @@
+import asyncio
 import io
 import json
 
 import pytest
 import respx
-from httpx import ConnectTimeout, Request, Response, Timeout, codes
+from httpx import ConnectTimeout, RemoteProtocolError, Request, Response, Timeout, codes
 
 from mpt_api_client.auth import BearerTokenAuthentication
-from mpt_api_client.exceptions import MPTAPIError, MPTError, MPTMaxRetryError
+from mpt_api_client.exceptions import (
+    MPTAPIError,
+    MPTError,
+    MPTMaxRetryError,
+    MPTStreamingTruncatedError,
+)
 from mpt_api_client.http.async_client import AsyncHTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.transport_settings import TransportSettings
@@ -113,6 +119,24 @@ async def test_async_stream_conn_error(async_http_client):
 
     with pytest.raises(MPTMaxRetryError):
         await drain_async_stream(async_http_client.stream("GET", "/charges"))
+
+
+async def truncated_body():
+    yield b'{"id": "ID-1"}\n'
+    await asyncio.sleep(0)
+    raise RemoteProtocolError("peer closed connection without sending complete message body")
+
+
+@respx.mock
+async def test_async_stream_truncated_mid_body(async_http_client):
+    truncated = Response(codes.OK, content=truncated_body())
+    respx.get(f"{API_URL}/charges").mock(return_value=truncated)
+
+    with pytest.raises(MPTStreamingTruncatedError) as raised:
+        await drain_async_stream(async_http_client.stream("GET", "/charges"))
+
+    assert raised.value.path == "/charges"
+    assert not isinstance(raised.value, MPTMaxRetryError)
 
 
 async def test_http_call_with_json_and_files(mocker, async_http_client, mock_httpx_response):  # noqa: WPS210

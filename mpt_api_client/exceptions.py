@@ -81,6 +81,28 @@ class MPTStreamingIncompleteError(MPTStreamingError):
         )
 
 
+class MPTStreamingTruncatedError(MPTStreamingError):
+    """Represents a streaming body that ended before the HTTP message completed.
+
+    The API signals an internal mid-stream failure by aborting the connection without
+    completing the message, so the transport failure is the failure signal. It is not
+    retry exhaustion: transparent retry happens before the body is handed to the caller,
+    so once records have been read no retry is attempted.
+
+    Resume is a contract non-goal, and a new request opens a new snapshot, so the only
+    recovery is to discard the records read so far and restart the export from scratch.
+    """
+
+    def __init__(self, path: str, reason: str):
+        self.path = path
+        self.reason = reason
+        super().__init__(
+            f"The streaming response for '{path}' ended before the HTTP message "
+            f"completed: {reason}. The records read so far are an incomplete snapshot; "
+            "discard them and restart the export from scratch."
+        )
+
+
 class MPTHttpError(MPTError):
     """Represents an HTTP error."""
 

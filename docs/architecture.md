@@ -222,7 +222,8 @@ MPTError
 ├── MPTStreamingError                       # base for streaming-mode failures
 │   ├── MPTStreamingNotEnabledError         # response did not confirm streaming mode
 │   ├── MPTStreamingItemCountMissingError   # no usable MPT-Item-Count declared
-│   └── MPTStreamingIncompleteError         # record count differed from MPT-Item-Count
+│   ├── MPTStreamingIncompleteError         # record count differed from MPT-Item-Count
+│   └── MPTStreamingTruncatedError          # body ended before the HTTP message completed
 ├── MPTMaxRetryError                        # retry attempts exhausted
 └── MPTHttpError                            # generic HTTP error (status_code, message, body)
     ├── MPTAPIError                         # structured API error (payload, title, detail, trace_id)

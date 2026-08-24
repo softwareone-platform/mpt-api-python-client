@@ -3,16 +3,7 @@ import json
 import pytest
 from httpx import HTTPStatusError, Request, Response, codes
 
-from mpt_api_client.exceptions import (
-    MPTAPIError,
-    MPTHttpError,
-    MPTStreamingError,
-    MPTStreamingIncompleteError,
-    MPTStreamingItemCountMissingError,
-    MPTStreamingOverCapError,
-    raise_streaming_error,
-    transform_http_status_exception,
-)
+from mpt_api_client import exceptions
 
 
 @pytest.mark.parametrize(
@@ -23,13 +14,13 @@ from mpt_api_client.exceptions import (
     ],
 )
 def test_item_count_missing_error_message(header_value, received_match):
-    result = MPTStreamingItemCountMissingError("/api/v1/orders", header_value)
+    result = exceptions.MPTStreamingItemCountMissingError("/api/v1/orders", header_value)
 
     assert received_match in str(result)
 
 
 def test_incomplete_error_counts():
-    result = MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
+    result = exceptions.MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
 
     assert (result.path, result.expected_count, result.received_count) == (
         "/api/v1/orders",
@@ -39,7 +30,7 @@ def test_incomplete_error_counts():
 
 
 def test_incomplete_error_message():
-    error = MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
+    error = exceptions.MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
 
     result = str(error)
 
@@ -50,7 +41,7 @@ def test_incomplete_error_message():
 
 
 def test_http_error():
-    result = MPTHttpError(status_code=400, message="Bad request", body="Content")
+    result = exceptions.MPTHttpError(status_code=400, message="Bad request", body="Content")
 
     assert result.status_code == 400
     assert result.body == "Content"
@@ -68,7 +59,7 @@ def test_http_error_not_found_from_mpt():  # noqa: WPS218
         "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"
     )
 
-    result = MPTAPIError(status_code=status_code, message=message, payload=payload)
+    result = exceptions.MPTAPIError(status_code=status_code, message=message, payload=payload)
 
     assert result.status_code == status_code
     assert result.payload == payload
@@ -89,7 +80,7 @@ def test_api_error():  # noqa: WPS218
         "errors": "Some error details",
     }
 
-    result = MPTAPIError(status_code=400, message="Bad Request", payload=payload)
+    result = exceptions.MPTAPIError(status_code=400, message="Bad Request", payload=payload)
 
     assert result.status_code == 400
     assert result.payload == payload
@@ -109,7 +100,7 @@ def test_api_error_str_and_repr():
         "errors": "Some error details",
     }
 
-    result = MPTAPIError(status_code=400, message="Bad request", payload=payload)
+    result = exceptions.MPTAPIError(status_code=400, message="Bad request", payload=payload)
 
     assert str(result) == '400 Bad Request - Invalid input (abc123)\n"Some error details"'
     assert repr(result) == (
@@ -126,7 +117,7 @@ def test_api_error_str_no_errors():
         "traceId": "abc123",
     }
 
-    result = MPTAPIError(status_code=400, message="Bad request", payload=payload)
+    result = exceptions.MPTAPIError(status_code=400, message="Bad request", payload=payload)
 
     assert str(result) == "400 Bad Request - Invalid input (abc123)"
 
@@ -147,9 +138,9 @@ def test_transform_http_status_exception_api():
     )
     exc = HTTPStatusError("error", request=response.request, response=response)
 
-    result = transform_http_status_exception(exc)
+    result = exceptions.transform_http_status_exception(exc)
 
-    assert isinstance(result, MPTAPIError)
+    assert isinstance(result, exceptions.MPTAPIError)
     assert result.status_code == 400
     assert result.payload == payload
 
@@ -163,9 +154,9 @@ def test_transform_http_status_exception():
     )
     exc = HTTPStatusError("Error message", request=response.request, response=response)
 
-    result = transform_http_status_exception(exc)
+    result = exceptions.transform_http_status_exception(exc)
 
-    assert isinstance(result, MPTHttpError)
+    assert isinstance(result, exceptions.MPTHttpError)
     assert result.status_code == 500
     assert result.body == "Internal Server Error"
     assert str(result) == "HTTP 500: Error message"
@@ -190,7 +181,7 @@ def over_cap_message(detail):
 
 
 def test_over_cap_error_keeps_the_problem_payload():
-    result = MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
+    result = exceptions.MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
 
     assert result.payload == over_cap_problem()
     assert result.path == "/commerce/orders"
@@ -198,10 +189,10 @@ def test_over_cap_error_keeps_the_problem_payload():
 
 
 def test_over_cap_error_is_streaming_and_http():
-    result = MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
+    result = exceptions.MPTStreamingOverCapError("/commerce/orders", json.dumps(over_cap_problem()))
 
-    assert isinstance(result, MPTStreamingError)
-    assert isinstance(result, MPTHttpError)
+    assert isinstance(result, exceptions.MPTStreamingError)
+    assert isinstance(result, exceptions.MPTHttpError)
 
 
 @pytest.mark.parametrize(
@@ -213,7 +204,7 @@ def test_over_cap_error_is_streaming_and_http():
     ],
 )
 def test_over_cap_error_without_a_problem_payload(body):
-    result = MPTStreamingOverCapError("/commerce/orders", body)
+    result = exceptions.MPTStreamingOverCapError("/commerce/orders", body)
 
     assert result.payload == {}
 
@@ -234,20 +225,40 @@ def test_over_cap_error_without_a_problem_payload(body):
     ],
 )
 def test_over_cap_error_message(body, expected_detail):
-    result = MPTStreamingOverCapError("/commerce/orders", body)
+    result = exceptions.MPTStreamingOverCapError("/commerce/orders", body)
 
     assert str(result) == over_cap_message(expected_detail)
 
 
 def test_raise_streaming_maps_over_cap():
-    http_error = MPTAPIError(
+    http_error = exceptions.MPTAPIError(
         status_code=codes.REQUEST_ENTITY_TOO_LARGE,
         message="Content Too Large",
         payload=over_cap_problem(),
     )
 
-    with pytest.raises(MPTStreamingOverCapError) as raised:
-        raise_streaming_error(http_error, "/commerce/orders")
+    with pytest.raises(exceptions.MPTStreamingOverCapError) as raised:
+        exceptions.raise_streaming_error(http_error, "/commerce/orders")
 
     assert raised.value.payload == over_cap_problem()
     assert raised.value.__cause__ is http_error
+
+
+def test_streaming_truncated_error():
+    result = exceptions.MPTStreamingTruncatedError("/commerce/orders", "peer closed connection")
+
+    assert isinstance(result, exceptions.MPTStreamingError)
+    assert result.path == "/commerce/orders"
+    assert result.reason == "peer closed connection"
+
+
+def test_streaming_truncated_error_message():
+    error = exceptions.MPTStreamingTruncatedError("/commerce/orders", "peer closed connection")
+
+    result = str(error)  # act
+
+    assert result == (
+        "The streaming response for '/commerce/orders' ended before the HTTP message "
+        "completed: peer closed connection. The records read so far are an incomplete "
+        "snapshot; discard them and restart the export from scratch."
+    )
