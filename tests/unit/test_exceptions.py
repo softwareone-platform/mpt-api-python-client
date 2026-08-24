@@ -1,12 +1,49 @@
 import json
 
+import pytest
 from httpx import HTTPStatusError, Request, Response
 
 from mpt_api_client.exceptions import (
     MPTAPIError,
     MPTHttpError,
+    MPTStreamingIncompleteError,
+    MPTStreamingItemCountMissingError,
     transform_http_status_exception,
 )
+
+
+@pytest.mark.parametrize(
+    ("header_value", "received_match"),
+    [
+        (None, "got no header"),
+        ("abc", "got 'abc'"),
+    ],
+)
+def test_item_count_missing_error_message(header_value, received_match):
+    result = MPTStreamingItemCountMissingError("/api/v1/orders", header_value)
+
+    assert received_match in str(result)
+
+
+def test_incomplete_error_counts():
+    result = MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
+
+    assert (result.path, result.expected_count, result.received_count) == (
+        "/api/v1/orders",
+        3,
+        2,
+    )
+
+
+def test_incomplete_error_message():
+    error = MPTStreamingIncompleteError("/api/v1/orders", 3, 2)
+
+    result = str(error)
+
+    assert result == (
+        "The stream for '/api/v1/orders' did not match its declared item count: "
+        "the MPT-Item-Count response header declared 3, received 2."
+    )
 
 
 def test_http_error():

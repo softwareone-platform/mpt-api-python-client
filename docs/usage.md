@@ -306,6 +306,15 @@ All streaming-specific failures derive from `MPTStreamingError`, so one handler 
 | `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
 | `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
 | `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
+| `MPTStreamingItemCountMissingError` | The response declares no usable `MPT-Item-Count`, so completeness cannot be verified |
+| `MPTStreamingIncompleteError` | The fully consumed stream yielded a different number of records than `MPT-Item-Count` declared |
+
+Completeness is verified for you: streaming commits the `MPT-Item-Count` response header
+with the status — the number of records the stream will carry, `min(matches, N)` under a
+bounded `limit=N` — and `stream()` compares it with the number of records actually yielded
+when the body ends. The header is the contract's only completeness signal and it does not
+survive persisting the payload, so without this check a truncated export would end as a
+silently short result.
 
 ```python
 from mpt_api_client.exceptions import MPTStreamingError
@@ -330,13 +339,22 @@ except MPTStreamingNotSupportedError:
     records = list(service.iterate())
 ```
 
-Treat all three as request-shape or endpoint-support problems rather than transient failures:
-retrying the same call against the same endpoint fails the same way. The two HTTP-backed types
-also subclass `MPTHttpError`, so existing `except MPTHttpError` handlers keep working and
-`status_code` remains available. Any other HTTP status passes through unchanged.
+Treat the negotiation failures — `MPTStreamingNotEnabledError`, `MPTStreamingNotSupportedError`,
+`MPTStreamingNotAcceptableError` and `MPTStreamingItemCountMissingError` — as request-shape or
+endpoint-support problems rather than transient failures: retrying the same call against the
+same endpoint fails the same way. `MPTStreamingIncompleteError` is different: it reports a
+stream that terminated gracefully but did not match its declared count, for example after an
+intermediary swallowed part of the body. Discard the partial records and re-run the export.
+The two HTTP-backed types also subclass `MPTHttpError`, so existing `except MPTHttpError`
+handlers keep working and `status_code` remains available. Any other HTTP status passes
+through unchanged.
 
-`MPTStreamingNotEnabledError` is raised before the body is read, so no partial data is
-consumed.
+`MPTStreamingNotEnabledError` and `MPTStreamingItemCountMissingError` are raised before the
+body is read, so no partial data is consumed. `MPTStreamingIncompleteError` can only be raised
+once the body has been consumed to the end — records already yielded have been processed by
+then, which is why the count must pass before the result set is treated as complete. Closing
+the stream early on purpose, such as breaking out of the loop, does not raise: the check
+applies only to a stream consumed to completion.
 
 > **Note:** `StreamJSONLMixin` also exposes `stream()`, but it serves endpoints that assign
 > `application/jsonl` their own meaning outside streaming mode, such as billing statement

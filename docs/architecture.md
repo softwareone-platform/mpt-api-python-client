@@ -146,9 +146,12 @@ The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) and t
 endpoint-specific JSONL contract (`StreamJSONLMixin` / `AsyncStreamJSONLMixin`) both expose
 `stream()`, and a service must compose only one of them. The platform mixins request the
 streaming read mode on a regular collection route and require the API to echo the
-`MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. The
-JSONL mixins serve endpoints that assign `application/jsonl` their own meaning outside
-streaming mode.
+`MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. They
+also verify completeness: the declared `MPT-Item-Count` is read before the first record —
+raising `MPTStreamingItemCountMissingError` when absent or unusable — and compared with the
+yielded record count once the body is fully consumed, raising `MPTStreamingIncompleteError`
+on mismatch. An iterator closed early skips the comparison. The JSONL mixins serve endpoints
+that assign `application/jsonl` their own meaning outside streaming mode.
 
 `StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
 unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
@@ -216,11 +219,13 @@ Client, transport, and API errors use the following hierarchy:
 
 ```text
 MPTError
-├── MPTStreamingError                    # base for streaming-mode failures
-│   └── MPTStreamingNotEnabledError      # response did not confirm streaming mode
-├── MPTMaxRetryError                     # retry attempts exhausted
-└── MPTHttpError                         # generic HTTP error (status_code, message, body)
-    ├── MPTAPIError                      # structured API error (payload, title, detail, trace_id)
-    ├── MPTStreamingNotSupportedError    # 501, resource cannot stream (also MPTStreamingError)
-    └── MPTStreamingNotAcceptableError   # 406, format unsupported (also MPTStreamingError)
+├── MPTStreamingError                       # base for streaming-mode failures
+│   ├── MPTStreamingNotEnabledError         # response did not confirm streaming mode
+│   ├── MPTStreamingItemCountMissingError   # no usable MPT-Item-Count declared
+│   └── MPTStreamingIncompleteError         # record count differed from MPT-Item-Count
+├── MPTMaxRetryError                        # retry attempts exhausted
+└── MPTHttpError                            # generic HTTP error (status_code, message, body)
+    ├── MPTAPIError                         # structured API error (payload, title, detail, trace_id)
+    ├── MPTStreamingNotSupportedError       # 501, resource cannot stream (also MPTStreamingError)
+    └── MPTStreamingNotAcceptableError      # 406, format unsupported (also MPTStreamingError)
 ```
