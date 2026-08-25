@@ -1,0 +1,11 @@
+# Configuration for GitHub auto-generated release notes (gh release create
+# --generate-notes, used by .github/workflows/release.yml). PRs labeled
+# `breaking-change` surface in their own section at the top of the notes.
+changelog:
+  categories:
+    - title: "💥 Breaking changes"
+      labels:
+        - breaking-change
+    - title: "What's Changed"
+      labels:
+        - "*"

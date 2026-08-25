@@ -12,7 +12,7 @@ JSONL_BODY = b'{"id": "ID-1", "name": "Charge 1"}\n\n{"id": "ID-2", "name": "Cha
 MALFORMED_JSONL_BODY = b'not-json\n{"id": "ID-1", "name": "Charge 1"}\n'
 
 
-class DummyStreamService(
+class DummyStreamJSONLService(
     StreamJSONLMixin[DummyModel],
     Service[DummyModel],
 ):
@@ -20,7 +20,7 @@ class DummyStreamService(
     _model_class = DummyModel
 
 
-class AsyncDummyStreamService(
+class AsyncDummyStreamJSONLService(
     AsyncStreamJSONLMixin[DummyModel],
     AsyncService[DummyModel],
 ):
@@ -30,21 +30,21 @@ class AsyncDummyStreamService(
 
 @pytest.fixture
 def stream_service(http_client):
-    return DummyStreamService(http_client=http_client)
+    return DummyStreamJSONLService(http_client=http_client)
 
 
 @pytest.fixture
 def async_stream_service(async_http_client):
-    return AsyncDummyStreamService(http_client=async_http_client)
+    return AsyncDummyStreamJSONLService(http_client=async_http_client)
 
 
 @respx.mock
-def test_stream_yields_models(stream_service):
+def test_stream_jsonl_yields_models(stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = list(stream_service.stream())
+    result = list(stream_service.stream_jsonl())
 
     request = route.calls[0].request
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
@@ -53,12 +53,12 @@ def test_stream_yields_models(stream_service):
 
 
 @respx.mock
-def test_stream_applies_query_filters(stream_service):
+def test_stream_jsonl_applies_query_filters(stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = list(stream_service.filter(RQLQuery(status="active")).stream())
+    result = list(stream_service.filter(RQLQuery(status="active")).stream_jsonl())
 
     request = route.calls[0].request
     assert result
@@ -66,12 +66,12 @@ def test_stream_applies_query_filters(stream_service):
 
 
 @respx.mock
-def test_stream_progress_events(stream_service, recording_progress: RecordingProgress):
+def test_stream_jsonl_progress_events(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    list(stream_service.stream(progress=recording_progress))  # act
+    list(stream_service.stream_jsonl(progress=recording_progress))  # act
 
     assert recording_progress.events == [
         ("item_processed",),
@@ -81,11 +81,11 @@ def test_stream_progress_events(stream_service, recording_progress: RecordingPro
 
 
 @respx.mock
-def test_stream_progress_early_break(stream_service, recording_progress: RecordingProgress):
+def test_stream_jsonl_progress_early_break(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
-    iterator = stream_service.stream(progress=recording_progress)
+    iterator = stream_service.stream_jsonl(progress=recording_progress)
     next(iterator)
 
     iterator.close()  # act
@@ -94,11 +94,11 @@ def test_stream_progress_early_break(stream_service, recording_progress: Recordi
 
 
 @respx.mock
-def test_stream_progress_malformed_line(stream_service, recording_progress: RecordingProgress):
+def test_stream_jsonl_progress_bad_line(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=MALFORMED_JSONL_BODY)
     )
-    iterator = stream_service.stream(progress=recording_progress)
+    iterator = stream_service.stream_jsonl(progress=recording_progress)
 
     with pytest.raises(ValueError, match="Expecting value"):
         next(iterator)
@@ -107,12 +107,12 @@ def test_stream_progress_malformed_line(stream_service, recording_progress: Reco
 
 
 @respx.mock
-async def test_async_stream_yields_models(async_stream_service):
+async def test_async_stream_jsonl_yields_models(async_stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = [charge async for charge in async_stream_service.stream()]
+    result = [charge async for charge in async_stream_service.stream_jsonl()]
 
     request = route.calls[0].request
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
@@ -121,14 +121,17 @@ async def test_async_stream_yields_models(async_stream_service):
 
 
 @respx.mock
-async def test_async_stream_progress_events(
+async def test_async_stream_jsonl_progress_events(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    [charge async for charge in async_stream_service.stream(progress=async_recording_progress)]
+    [
+        charge
+        async for charge in async_stream_service.stream_jsonl(progress=async_recording_progress)
+    ]
 
     assert async_recording_progress.events == [
         ("item_processed",),
@@ -138,13 +141,13 @@ async def test_async_stream_progress_events(
 
 
 @respx.mock
-async def test_async_stream_progress_early_break(
+async def test_async_stream_jsonl_progress_early_break(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
-    iterator = async_stream_service.stream(progress=async_recording_progress)
+    iterator = async_stream_service.stream_jsonl(progress=async_recording_progress)
 
     await anext(iterator)
     await iterator.aclose()
@@ -153,13 +156,13 @@ async def test_async_stream_progress_early_break(
 
 
 @respx.mock
-async def test_async_stream_progress_malformed_line(
+async def test_async_stream_jsonl_progress_bad_line(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=MALFORMED_JSONL_BODY)
     )
-    iterator = async_stream_service.stream(progress=async_recording_progress)
+    iterator = async_stream_service.stream_jsonl(progress=async_recording_progress)
 
     with pytest.raises(ValueError, match="Expecting value"):
         await anext(iterator)

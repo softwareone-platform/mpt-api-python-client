@@ -137,15 +137,16 @@ Services are composed using **mixins** that add HTTP operations:
 | `EnableMixin` / `DisableMixin` | enable/disable actions |
 | `QueryableMixin` | `filter()`, `order_by()`, `select()` — RQL query chaining |
 | `StreamingMixin` | `stream()` — streaming read mode, opted into with the `MPT-Streaming` header |
-| `StreamJSONLMixin` | `stream()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
+| `StreamJSONLMixin` | `stream_jsonl()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
 | `FilesOperationsMixin` | combined file create / update / download operations |
 
 The table lists the synchronous names; every mixin except `QueryableMixin`, which is shared,
 has an `Async*` counterpart for composition with `AsyncService`.
 
-The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) and the
-endpoint-specific JSONL contract (`StreamJSONLMixin` / `AsyncStreamJSONLMixin`) both expose
-`stream()`, and a service must compose only one of them. The platform mixins request the
+The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) exposes
+`stream()`, while the endpoint-specific JSONL contract (`StreamJSONLMixin` /
+`AsyncStreamJSONLMixin`) exposes `stream_jsonl()`, so a service can compose both without
+the method names colliding. The platform mixins request the
 streaming read mode on a regular collection route and require the API to echo the
 `MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. They
 also verify completeness: the declared `MPT-Item-Count` is read before the first record —

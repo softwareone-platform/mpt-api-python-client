@@ -38,14 +38,14 @@ def test_async_endpoint(async_statement_charges_service):
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream"])
+@pytest.mark.parametrize("method", ["get", "stream_jsonl"])
 def test_methods_present(statement_charges_service, method):
     result = hasattr(statement_charges_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream"])
+@pytest.mark.parametrize("method", ["get", "stream_jsonl"])
 def test_async_methods_present(async_statement_charges_service, method):
     result = hasattr(async_statement_charges_service, method)
 
