@@ -23,6 +23,10 @@ tests/
     └── streaming/
 ```
 
+Most directories mirror an API domain. `streaming/` is the exception: it covers the
+platform streaming read mode itself — the contract `stream()` implements — rather than
+one domain, and uses whichever collection makes the case observable.
+
 ## Running Tests
 
 ```bash
@@ -35,7 +39,8 @@ target: `make test` covers `tests/unit` only, and `make check-all` does not run 
 
 ## Streaming Memory Coverage
 
-`tests/e2e/streaming/` asserts the property `stream()` exists for: memory stays bounded
+`tests/e2e/streaming/test_sync_streaming.py` and its async twin assert the property
+`stream()` exists for: memory stays bounded
 however many records an export carries, the bound
 [streaming.md](streaming.md#memory-characteristics) documents. It is the one suite whose
 result depends on the size of the live dataset, so it carries requirements the rest of
@@ -60,6 +65,27 @@ threshold, so it does not need recalibrating per environment. If the environment
 records than the coverage exports, the fixture fails with that count rather than passing on a
 dataset too small to mean anything. `tests/e2e/streaming/memory_probe.py` documents the
 protocol and the reasoning behind each constant.
+
+## Streaming Integrity Coverage
+
+`tests/e2e/streaming/test_sync_streaming_integrity.py` and its async twin cover the parts of
+[the streaming contract](streaming.md#three-obligations-you-cannot-skip) that only a live
+platform can demonstrate: a `$meta.deleted` deletion stub, that same stub withheld but still
+counted under `skip_deleted`, the declared `MPT-Item-Count` reaching a progress receiver, and
+an early close not reporting an incomplete export. Each case runs in both wire formats.
+
+The stub cases provoke the contract's own race rather than simulating it: create a product,
+open a stream ordered oldest-first so that row is emitted last, then hard-delete it once the
+first record has arrived — the response headers are out by then, so the export's key snapshot
+already contains it. This needs a collection large enough that the platform cannot pre-buffer
+the body; on a small one the row streams back as a full record and no stub is produced. The
+assertions therefore pin the stub itself, so a race that was lost fails rather than passing
+on an absence.
+
+Truncated transports and count mismatches are deliberately not covered here. Neither can be
+requested from a live platform — one needs the API to abort mid-body, the other contradicts
+the contract — so a test shaped like coverage for either would pass without exercising the
+path. They belong at a layer that can control the server.
 
 ## Environment Variables
 
