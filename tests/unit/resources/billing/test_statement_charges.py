@@ -1,5 +1,11 @@
 import pytest
 
+from mpt_api_client.http.mixins import (
+    AsyncStreamingMixin,
+    AsyncStreamJSONLMixin,
+    StreamingMixin,
+    StreamJSONLMixin,
+)
 from mpt_api_client.models.model import BaseModel
 from mpt_api_client.resources.billing.statement_charges import (
     AsyncStatementChargesService,
@@ -38,18 +44,55 @@ def test_async_endpoint(async_statement_charges_service):
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream_jsonl"])
+@pytest.mark.parametrize("method", ["get", "stream", "stream_jsonl"])
 def test_methods_present(statement_charges_service, method):
     result = hasattr(statement_charges_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream_jsonl"])
+@pytest.mark.parametrize("method", ["get", "stream", "stream_jsonl"])
 def test_async_methods_present(async_statement_charges_service, method):
     result = hasattr(async_statement_charges_service, method)
 
     assert result is True
+
+
+@pytest.mark.parametrize(
+    ("service_method", "mixin_method"),
+    [
+        pytest.param(StatementChargesService.stream, StreamingMixin.stream, id="sync stream"),
+        pytest.param(
+            StatementChargesService.stream_jsonl,
+            StreamJSONLMixin.stream_jsonl,
+            id="sync stream_jsonl",
+        ),
+        pytest.param(
+            AsyncStatementChargesService.stream, AsyncStreamingMixin.stream, id="async stream"
+        ),
+        pytest.param(
+            AsyncStatementChargesService.stream_jsonl,
+            AsyncStreamJSONLMixin.stream_jsonl,
+            id="async stream_jsonl",
+        ),
+    ],
+)
+def test_stream_methods_come_from_mixins(service_method, mixin_method):
+    result = service_method is mixin_method
+
+    assert result is True
+
+
+def test_stream_and_stream_jsonl_are_distinct():
+    result = StatementChargesService.stream is StatementChargesService.stream_jsonl
+
+    assert result is False
+
+
+def test_async_stream_and_jsonl_are_distinct():
+    result = AsyncStatementChargesService.stream is AsyncStatementChargesService.stream_jsonl
+
+    assert result is False
 
 
 @pytest.fixture
