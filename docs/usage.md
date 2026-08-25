@@ -252,6 +252,41 @@ other fields must first check for a deletion stub: a member deleted after the sn
 as a `DeletionStub`, not a model. See [Deletion Stubs](#deletion-stubs) — the async example
 below shows the branch.
 
+### Choosing The Wire Format
+
+The same records travel in either of two formats, chosen per request with `Accept`:
+
+| `stream_format` | `Accept` | Body |
+|---|---|---|
+| `StreamFormat.JSONL` (default) | `application/jsonl` | one record object per line, no envelope |
+| `StreamFormat.JSON` | `application/json` | the standard `{$meta, data}` envelope, the same shape `iterate()` reads |
+
+```python
+from mpt_api_client.http.mixins import StreamFormat
+
+for order in service.stream(stream_format=StreamFormat.JSON):
+    print(order.id)
+```
+
+Both formats are parsed as the body arrives, so a record is yielded while the rest of the
+export is still on the wire and the whole body is never held in memory. In envelope format
+that means the JSON is tokenized incrementally: each record is deserialized when its own
+closing brace arrives, not when the envelope completes. The insignificant whitespace a
+streaming response emits between tokens as a keep-alive is consumed while tokenizing — the
+envelope-format equivalent of the blank keep-alive lines of the line-delimited format — so it
+never reaches your loop.
+
+Only the envelope carries `$meta.pagination.total`, which equals the `MPT-Item-Count` value
+and is likewise the capped `min(matches, N)` under a bounded `limit=N`. It is reported to a
+`progress` receiver through `set_total_items`, exactly as `iterate()` reports the total of
+each page, so a progress report can render a percentage of a streamed export. The
+line-delimited format carries no envelope and therefore never calls `set_total_items`. The
+total is reported as soon as `$meta` arrives, which precedes the records only when the server
+sends `$meta` first.
+
+Everything else is format-independent: query state, `limit` and `offset`, deletion stubs, the
+completeness check against `MPT-Item-Count`, and every streaming error.
+
 ### Bounding An Export
 
 By default `stream()` sends no `limit`, which exports the full snapshot; passing `limit=-1`
@@ -404,6 +439,12 @@ intermediary swallowed part of the body. Discard the partial records and re-run 
 The three HTTP-backed types also subclass `MPTHttpError`, so existing `except MPTHttpError`
 handlers keep working and `status_code` remains available. Any other HTTP status passes
 through unchanged.
+
+A body the client cannot parse is not a streaming error but a `json.JSONDecodeError`, in
+either format: a malformed record line in the line-delimited format, a malformed or
+unterminated envelope in the envelope format. Because a body cut short loses records before
+it loses its closing tokens, a truncated envelope normally reports the more precise
+`MPTStreamingIncompleteError` instead.
 
 `MPTStreamingNotEnabledError` and `MPTStreamingItemCountMissingError` are raised before the
 body is read, so no partial data is consumed. `MPTStreamingIncompleteError` can only be raised

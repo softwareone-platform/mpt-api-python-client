@@ -33,6 +33,7 @@ mpt_api_client/
 │   ├── query_state.py       # Query parameter accumulation
 │   ├── client_utils.py      # URL validation helpers
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
+│   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
 │   └── mixins/              # Composable HTTP operation mixins
 │       ├── collection_mixin.py
 │       ├── create_mixin.py
@@ -155,6 +156,18 @@ on mismatch. An iterator closed early skips the comparison. A record marked with
 instead of a model, so it still counts towards the declared item count but cannot be ingested
 as a record. The JSONL mixins serve endpoints that assign `application/jsonl` their own
 meaning outside streaming mode.
+
+`stream()` picks its wire format per request with the `stream_format` argument, which sets
+`Accept`: `StreamFormat.JSONL` (the default) reads one record object per line, and
+`StreamFormat.JSON` reads the standard `{$meta, data}` envelope. Both formats are parsed as the
+body arrives and yield the same objects through the same record path, so deletion stubs, the
+completeness check and the errors are format-independent. The envelope is tokenized by
+`JSONEnvelopeParser` (`http/json_envelope_parser.py`), which emits a record when its closing
+brace arrives rather than when the body completes, consumes the insignificant whitespace a
+streaming response emits between tokens as keep-alives, and reports `$meta.pagination.total`
+to a `progress` receiver through `set_total_items` — the same event `iterate()` raises per
+page. The parser reads the record array out of the service's `_collection_key`, the member the
+paged path deserializes, so streamed and paged responses read the same envelope.
 
 `StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
 unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:

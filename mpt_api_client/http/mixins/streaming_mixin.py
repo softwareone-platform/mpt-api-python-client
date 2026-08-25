@@ -1,10 +1,12 @@
 import json
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
+from enum import StrEnum
 
 from httpx import Response as HTTPXResponse
 
 from mpt_api_client.constants import (
+    APPLICATION_JSON,
     APPLICATION_JSONL,
     MPT_ITEM_COUNT_HEADER,
     MPT_STREAMING_ENABLED,
@@ -17,6 +19,12 @@ from mpt_api_client.exceptions import (
     MPTStreamingNotEnabledError,
     raise_streaming_error,
 )
+from mpt_api_client.http.json_envelope_parser import (
+    JSONEnvelopeParser,
+    StreamedRecord,
+    StreamedTotal,
+    StreamEvent,
+)
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
@@ -24,14 +32,29 @@ from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.model import Resource
 
 
-def streaming_request_headers() -> HeaderTypes:
+class StreamFormat(StrEnum):
+    """Wire format a streaming read asks the API for with the ``Accept`` header.
+
+    Both formats carry the same records and the same counts, so the choice is per
+    request: `JSONL` is one record object per line with no envelope, `JSON` is the
+    standard ``{$meta, data}`` list envelope the paged read path also returns.
+    """
+
+    JSONL = APPLICATION_JSONL
+    JSON = APPLICATION_JSON
+
+
+def streaming_request_headers(stream_format: StreamFormat) -> HeaderTypes:
     """Build the headers that opt a collection request into streaming mode.
 
+    Args:
+        stream_format: Wire format requested for the response body.
+
     Returns:
-        Headers requesting streaming mode with line-delimited output.
+        Headers requesting streaming mode in the given format.
     """
     return {
-        "Accept": APPLICATION_JSONL,
+        "Accept": stream_format.value,
         MPT_STREAMING_HEADER: MPT_STREAMING_ENABLED,
     }
 
@@ -165,6 +188,181 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
         raise MPTStreamingIncompleteError(path, expected_count, received_count)
 
 
+def iter_jsonl_events(response: HTTPXResponse, path: str) -> Iterator[StreamEvent]:
+    """Iterate the events of a line-delimited streaming response.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+
+    Yields:
+        One record event per record line. The format carries no envelope, so it never
+        reports a total.
+    """
+    for line in iter_verified_lines(response, path):
+        yield StreamedRecord(json.loads(line))
+
+
+async def aiter_jsonl_events(response: HTTPXResponse, path: str) -> AsyncIterator[StreamEvent]:
+    """Iterate the events of a line-delimited async streaming response.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+
+    Yields:
+        One record event per record line. The format carries no envelope, so it never
+        reports a total.
+    """
+    async for line in aiter_verified_lines(response, path):
+        yield StreamedRecord(json.loads(line))
+
+
+def iter_envelope_events(
+    response: HTTPXResponse,
+    path: str,
+    data_field: str,
+) -> Iterator[StreamEvent]:
+    """Iterate the events of a JSON envelope streaming response, verifying completeness.
+
+    The body is tokenized as it arrives, so a record is emitted when its own closing
+    brace arrives rather than when the envelope completes, and the whole body is never
+    held in memory. Completeness is verified exactly as it is for the line-delimited
+    format, against the ``MPT-Item-Count`` header.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+        data_field: Envelope member carrying the record array.
+
+    Yields:
+        One record event per record, and one event for the total the envelope reports.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body carried a number of
+            records different from the declared item count.
+    """
+    expected_count = declared_item_count(response.headers, path)
+    parser = JSONEnvelopeParser(data_field)
+    received_count = 0
+    for chunk in response.iter_text():
+        for event in parser.feed(chunk):
+            if isinstance(event, StreamedRecord):
+                received_count += 1
+            yield event
+    verify_envelope_end(parser, path, expected_count, received_count)
+
+
+async def aiter_envelope_events(
+    response: HTTPXResponse,
+    path: str,
+    data_field: str,
+) -> AsyncIterator[StreamEvent]:
+    """Iterate the events of an async JSON envelope response, verifying completeness.
+
+    The body is tokenized as it arrives, so a record is emitted when its own closing
+    brace arrives rather than when the envelope completes, and the whole body is never
+    held in memory. Completeness is verified exactly as it is for the line-delimited
+    format, against the ``MPT-Item-Count`` header.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+        data_field: Envelope member carrying the record array.
+
+    Yields:
+        One record event per record, and one event for the total the envelope reports.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body carried a number of
+            records different from the declared item count.
+    """
+    expected_count = declared_item_count(response.headers, path)
+    parser = JSONEnvelopeParser(data_field)
+    received_count = 0
+    async for chunk in response.aiter_text():
+        for event in parser.feed(chunk):
+            if isinstance(event, StreamedRecord):
+                received_count += 1
+            yield event
+    verify_envelope_end(parser, path, expected_count, received_count)
+
+
+def verify_envelope_end(
+    parser: JSONEnvelopeParser,
+    path: str,
+    expected_count: int,
+    received_count: int,
+) -> None:
+    """Verify a consumed envelope carried every declared record and was closed.
+
+    The record count is checked before the envelope structure, because a body cut short
+    loses records before it loses its closing tokens, and a short export is the more
+    precise diagnosis of the two.
+
+    Args:
+        parser: Parser fed the whole body.
+        path: Requested path, used to build error messages.
+        expected_count: Record count the response declared.
+        received_count: Number of records the body actually carried.
+
+    Raises:
+        MPTStreamingIncompleteError: If the counts differ.
+        JSONDecodeError: If the body ended before the envelope was closed.
+    """
+    if received_count != expected_count:
+        raise MPTStreamingIncompleteError(path, expected_count, received_count)
+    parser.close()
+
+
+def iter_stream_events(
+    response: HTTPXResponse,
+    path: str,
+    stream_format: StreamFormat,
+    data_field: str,
+) -> Iterator[StreamEvent]:
+    """Iterate the events of a streaming response in the format it was requested in.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+        stream_format: Wire format the request asked for.
+        data_field: Envelope member carrying the record array, in envelope format.
+
+    Returns:
+        Events of the response body, in arrival order.
+    """
+    if stream_format is StreamFormat.JSON:
+        return iter_envelope_events(response, path, data_field)
+    return iter_jsonl_events(response, path)
+
+
+def aiter_stream_events(
+    response: HTTPXResponse,
+    path: str,
+    stream_format: StreamFormat,
+    data_field: str,
+) -> AsyncIterator[StreamEvent]:
+    """Iterate the events of an async streaming response in its requested format.
+
+    Args:
+        response: Open streaming response to consume.
+        path: Requested path, used to build error messages.
+        stream_format: Wire format the request asked for.
+        data_field: Envelope member carrying the record array, in envelope format.
+
+    Returns:
+        Events of the response body, in arrival order.
+    """
+    if stream_format is StreamFormat.JSON:
+        return aiter_envelope_events(response, path, data_field)
+    return aiter_jsonl_events(response, path)
+
+
 def deserialize_stream_record[Model: BaseModel](
     record: Resource,
     model_class: type[Model],
@@ -207,13 +405,16 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         *,
         limit: int | None = None,
         offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
         progress: Progress | None = None,
     ) -> Iterator[Model | DeletionStub]:
         """Stream a result set in streaming mode, yielding one object per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
-        pages, this consumes a single line-delimited response without buffering the body.
-        Membership is fixed when the stream opens, so records added afterwards are absent.
+        pages, this consumes a single response as it arrives, without buffering the body:
+        records are yielded while the rest of the export is still on the wire, in both
+        wire formats. Membership is fixed when the stream opens, so records added
+        afterwards are absent.
         A member hard-deleted after that snapshot arrives as a deletion stub and is yielded
         as a `DeletionStub` rather than a model, so it cannot be ingested as a record.
         Once the body is fully consumed, the record count is verified against the
@@ -227,13 +428,18 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 count rather than the uncapped number of matches.
             offset: Offset to send with the request. Sent as given rather than checked
                 locally, so the server decides whether it is a valid input.
+            stream_format: Wire format requested with ``Accept``. Defaults to the
+                line-delimited format; `StreamFormat.JSON` reads the same records out of
+                the standard ``{$meta, data}`` envelope instead, parsed incrementally.
             progress: Optional progress receiver. `item_processed` is called once per
                 yielded object, stubs included, before it is yielded, and `completed` once
                 when the response body is fully consumed and verified complete.
-                `set_total_items` is never called.
+                `set_total_items` is called with ``$meta.pagination.total`` when the
+                envelope reports it, and never in the line-delimited format, which carries
+                no envelope.
 
         Yields:
-            Resources, one per non-empty line of the response, each either a model or a
+            Resources, one per record of the response, each either a model or a
             `DeletionStub` for a member deleted after the membership snapshot.
 
         Raises:
@@ -256,22 +462,39 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                     self.http_client.stream(  # type: ignore[attr-defined]
                         "GET",
                         path,
-                        headers=streaming_request_headers(),
+                        headers=streaming_request_headers(stream_format),
                     )
                 )
             except MPTHttpError as http_error:
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
-            for line in iter_verified_lines(response, path):
-                result = deserialize_stream_record(
-                    json.loads(line),
-                    self._model_class,  # type: ignore[attr-defined]
-                )
-                if progress:
-                    progress.item_processed()
-                yield result
+            events = iter_stream_events(
+                response,
+                path,
+                stream_format,
+                self._collection_key,  # type: ignore[attr-defined]
+            )
+            yield from self._stream_results(events, progress)
         if progress:
             progress.completed()
+
+    def _stream_results(
+        self,
+        events: Iterator[StreamEvent],
+        progress: Progress | None,
+    ) -> Iterator[Model | DeletionStub]:
+        for event in events:
+            if isinstance(event, StreamedTotal):
+                if progress:
+                    progress.set_total_items(event.total)
+                continue
+            result = deserialize_stream_record(
+                event.record,
+                self._model_class,  # type: ignore[attr-defined]
+            )
+            if progress:
+                progress.item_processed()
+            yield result
 
 
 class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
@@ -288,13 +511,16 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         *,
         limit: int | None = None,
         offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
         progress: AsyncProgress | None = None,
     ) -> AsyncIterator[Model | DeletionStub]:
         """Stream a result set in streaming mode, yielding one object per record.
 
         Unlike ``iterate()``, which pages through the collection and deserializes whole
-        pages, this consumes a single line-delimited response without buffering the body.
-        Membership is fixed when the stream opens, so records added afterwards are absent.
+        pages, this consumes a single response as it arrives, without buffering the body:
+        records are yielded while the rest of the export is still on the wire, in both
+        wire formats. Membership is fixed when the stream opens, so records added
+        afterwards are absent.
         A member hard-deleted after that snapshot arrives as a deletion stub and is yielded
         as a `DeletionStub` rather than a model, so it cannot be ingested as a record.
         Once the body is fully consumed, the record count is verified against the
@@ -308,13 +534,18 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 count rather than the uncapped number of matches.
             offset: Offset to send with the request. Sent as given rather than checked
                 locally, so the server decides whether it is a valid input.
+            stream_format: Wire format requested with ``Accept``. Defaults to the
+                line-delimited format; `StreamFormat.JSON` reads the same records out of
+                the standard ``{$meta, data}`` envelope instead, parsed incrementally.
             progress: Optional progress receiver. `item_processed` is awaited once per
                 yielded object, stubs included, before it is yielded, and `completed` once
                 when the response body is fully consumed and verified complete.
-                `set_total_items` is never called.
+                `set_total_items` is called with ``$meta.pagination.total`` when the
+                envelope reports it, and never in the line-delimited format, which carries
+                no envelope.
 
         Yields:
-            Resources, one per non-empty line of the response, each either a model or a
+            Resources, one per record of the response, each either a model or a
             `DeletionStub` for a member deleted after the membership snapshot.
 
         Raises:
@@ -338,19 +569,37 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                     self.http_client.stream(  # type: ignore[attr-defined]
                         "GET",
                         path,
-                        headers=streaming_request_headers(),
+                        headers=streaming_request_headers(stream_format),
                     )
                 )
             except MPTHttpError as http_error:
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
-            async for line in aiter_verified_lines(response, path):
-                result = deserialize_stream_record(
-                    json.loads(line),
-                    self._model_class,  # type: ignore[attr-defined]
-                )
-                if progress:
-                    await progress.item_processed()  # noqa: WPS476
+            events = aiter_stream_events(
+                response,
+                path,
+                stream_format,
+                self._collection_key,  # type: ignore[attr-defined]
+            )
+            async for result in self._stream_results(events, progress):
                 yield result
         if progress:
             await progress.completed()
+
+    async def _stream_results(
+        self,
+        events: AsyncIterator[StreamEvent],
+        progress: AsyncProgress | None,
+    ) -> AsyncIterator[Model | DeletionStub]:
+        async for event in events:
+            if isinstance(event, StreamedTotal):
+                if progress:
+                    await progress.set_total_items(event.total)
+                continue
+            result = deserialize_stream_record(
+                event.record,
+                self._model_class,  # type: ignore[attr-defined]
+            )
+            if progress:
+                await progress.item_processed()  # noqa: WPS476
+            yield result
