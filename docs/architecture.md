@@ -227,5 +227,6 @@ MPTError
 └── MPTHttpError                            # generic HTTP error (status_code, message, body)
     ├── MPTAPIError                         # structured API error (payload, title, detail, trace_id)
     ├── MPTStreamingNotSupportedError       # 501, resource cannot stream (also MPTStreamingError)
-    └── MPTStreamingNotAcceptableError      # 406, format unsupported (also MPTStreamingError)
+    ├── MPTStreamingNotAcceptableError      # 406, format unsupported (also MPTStreamingError)
+    └── MPTStreamingOverCapError            # 413, export over cap (also MPTStreamingError)
 ```
