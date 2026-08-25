@@ -43,6 +43,27 @@ class MPTStreamingNotEnabledError(MPTStreamingError):
         )
 
 
+class MPTStreamingFormatMismatchError(MPTStreamingError):
+    """Represents a streaming response served in a format other than the requested one.
+
+    The requested wire format decides which parser consumes the body, so a response
+    whose ``Content-Type`` names a different media type would be read by the wrong
+    parser — in the narrowest case handing the caller the whole envelope as one bogus
+    record — and the response is not read. A response that omits ``Content-Type`` is
+    tolerated.
+    """
+
+    def __init__(self, path: str, requested: str, received: str):
+        self.path = path
+        self.requested = requested
+        self.received = received
+        super().__init__(
+            f"The API answered the streaming request for '{path}' in a different "
+            f"format: requested '{requested}' with the Accept header, the response "
+            f"Content-Type names '{received}'. The response body was not consumed."
+        )
+
+
 class MPTStreamingItemCountMissingError(MPTStreamingError):
     """Represents a streaming response that did not declare a usable item count.
 

@@ -181,9 +181,11 @@ for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1
 > unknown when rendering progress.
 
 The `progress` parameter is also accepted by both `stream()` variants described in
-[Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is never
-called because a streamed response carries no pagination total, so design progress
-implementations for an unknown total. The async `iterate()` and `stream()` accept an
+[Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is called
+only when the envelope wire format reports `$meta.pagination.total`, and never in the
+line-delimited format, which carries no envelope — see
+[Choosing The Wire Format](#choosing-the-wire-format) — so design progress implementations
+to work while the total is still unknown. The async `iterate()` and `stream()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
 `AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
 `AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
@@ -251,6 +253,41 @@ The minimal loop above reads `id`, which every streamed object carries. Anything
 other fields must first check for a deletion stub: a member deleted after the snapshot arrives
 as a `DeletionStub`, not a model. See [Deletion Stubs](#deletion-stubs) — the async example
 below shows the branch.
+
+### Choosing The Wire Format
+
+The same records travel in either of two formats, chosen per request with `Accept`:
+
+| `stream_format` | `Accept` | Body |
+|---|---|---|
+| `StreamFormat.JSONL` (default) | `application/jsonl` | one record object per line, no envelope |
+| `StreamFormat.JSON` | `application/json` | the standard `{$meta, data}` envelope, the same shape `iterate()` reads |
+
+```python
+from mpt_api_client.http.mixins import StreamFormat
+
+for order in service.stream(stream_format=StreamFormat.JSON):
+    print(order.id)
+```
+
+Both formats are parsed as the body arrives, so a record is yielded while the rest of the
+export is still on the wire and the whole body is never held in memory. In envelope format
+that means the JSON is tokenized incrementally: each record is deserialized when its own
+closing brace arrives, not when the envelope completes. The insignificant whitespace a
+streaming response emits between tokens as a keep-alive is consumed while tokenizing — the
+envelope-format equivalent of the blank keep-alive lines of the line-delimited format — so it
+never reaches your loop.
+
+Only the envelope carries `$meta.pagination.total`, which equals the `MPT-Item-Count` value
+and is likewise the capped `min(matches, N)` under a bounded `limit=N`. It is reported to a
+`progress` receiver through `set_total_items`, exactly as `iterate()` reports the total of
+each page, so a progress report can render a percentage of a streamed export. The
+line-delimited format carries no envelope and therefore never calls `set_total_items`. The
+total is reported as soon as `$meta` arrives, which precedes the records only when the server
+sends `$meta` first.
+
+Everything else is format-independent: query state, `limit` and `offset`, deletion stubs, the
+completeness check against `MPT-Item-Count`, and every streaming error.
 
 ### Bounding An Export
 
@@ -357,6 +394,7 @@ All streaming-specific failures derive from `MPTStreamingError`, so one handler 
 | Exception | Raised when |
 |---|---|
 | `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
+| `MPTStreamingFormatMismatchError` | The response `Content-Type` names a media type other than the requested wire format |
 | `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
 | `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
 | `MPTStreamingOverCapError` | `413` — the result set exceeds the configured `MaxExportKeys` cap |
@@ -395,7 +433,8 @@ except MPTStreamingNotSupportedError:
 ```
 
 Treat the request-shape and endpoint-support failures — `MPTStreamingNotEnabledError`,
-`MPTStreamingNotSupportedError`, `MPTStreamingNotAcceptableError`, `MPTStreamingOverCapError`
+`MPTStreamingFormatMismatchError`, `MPTStreamingNotSupportedError`,
+`MPTStreamingNotAcceptableError`, `MPTStreamingOverCapError`
 and `MPTStreamingItemCountMissingError` — as exactly that rather than transient failures:
 retrying the same call against the same endpoint fails the same way, and an over-cap export
 needs a narrower request, not a retry. `MPTStreamingIncompleteError` is different: it reports a
@@ -405,8 +444,16 @@ The three HTTP-backed types also subclass `MPTHttpError`, so existing `except MP
 handlers keep working and `status_code` remains available. Any other HTTP status passes
 through unchanged.
 
-`MPTStreamingNotEnabledError` and `MPTStreamingItemCountMissingError` are raised before the
-body is read, so no partial data is consumed. `MPTStreamingIncompleteError` can only be raised
+A body the client cannot parse is not a streaming error but a `json.JSONDecodeError`, in
+either format: a malformed record line in the line-delimited format, a malformed or
+unterminated envelope in the envelope format. Because a body cut short loses records before
+it loses its closing tokens, a truncated envelope normally reports the more precise
+`MPTStreamingIncompleteError` instead.
+
+`MPTStreamingNotEnabledError`, `MPTStreamingFormatMismatchError` and
+`MPTStreamingItemCountMissingError` are raised before the
+body is read, so no partial data is consumed. A response that omits `Content-Type` is not
+treated as a mismatch. `MPTStreamingIncompleteError` can only be raised
 once the body has been consumed to the end — records already yielded have been processed by
 then, which is why the count must pass before the result set is treated as complete. Closing
 the stream early on purpose, such as breaking out of the loop, does not raise: the check
