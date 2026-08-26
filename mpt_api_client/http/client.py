@@ -1,6 +1,6 @@
 import json as json_package
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from typing import TYPE_CHECKING, Any
 
 from httpx import Client, HTTPError, RequestError
@@ -12,6 +12,11 @@ from mpt_api_client.exceptions import MPTError, MPTMaxRetryError
 from mpt_api_client.http.client_utils import get_query_params
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.request_response_utils import handle_response_http_error
+from mpt_api_client.http.streaming_response import (
+    open_stream,
+    raise_stream_body_error,
+    raise_stream_open_error,
+)
 from mpt_api_client.http.transport_settings import EnvTransportSettings, TransportSettings
 from mpt_api_client.http.types import HeaderTypes, QueryParam, RequestFiles, Response
 from mpt_api_client.models import ResourceData
@@ -147,22 +152,26 @@ class HTTPClient:
             MPTError: If the request fails.
             MPTApiError: If the response contains an error.
             MPTHttpError: If the response contains an HTTP error.
-            MPTMaxRetryError: If the request fails after maximum retry attempts.
+            MPTMaxRetryError: If opening the response fails after maximum retry attempts.
+            MPTStreamingTruncatedError: If the body ends before the HTTP message completes.
         """
         params_str = get_query_params(query_params, options)
-        try:
-            with self.httpx_client.stream(
+        # The guards are split by phase: transparent retry runs while the response is
+        # opened, so a failure there is retry exhaustion, while a failure once the body is
+        # being consumed can no longer be retried and means the stream was truncated.
+        with ExitStack() as stack:
+            stream_context = self.httpx_client.stream(
                 method,
                 url,
                 params=params_str or None,
                 headers=headers,
                 timeout=self._transport.stream_timeout,
-            ) as response:
-                if response.is_error:
-                    response.read()
-                handle_response_http_error(response)
+            )
+            try:
+                response = open_stream(stack, stream_context)
+            except HTTPError as open_error:
+                raise_stream_open_error(open_error, self._transport.retry.total + 1)
+            try:
                 yield response
-        except RequestError as err:
-            raise MPTMaxRetryError(str(err), self._transport.retry.total + 1) from err
-        except HTTPError as err:
-            raise MPTError(f"HTTP Error: {err}") from err
+            except HTTPError as body_error:
+                raise_stream_body_error(body_error, url)

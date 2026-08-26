@@ -309,6 +309,7 @@ All streaming-specific failures derive from `MPTStreamingError`, so one handler 
 | `MPTStreamingOverCapError` | `413` — the result set exceeds the configured `MaxExportKeys` cap |
 | `MPTStreamingItemCountMissingError` | The response declares no usable `MPT-Item-Count`, so completeness cannot be verified |
 | `MPTStreamingIncompleteError` | The fully consumed stream yielded a different number of records than `MPT-Item-Count` declared |
+| `MPTStreamingTruncatedError` | The connection was aborted mid-body, so the response ended before the HTTP message completed |
 
 Completeness is verified for you: streaming commits the `MPT-Item-Count` response header
 with the status — the number of records the stream will carry, `min(matches, N)` under a
@@ -357,6 +358,25 @@ once the body has been consumed to the end — records already yielded have been
 then, which is why the count must pass before the result set is treated as complete. Closing
 the stream early on purpose, such as breaking out of the loop, does not raise: the check
 applies only to a stream consumed to completion.
+
+`MPTStreamingTruncatedError` is the opposite case: the API signals an internal mid-stream
+failure by aborting the connection without completing the HTTP message, so it is raised after
+records have already been yielded. It is not retry exhaustion — transparent retry runs while
+the response is opened, and cannot re-request once the body has started, so `MPTMaxRetryError`
+stays reserved for a request that never delivered a body at all.
+
+Resume is a non-goal: a new request opens a new snapshot, so records from a failed attempt
+cannot be spliced onto a later one. Discard everything the failed attempt produced and restart
+the export from scratch:
+
+```python
+from mpt_api_client.exceptions import MPTStreamingTruncatedError
+
+try:
+    records = list(service.stream())
+except MPTStreamingTruncatedError:
+    records = list(service.stream())  # a new snapshot, not a continuation
+```
 
 ### Over-Cap Exports
 

@@ -3,10 +3,14 @@ import json
 
 import pytest
 import respx
-from httpx import ConnectTimeout, Response, Timeout, codes
+from httpx import ConnectTimeout, RemoteProtocolError, Response, Timeout, codes
 
 from mpt_api_client.auth import BearerTokenAuthentication
-from mpt_api_client.exceptions import MPTAPIError, MPTMaxRetryError
+from mpt_api_client.exceptions import (
+    MPTAPIError,
+    MPTMaxRetryError,
+    MPTStreamingTruncatedError,
+)
 from mpt_api_client.http.client import HTTPClient
 from mpt_api_client.http.query_options import QueryOptions
 from mpt_api_client.http.transport_settings import (
@@ -142,6 +146,23 @@ def test_stream_raises_on_connection_error(http_client):
 
     with pytest.raises(MPTMaxRetryError):
         drain_stream(http_client.stream("GET", "/charges"))
+
+
+def truncated_body():
+    yield b'{"id": "ID-1"}\n'
+    raise RemoteProtocolError("peer closed connection without sending complete message body")
+
+
+@respx.mock
+def test_stream_truncated_mid_body(http_client):
+    truncated = Response(codes.OK, content=truncated_body())
+    respx.get(f"{API_URL}/charges").mock(return_value=truncated)
+
+    with pytest.raises(MPTStreamingTruncatedError) as raised:
+        drain_stream(http_client.stream("GET", "/charges"))
+
+    assert raised.value.path == "/charges"
+    assert not isinstance(raised.value, MPTMaxRetryError)
 
 
 def test_request_with_render(mocker, http_client, mock_httpx_response):
