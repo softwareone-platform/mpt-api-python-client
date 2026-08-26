@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Self
 
+from mpt_api_client.constants import MPT_META_FIELD
 from mpt_api_client.http.types import Response
 
 
@@ -45,7 +46,7 @@ class Meta:
     @classmethod
     def from_response(cls, response: Response) -> Self:
         """Creates a meta object from response."""
-        meta_data = response.json().get("$meta", {})
+        meta_data = response.json().get(MPT_META_FIELD, {})
         if not isinstance(meta_data, dict):
             raise TypeError("Response $meta must be a dict.")
 
