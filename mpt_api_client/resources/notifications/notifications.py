@@ -16,6 +16,10 @@ from mpt_api_client.resources.notifications.subscribers import (
     AsyncSubscribersService,
     SubscribersService,
 )
+from mpt_api_client.resources.notifications.templates import (
+    AsyncTemplatesService,
+    TemplatesService,
+)
 from mpt_api_client.resources.notifications.webhooks import (
     AsyncWebhooksService,
     WebhooksService,
@@ -81,6 +85,11 @@ class Notifications:
         return SubscribersService(http_client=self.http_client)
 
     @property
+    def templates(self) -> TemplatesService:
+        """Templates service."""
+        return TemplatesService(http_client=self.http_client)
+
+    @property
     def webhooks(self) -> WebhooksService:
         """Webhooks service."""
         return WebhooksService(http_client=self.http_client)
@@ -143,6 +152,11 @@ class AsyncNotifications:
     def subscribers(self) -> AsyncSubscribersService:
         """Subscriptions service."""
         return AsyncSubscribersService(http_client=self.http_client)
+
+    @property
+    def templates(self) -> AsyncTemplatesService:
+        """Async Templates service."""
+        return AsyncTemplatesService(http_client=self.http_client)
 
     @property
     def webhooks(self) -> AsyncWebhooksService:
