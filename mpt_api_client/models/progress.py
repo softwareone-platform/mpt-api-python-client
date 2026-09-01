@@ -14,7 +14,12 @@ class Progress(Protocol):
     """Receives iteration progress events from sync `iterate()` and `stream()`."""
 
     def set_total_items(self, total: int) -> None:
-        """Called after each page fetch with the current pagination total."""
+        """Called with the declared total whenever the response reports one.
+
+        `iterate()` calls it after each page fetch; an envelope-format `stream()`
+        calls it once, mid-stream, when the envelope's `$meta` arrives — which may
+        be after records have already been processed.
+        """
 
     def item_processed(self) -> None:
         """Called once per record, just before it is yielded."""
@@ -28,7 +33,12 @@ class AsyncProgress(Protocol):
     """Receives iteration progress events from async `iterate()` and `stream()`."""
 
     async def set_total_items(self, total: int) -> None:
-        """Called after each page fetch with the current pagination total."""
+        """Called with the declared total whenever the response reports one.
+
+        `iterate()` calls it after each page fetch; an envelope-format `stream()`
+        calls it once, mid-stream, when the envelope's `$meta` arrives — which may
+        be after records have already been processed.
+        """
 
     async def item_processed(self) -> None:
         """Called once per record, just before it is yielded."""
