@@ -10,7 +10,7 @@ from mpt_api_client.models import Model as BaseModel
 class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
     """Mixin providing JSONL (NDJSON) streaming of a collection line by line."""
 
-    def stream(self, *, progress: Progress | None = None) -> Iterator[Model]:
+    def stream_jsonl(self, *, progress: Progress | None = None) -> Iterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this
@@ -45,7 +45,7 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
 class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
     """Async mixin providing JSONL (NDJSON) streaming of a collection line by line."""
 
-    async def stream(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
+    async def stream_jsonl(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this

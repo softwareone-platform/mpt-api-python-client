@@ -45,7 +45,7 @@ def test_filter_statement_charges(statement_charges, statement_charge_id):
 
 
 def test_stream_statement_charges_jsonl(statement_charges):
-    result = list(statement_charges.stream())
+    result = list(statement_charges.stream_jsonl())
 
     assert len(result) > 0
     assert all(charge.id for charge in result)

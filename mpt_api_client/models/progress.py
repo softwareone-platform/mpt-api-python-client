@@ -11,7 +11,7 @@ DEFAULT_PROGRESS_BATCH_SIZE = 100
 
 @runtime_checkable
 class Progress(Protocol):
-    """Receives iteration progress events from sync `iterate()` and `stream()`."""
+    """Receives progress events from sync `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
@@ -30,7 +30,7 @@ class Progress(Protocol):
 
 @runtime_checkable
 class AsyncProgress(Protocol):
-    """Receives iteration progress events from async `iterate()` and `stream()`."""
+    """Receives progress events from async `iterate()`, `stream()` and `stream_jsonl()`."""
 
     async def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
@@ -159,7 +159,7 @@ class BatchProgressReport(ProgressReport, abc.ABC):
 
 
 class AsyncProgressReport(abc.ABC):
-    """Async counterpart of `ProgressReport` for async `iterate()` and `stream()`."""
+    """Async counterpart of `ProgressReport` for `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def __init__(self) -> None:
         """Initialize the count and total to zero."""
@@ -265,7 +265,7 @@ class ConsoleProgress(TimeProgressReport):
 
 
 class AsyncConsoleProgress(AsyncTimeProgressReport):
-    """Async counterpart of `ConsoleProgress` for async `iterate()` and `stream()`."""
+    """Async counterpart of `ConsoleProgress` for `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def __init__(
         self,

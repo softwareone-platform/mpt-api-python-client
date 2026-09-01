@@ -180,12 +180,12 @@ for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1
 > `set_total_items` is still called but receives `0` — treat a total of `0` as
 > unknown when rendering progress.
 
-The `progress` parameter is also accepted by both `stream()` variants described in
+The `progress` parameter is also accepted by `stream()` and `stream_jsonl()` described in
 [Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is called
 only when the envelope wire format reports `$meta.pagination.total`, and never in the
 line-delimited format, which carries no envelope — see
 [Choosing The Wire Format](#choosing-the-wire-format) — so design progress implementations
-to work while the total is still unknown. The async `iterate()` and `stream()` accept an
+to work while the total is still unknown. The async `iterate()`, `stream()` and `stream_jsonl()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
 `AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
 `AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
@@ -499,10 +499,10 @@ except MPTStreamingOverCapError as error:
 The ways forward are the ones the body names: narrow the filter, set an explicit `limit=N`, or
 split the export into key or date ranges.
 
-> **Note:** `StreamJSONLMixin` also exposes `stream()`, but it serves endpoints that assign
-> `application/jsonl` their own meaning outside streaming mode, such as billing statement
-> charges. It sends no `MPT-Streaming` header and performs no confirmation check. A service
-> composes one streaming mixin or the other, never both. See
+> **Note:** `StreamJSONLMixin` exposes the separately named `stream_jsonl()` for endpoints
+> that assign `application/jsonl` their own meaning outside streaming mode, such as billing
+> statement charges. It sends no `MPT-Streaming` header and performs no confirmation check.
+> The distinct names let a service compose both streaming mixins side by side. See
 > [architecture.md](architecture.md) for the distinction.
 
 ## Navigate The API Surface
