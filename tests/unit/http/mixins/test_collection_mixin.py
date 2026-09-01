@@ -755,3 +755,30 @@ async def test_async_col_mx_iterate_progress_error(
                 resource
                 async for resource in async_dummy_service.iterate(progress=AsyncFailingProgress())
             ]
+
+
+@pytest.fixture
+def streaming_mode_response():
+    return httpx.Response(
+        httpx.codes.OK,
+        content=b'{"id": "ID-1", "name": "Resource 1"}\n{"id": "ID-2", "name": "Resource 2"}\n',
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "2"},
+    )
+
+
+def test_col_mx_stream_inherited(dummy_service, streaming_mode_response):
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=streaming_mode_response)
+
+        result = [resource.id for resource in dummy_service.stream()]
+
+    assert result == ["ID-1", "ID-2"]
+
+
+async def test_async_col_mx_stream_inherited(async_dummy_service, streaming_mode_response):
+    with respx.mock:
+        respx.get("https://api.example.com/api/v1/test").mock(return_value=streaming_mode_response)
+
+        result = [resource.id async for resource in async_dummy_service.stream()]
+
+    assert result == ["ID-1", "ID-2"]

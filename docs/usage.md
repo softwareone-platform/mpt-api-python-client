@@ -221,25 +221,17 @@ collection. Streaming is opted into per request with the `MPT-Streaming` header,
 `StreamingMixin` and `AsyncStreamingMixin` send on your behalf. Records are yielded one at a
 time without buffering the whole body, so memory stays flat regardless of result size.
 
-No shipped service composes these mixins yet, so compose a service to reach streaming:
+`CollectionMixin` inherits `StreamingMixin`, so every collection service exposes `stream()`
+out of the box — no extra composition is needed:
 
 ```python
 from mpt_api_client import MPTClient, BearerTokenAuthentication, RQLQuery
-from mpt_api_client.http import Service
-from mpt_api_client.http.mixins import StreamingMixin
-from mpt_api_client.models import Model
-
-
-class OrdersStreamService(StreamingMixin[Model], Service[Model]):
-    _endpoint = "/public/v1/commerce/orders"
-    _model_class = Model
-
 
 client = MPTClient.from_config(
     authentication=BearerTokenAuthentication("your-token"),
     base_url="https://api.example.com",
 )
-service = OrdersStreamService(http_client=client.http_client)
+service = client.commerce.orders
 
 for order in service.filter(RQLQuery(status="Processing")).stream():
     print(order.id)
@@ -315,14 +307,7 @@ The async form yields from an async generator:
 import asyncio
 
 from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication
-from mpt_api_client.http import AsyncService
-from mpt_api_client.http.mixins import AsyncStreamingMixin
-from mpt_api_client.models import DeletionStub, Model
-
-
-class AsyncOrdersStreamService(AsyncStreamingMixin[Model], AsyncService[Model]):
-    _endpoint = "/public/v1/commerce/orders"
-    _model_class = Model
+from mpt_api_client.models import DeletionStub
 
 
 async def main():
@@ -330,7 +315,7 @@ async def main():
         authentication=BearerTokenAuthentication("<token>"),
         base_url="https://api.s1.show/public",
     )
-    service = AsyncOrdersStreamService(http_client=client.http_client)
+    service = client.commerce.orders
 
     async for result in service.stream():
         if isinstance(result, DeletionStub):

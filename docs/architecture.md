@@ -126,7 +126,7 @@ Services are composed using **mixins** that add HTTP operations:
 
 | Mixin | Operation |
 |---|---|
-| `CollectionMixin` | `iterate()` — paginated listing |
+| `CollectionMixin` | `iterate()` — paginated listing; inherits `StreamingMixin`, adding `stream()` |
 | `GetMixin` | `get(id)` — retrieve single resource |
 | `CreateMixin` | `create(data)` — create resource |
 | `UpdateMixin` | `update(id, data)` — update resource |
@@ -145,8 +145,11 @@ has an `Async*` counterpart for composition with `AsyncService`.
 
 The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) exposes
 `stream()`, while the endpoint-specific JSONL contract (`StreamJSONLMixin` /
-`AsyncStreamJSONLMixin`) exposes `stream_jsonl()`, so a service can compose both without
-the method names colliding. The platform mixins request the
+`AsyncStreamJSONLMixin`) exposes `stream_jsonl()`, so a service can expose both without
+the method names colliding. `CollectionMixin` and `AsyncCollectionMixin` inherit the
+platform streaming mixins, so every collection service carries `stream()` without
+composing them explicitly; do not list `StreamingMixin` before a collection service's
+`CollectionMixin` base, because that ordering cannot produce a consistent MRO. The platform mixins request the
 streaming read mode on a regular collection route and require the API to echo the
 `MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. They
 also verify completeness: the declared `MPT-Item-Count` is read before the first record —
