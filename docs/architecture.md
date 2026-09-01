@@ -155,7 +155,10 @@ yielded record count once the body is fully consumed, raising `MPTStreamingIncom
 on mismatch. An iterator closed early skips the comparison. A record marked with
 `$meta.deleted` is a deletion stub rather than data, and is yielded as a `DeletionStub`
 instead of a model, so it still counts towards the declared item count but cannot be ingested
-as a record. The JSONL mixins serve endpoints that assign `application/jsonl` their own
+as a record. A consumer that ingests no deletions can opt out with the keyword-only
+`skip_deleted=True`, which withholds stubs at yield time — after the completeness bookkeeping
+and the progress tick — and is typed with overloads, so the call narrows to an iterator of
+models. The JSONL mixins serve endpoints that assign `application/jsonl` their own
 meaning outside streaming mode.
 
 `stream()` picks its wire format per request with the `stream_format` argument, which sets
