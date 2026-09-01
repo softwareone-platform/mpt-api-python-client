@@ -380,12 +380,49 @@ no longer exists at all and carries no state.
 
 Every member selected for the stream yields exactly one object, stubs included, so a stub
 counts towards `MPT-Item-Count`. Do not filter stubs out before the completeness check
-described below, or a complete export reads as short.
+described below, or a complete export reads as short; the safe way to drop them is the
+`skip_deleted` flag described next, which filters only after that check has been fed.
 
 If you validate incoming payloads against a strict schema, relax the required-member
 validation for stubs: a stub satisfies only `id`, so checking it against a schema that
 requires the full record fails on a conformant payload. Branch on `DeletionStub` first and
 skip the record validation for stubs, rather than loosening the schema for records too.
+
+### Opting Out Of Deletion Stubs
+
+A consumer that does not ingest deletions — read-only analytics, an ad-hoc export — gains
+nothing from the `isinstance` branch: it would drop the stubs and move on. Declare that
+instead with the keyword-only `skip_deleted` flag, and only models are yielded:
+
+```python
+for order in service.stream(skip_deleted=True):
+    upsert_local_record(order)
+```
+
+The flag is typed with overloads, so a type checker resolves `stream(skip_deleted=True)` to
+`Iterator[Model]` — `AsyncIterator[Model]` on the async service — and an opted-out consumer
+carries no union type in downstream signatures. The default call keeps
+`Iterator[Model | DeletionStub]` and the branch it forces.
+
+Filtering happens at yield time, after the client's own bookkeeping, so the stream keeps its
+guarantees:
+
+- The completeness accounting counts the raw records ahead of the filter, and the
+  comparison against `MPT-Item-Count` still runs once the body is fully consumed: a short
+  stream raises `MPTStreamingIncompleteError` regardless of the flag, though records
+  yielded before the truncated tail have been processed by then, as in the default mode.
+- A `progress` receiver still gets `item_processed` for every record, withheld stubs
+  included; the declared total counts stubs, so a report fed only visible records would
+  never reach it.
+
+The intentional exception: with `skip_deleted=True` the number of objects your loop sees no
+longer matches `MPT-Item-Count` when the snapshot contains stubs. Do not compare your own
+count against the header in this mode — the client has already verified that the full
+snapshot arrived.
+
+Opting out declares that deletions are irrelevant to this consumer. A sync job that mirrors
+the collection must keep the default and branch on `DeletionStub`, or members deleted
+upstream survive locally forever.
 
 ### Streaming Errors
 

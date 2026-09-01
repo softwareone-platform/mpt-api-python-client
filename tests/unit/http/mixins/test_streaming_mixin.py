@@ -635,6 +635,57 @@ def test_stream_keeps_deleted_status_as_a_record(nullable_fields_service, delete
 
 
 @respx.mock
+def test_stream_skip_deleted_yields_only_models(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+
+    result = list(nullable_fields_service.stream(skip_deleted=True))
+
+    assert [entry.id for entry in result] == ["ID-1"]
+    assert all(isinstance(entry, NullableFieldsModel) for entry in result)
+
+
+@respx.mock
+def test_stream_skip_deleted_all_stubs_empty(nullable_fields_service, deletion_stub_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([deletion_stub_record]))
+
+    result = list(nullable_fields_service.stream(skip_deleted=True))
+
+    assert result == []
+
+
+@respx.mock
+def test_stream_skip_deleted_reports_progress(
+    nullable_fields_service, deletion_stub_record, recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = nullable_fields_service.stream(progress=recording_progress, skip_deleted=True)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_skip_deleted_verifies_count(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = nullable_fields_service.stream(skip_deleted=True)
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        list(iterator)
+
+
+@respx.mock
 async def test_async_stream_yields_deletion_stub(
     async_nullable_fields_service, deletion_stub_record, data_record
 ):
@@ -676,6 +727,51 @@ async def test_async_stream_progress_counts_stub(
         ("item_processed",),
         ("completed",),
     ]
+
+
+@respx.mock
+async def test_async_stream_skip_deleted_only_models(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream(skip_deleted=True)
+
+    result = [entry async for entry in stream]
+
+    assert [entry.id for entry in result] == ["ID-1"]
+    assert all(isinstance(entry, NullableFieldsModel) for entry in result)
+
+
+@respx.mock
+async def test_async_skip_deleted_reports_progress(
+    async_nullable_fields_service, deletion_stub_record, async_recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream(
+        progress=async_recording_progress, skip_deleted=True
+    )
+
+    [entry async for entry in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+async def test_async_skip_deleted_verifies_count(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = async_nullable_fields_service.stream(skip_deleted=True)
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        [entry async for entry in iterator]
 
 
 def test_deserialize_stream_record_builds_a_model(data_record):
@@ -913,6 +1009,26 @@ def test_stream_envelope_keeps_deleted_status(nullable_fields_service, deleted_s
     result = list(nullable_fields_service.stream(stream_format=StreamFormat.JSON))
 
     assert isinstance(result[0], NullableFieldsModel)
+
+
+@respx.mock
+def test_stream_envelope_skip_deleted_total(
+    nullable_fields_service, data_record, deletion_stub_record, recording_progress
+):
+    body = envelope_body([data_record, deletion_stub_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = nullable_fields_service.stream(
+        stream_format=StreamFormat.JSON, progress=recording_progress, skip_deleted=True
+    )
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
 
 
 @respx.mock

@@ -2,6 +2,7 @@ import json
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
 from enum import StrEnum
+from typing import Literal, overload
 
 from httpx import Response as HTTPXResponse
 
@@ -436,6 +437,7 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
     ``application/jsonl`` their own meaning outside streaming mode.
     """
 
+    @overload
     def stream(
         self,
         *,
@@ -443,6 +445,39 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         offset: int | None = None,
         stream_format: StreamFormat = StreamFormat.JSONL,
         progress: Progress | None = None,
+        skip_deleted: Literal[True],
+    ) -> Iterator[Model]: ...
+
+    @overload
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: Progress | None = None,
+        skip_deleted: Literal[False] = False,
+    ) -> Iterator[Model | DeletionStub]: ...
+
+    @overload
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: Progress | None = None,
+        skip_deleted: bool,
+    ) -> Iterator[Model | DeletionStub]: ...
+
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: Progress | None = None,
+        skip_deleted: bool = False,
     ) -> Iterator[Model | DeletionStub]:
         """Stream a result set in streaming mode, yielding one object per record.
 
@@ -470,15 +505,27 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 A member's ``Accept`` string is coerced to the member; any other value
                 raises `ValueError` before the request is sent.
             progress: Optional progress receiver. `item_processed` is called once per
-                yielded object, stubs included, before it is yielded, and `completed` once
+                record, stubs included — even a stub withheld by ``skip_deleted``, so a
+                progress report still reaches the declared total — and `completed` once
                 when the response body is fully consumed and verified complete.
                 `set_total_items` is called with ``$meta.pagination.total`` when the
                 envelope reports it, and never in the line-delimited format, which carries
                 no envelope.
+            skip_deleted: When set, deletion stubs are filtered out at yield time, for a
+                consumer that does not ingest deletions and would otherwise write the
+                ``isinstance`` branch only to drop the stubs. The completeness accounting
+                counts raw records ahead of the filter, and the count is compared with
+                ``MPT-Item-Count`` only once the body is fully consumed, so a short
+                stream raises exactly as it does without the flag — records yielded
+                before a truncated tail have been processed by then. The number of
+                yielded objects intentionally falls short of ``MPT-Item-Count`` when the
+                snapshot contains stubs. The default keeps the contract-faithful shape:
+                one object per snapshot member, stubs visible.
 
         Yields:
             Resources, one per record of the response, each either a model or a
-            `DeletionStub` for a member deleted after the membership snapshot.
+            `DeletionStub` for a member deleted after the membership snapshot; only the
+            models when ``skip_deleted`` is set.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -523,11 +570,25 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 stream_format,
                 self._collection_key,  # type: ignore[attr-defined]
             )
-            yield from self._stream_results(events, progress)
+            yield from self._stream_results(events, progress, skip_deleted=skip_deleted)
         if progress:
             progress.completed()
 
     def _stream_results(
+        self,
+        events: Iterator[StreamEvent],
+        progress: Progress | None,
+        *,
+        skip_deleted: bool,
+    ) -> Iterator[Model | DeletionStub]:
+        # A withheld stub was still ticked upstream: the declared total includes stubs,
+        # so a progress report fed only visible records would never reach it.
+        for result in self._deserialized_results(events, progress):
+            if skip_deleted and isinstance(result, DeletionStub):
+                continue
+            yield result
+
+    def _deserialized_results(
         self,
         events: Iterator[StreamEvent],
         progress: Progress | None,
@@ -555,6 +616,39 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
     ``application/jsonl`` their own meaning outside streaming mode.
     """
 
+    @overload
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: AsyncProgress | None = None,
+        skip_deleted: Literal[True],
+    ) -> AsyncIterator[Model]: ...
+
+    @overload
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: AsyncProgress | None = None,
+        skip_deleted: Literal[False] = False,
+    ) -> AsyncIterator[Model | DeletionStub]: ...
+
+    @overload
+    def stream(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        stream_format: StreamFormat = StreamFormat.JSONL,
+        progress: AsyncProgress | None = None,
+        skip_deleted: bool,
+    ) -> AsyncIterator[Model | DeletionStub]: ...
+
     async def stream(
         self,
         *,
@@ -562,6 +656,7 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         offset: int | None = None,
         stream_format: StreamFormat = StreamFormat.JSONL,
         progress: AsyncProgress | None = None,
+        skip_deleted: bool = False,
     ) -> AsyncIterator[Model | DeletionStub]:
         """Stream a result set in streaming mode, yielding one object per record.
 
@@ -589,15 +684,27 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 A member's ``Accept`` string is coerced to the member; any other value
                 raises `ValueError` before the request is sent.
             progress: Optional progress receiver. `item_processed` is awaited once per
-                yielded object, stubs included, before it is yielded, and `completed` once
+                record, stubs included — even a stub withheld by ``skip_deleted``, so a
+                progress report still reaches the declared total — and `completed` once
                 when the response body is fully consumed and verified complete.
                 `set_total_items` is called with ``$meta.pagination.total`` when the
                 envelope reports it, and never in the line-delimited format, which carries
                 no envelope.
+            skip_deleted: When set, deletion stubs are filtered out at yield time, for a
+                consumer that does not ingest deletions and would otherwise write the
+                ``isinstance`` branch only to drop the stubs. The completeness accounting
+                counts raw records ahead of the filter, and the count is compared with
+                ``MPT-Item-Count`` only once the body is fully consumed, so a short
+                stream raises exactly as it does without the flag — records yielded
+                before a truncated tail have been processed by then. The number of
+                yielded objects intentionally falls short of ``MPT-Item-Count`` when the
+                snapshot contains stubs. The default keeps the contract-faithful shape:
+                one object per snapshot member, stubs visible.
 
         Yields:
             Resources, one per record of the response, each either a model or a
-            `DeletionStub` for a member deleted after the membership snapshot.
+            `DeletionStub` for a member deleted after the membership snapshot; only the
+            models when ``skip_deleted`` is set.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -645,12 +752,27 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                     self._collection_key,  # type: ignore[attr-defined]
                 ),
                 progress,
+                skip_deleted=skip_deleted,
             ):
                 yield result
         if progress:
             await progress.completed()
 
     async def _stream_results(
+        self,
+        events: AsyncIterator[StreamEvent],
+        progress: AsyncProgress | None,
+        *,
+        skip_deleted: bool,
+    ) -> AsyncIterator[Model | DeletionStub]:
+        # A withheld stub was still ticked upstream: the declared total includes stubs,
+        # so a progress report fed only visible records would never reach it.
+        async for result in self._deserialized_results(events, progress):
+            if skip_deleted and isinstance(result, DeletionStub):
+                continue
+            yield result
+
+    async def _deserialized_results(
         self,
         events: AsyncIterator[StreamEvent],
         progress: AsyncProgress | None,
