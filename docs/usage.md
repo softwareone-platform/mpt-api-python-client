@@ -100,14 +100,17 @@ Two things are worth knowing:
 - The **read** timeout, not the connect timeout, governs how long the client waits for a
   response to start arriving. A server that accepts the connection and then thinks before
   replying is bounded by `read_timeout`.
-- Streaming requests use `stream_read_timeout` (default `120.0`) in place of the regular read
-  timeout, because a streamed response commits its status only after the server has built the
-  result set — so the first byte can be deferred far longer than for a regular call. The
-  effective streaming read timeout is never lower than `read_timeout`, so raising that raises
-  both.
+- A streaming request's read phase is bounded by the **larger** of `stream_read_timeout`
+  (default `120.0`) and `read_timeout`, because a streamed response commits its status only
+  after the server has built the result set — so the first byte can be deferred far longer
+  than for a regular call. Raising `read_timeout` therefore raises the streaming budget too.
 
 No total-duration timeout is applied. A long export runs for as long as the server keeps
 sending; the limits are per phase, not overall.
+
+Getting this wrong is the most commonly misdiagnosed streaming failure, because a working
+export then looks like a broken one. See
+[The Client-Timeout Trap](streaming.md#the-client-timeout-trap).
 
 ## Synchronous Usage Patterns
 
@@ -162,7 +165,11 @@ and `BatchProgressReport` once every `batch_size` records. Both track the count 
 total for you — implement only `report(current, total, *, completed)`:
 
 ```python
+import logging
+
 from mpt_api_client.models import BatchProgressReport
+
+logger = logging.getLogger(__name__)
 
 
 class LogProgress(BatchProgressReport):
@@ -184,8 +191,9 @@ The `progress` parameter is also accepted by `stream()` and `stream_jsonl()` des
 [Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is called
 only when the envelope wire format reports `$meta.pagination.total`, and never in the
 line-delimited format, which carries no envelope — see
-[Choosing The Wire Format](#choosing-the-wire-format) — so design progress implementations
-to work while the total is still unknown. The async `iterate()`, `stream()` and `stream_jsonl()` accept an
+[Choosing The Wire Format](streaming.md#choosing-the-wire-format) — so design progress
+implementations to work while the total is still unknown. The async `iterate()`, `stream()`
+and `stream_jsonl()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
 `AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
 `AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
@@ -225,11 +233,11 @@ time without buffering the whole body, so memory stays flat regardless of result
 out of the box — no extra composition is needed:
 
 ```python
-from mpt_api_client import MPTClient, BearerTokenAuthentication, RQLQuery
+from mpt_api_client import BearerTokenAuthentication, MPTClient, RQLQuery
 
 client = MPTClient.from_config(
-    authentication=BearerTokenAuthentication("your-token"),
-    base_url="https://api.example.com",
+    authentication=BearerTokenAuthentication("<token>"),
+    base_url="https://api.s1.show/public",
 )
 service = client.commerce.orders
 
@@ -241,70 +249,20 @@ Streaming mixins extend `QueryableMixin`, so `filter()`, `order_by()` and `selec
 before `stream()` exactly as they do before `iterate()`. Membership is fixed when the stream
 opens: records created afterwards are not included.
 
-The minimal loop above reads `id`, which every streamed object carries. Anything that touches
-other fields must first check for a deletion stub: a member deleted after the snapshot arrives
-as a `DeletionStub`, not a model. See [Deletion Stubs](#deletion-stubs) — the async example
-below shows the branch.
+The minimal loop above reads `id`, which every streamed object carries; anything that touches
+other fields must first branch on `DeletionStub`, as the async example does — or declare that
+deletions are irrelevant with `skip_deleted=True`.
 
-### Choosing The Wire Format
-
-The same records travel in either of two formats, chosen per request with `Accept`:
-
-| `stream_format` | `Accept` | Body |
-|---|---|---|
-| `StreamFormat.JSONL` (default) | `application/jsonl` | one record object per line, no envelope |
-| `StreamFormat.JSON` | `application/json` | the standard `{$meta, data}` envelope, the same shape `iterate()` reads |
-
-```python
-from mpt_api_client.http.mixins import StreamFormat
-
-for order in service.stream(stream_format=StreamFormat.JSON):
-    print(order.id)
-```
-
-Both formats are parsed as the body arrives, so a record is yielded while the rest of the
-export is still on the wire and the whole body is never held in memory. In envelope format
-that means the JSON is tokenized incrementally: each record is deserialized when its own
-closing brace arrives, not when the envelope completes. The insignificant whitespace a
-streaming response emits between tokens as a keep-alive is consumed while tokenizing — the
-envelope-format equivalent of the blank keep-alive lines of the line-delimited format — so it
-never reaches your loop.
-
-Only the envelope carries `$meta.pagination.total`, which equals the `MPT-Item-Count` value
-and is likewise the capped `min(matches, N)` under a bounded `limit=N`. It is reported to a
-`progress` receiver through `set_total_items`, exactly as `iterate()` reports the total of
-each page, so a progress report can render a percentage of a streamed export. The
-line-delimited format carries no envelope and therefore never calls `set_total_items`. The
-total is reported as soon as `$meta` arrives, which precedes the records only when the server
-sends `$meta` first.
-
-Everything else is format-independent: query state, `limit` and `offset`, deletion stubs, the
-completeness check against `MPT-Item-Count`, and every streaming error.
-
-### Bounding An Export
-
-By default `stream()` sends no `limit`, which exports the full snapshot; passing `limit=-1`
-requests the same thing explicitly. An explicit `limit=N` bounds the export to the first `N`
-records of the stream order, for a "first 100K by this sort" read that does not page:
-
-```python
-for order in service.order_by("-audit.created.at").stream(limit=100_000):
-    print(order.id)
-```
-
-Under a bounded limit the counts the response reports — the `MPT-Item-Count` header and
-`$meta.pagination.total` — describe the stream itself, `min(matches, N)`, not the uncapped
-number of matches.
-
-`stream()` also accepts `offset`. Pagination inputs are sent exactly as given and are never
-checked locally, because the server owns their validation: it currently rejects `offset` in
-streaming mode with `400`, and support for it is scheduled. Passing through is correct either
-way, so no client release is coupled to that change.
+The wire format is a per-request choice — `stream_format=StreamFormat.JSONL` by default, or
+`StreamFormat.JSON` for the `{$meta, data}` envelope. Both are parsed incrementally and carry
+the same records; see
+[Choosing The Wire Format](streaming.md#choosing-the-wire-format) for what differs.
 
 The async form yields from an async generator:
 
 ```python
 import asyncio
+import uuid
 
 from mpt_api_client import AsyncMPTClient, BearerTokenAuthentication
 from mpt_api_client.models import DeletionStub
@@ -316,216 +274,41 @@ async def main():
         base_url="https://api.s1.show/public",
     )
     service = client.commerce.orders
+    attempt_id = uuid.uuid4().hex
 
-    async for result in service.stream():
-        if isinstance(result, DeletionStub):
-            await delete_local_record(result.id)
-        else:
-            await upsert_local_record(result)
+    try:
+        async for result in service.stream():
+            if isinstance(result, DeletionStub):
+                await stage_delete(attempt_id, result.id)
+            else:
+                await stage_upsert(attempt_id, result)
+
+        # Reached only once stream() has verified the export; see the streaming guide.
+        await promote(attempt_id)
+    except Exception:
+        # Any failure strands the staged attempt, not only MPTStreamingError.
+        await discard(attempt_id)
+        raise
 
 
 asyncio.run(main())
 ```
 
-### Deletion Stubs
-
-A member of the snapshot whose row is hard-deleted before the stream reaches it is still a
-member of the export, so the platform emits it as a deletion stub instead of a record:
-
-```json
-{"id": "ORD-1234-5678", "$meta": {"deleted": true}}
-```
-
-`$meta.deleted` is the platform's metadata channel for that signal. A **truthy** `deleted`
-marker is what identifies a stub; anything else — no `$meta`, no `deleted` key, or
-`"deleted": false` — is data rather than a deletion. In practice the platform omits `$meta`
-entirely on a normal record, so the falsy cases are defensive rather than expected. Only `id`
-is guaranteed on a stub: no other property of the deleted row is carried.
-
-`stream()` yields these as `DeletionStub`, never as a model, so the object cannot be handed
-to code that expects a record. Deserializing a stub as a model would instead produce an
-instance whose every declared field is `None` — indistinguishable from a record whose values
-really are unset — and a sync job writing that back would overwrite the stored record with
-nulls. Branch on the type before ingesting the object; there is nothing else on a stub to
-inspect:
-
-```python
-from mpt_api_client.models import DeletionStub
-
-for result in service.stream():
-    if isinstance(result, DeletionStub):
-        delete_local_record(result.id)
-    else:
-        upsert_local_record(result)
-```
-
-A stub is not the same thing as a `DELETED` domain status. `DELETED` arrives on a full,
-existing record and is a state of that record, so it stays a model; a stub marks a row that
-no longer exists at all and carries no state.
-
-Every member selected for the stream yields exactly one object, stubs included, so a stub
-counts towards `MPT-Item-Count`. Do not filter stubs out before the completeness check
-described below, or a complete export reads as short; the safe way to drop them is the
-`skip_deleted` flag described next, which filters only after that check has been fed.
-
-If you validate incoming payloads against a strict schema, relax the required-member
-validation for stubs: a stub satisfies only `id`, so checking it against a schema that
-requires the full record fails on a conformant payload. Branch on `DeletionStub` first and
-skip the record validation for stubs, rather than loosening the schema for records too.
-
-### Opting Out Of Deletion Stubs
-
-A consumer that does not ingest deletions — read-only analytics, an ad-hoc export — gains
-nothing from the `isinstance` branch: it would drop the stubs and move on. Declare that
-instead with the keyword-only `skip_deleted` flag, and only models are yielded:
-
-```python
-for order in service.stream(skip_deleted=True):
-    upsert_local_record(order)
-```
-
-The flag is typed with overloads, so a type checker resolves `stream(skip_deleted=True)` to
-`Iterator[Model]` — `AsyncIterator[Model]` on the async service — and an opted-out consumer
-carries no union type in downstream signatures. The default call keeps
-`Iterator[Model | DeletionStub]` and the branch it forces.
-
-Filtering happens at yield time, after the client's own bookkeeping, so the stream keeps its
-guarantees:
-
-- The completeness accounting counts the raw records ahead of the filter, and the
-  comparison against `MPT-Item-Count` still runs once the body is fully consumed: a short
-  stream raises `MPTStreamingIncompleteError` regardless of the flag, though records
-  yielded before the truncated tail have been processed by then, as in the default mode.
-- A `progress` receiver still gets `item_processed` for every record, withheld stubs
-  included; the declared total counts stubs, so a report fed only visible records would
-  never reach it.
-
-The intentional exception: with `skip_deleted=True` the number of objects your loop sees no
-longer matches `MPT-Item-Count` when the snapshot contains stubs. Do not compare your own
-count against the header in this mode — the client has already verified that the full
-snapshot arrived.
-
-Opting out declares that deletions are irrelevant to this consumer. A sync job that mirrors
-the collection must keep the default and branch on `DeletionStub`, or members deleted
-upstream survive locally forever.
-
-### Streaming Errors
-
-All streaming-specific failures derive from `MPTStreamingError`, so one handler covers them:
-
-| Exception | Raised when |
-|---|---|
-| `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
-| `MPTStreamingFormatMismatchError` | The response `Content-Type` names a media type other than the requested wire format |
-| `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
-| `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
-| `MPTStreamingOverCapError` | `413` — the result set exceeds the configured `MaxExportKeys` cap |
-| `MPTStreamingItemCountMissingError` | The response declares no usable `MPT-Item-Count`, so completeness cannot be verified |
-| `MPTStreamingIncompleteError` | The fully consumed stream yielded a different number of records than `MPT-Item-Count` declared |
-| `MPTStreamingTruncatedError` | The connection was aborted mid-body, so the response ended before the HTTP message completed |
-
-Completeness is verified for you: streaming commits the `MPT-Item-Count` response header
-with the status — the number of records the stream will carry, `min(matches, N)` under a
-bounded `limit=N` — and `stream()` compares it with the number of records actually yielded
-when the body ends. The header is the contract's only completeness signal and it does not
-survive persisting the payload, so without this check a truncated export would end as a
-silently short result.
-
-```python
-from mpt_api_client.exceptions import MPTStreamingError
-
-try:
-    for order in service.stream():
-        print(order.id)
-except MPTStreamingError as error:
-    logger.error("Streaming unavailable: %s", error)
-```
-
-Catch the specific types when the response should differ — for example falling back to
-`iterate()` on `MPTStreamingNotSupportedError`, but treating
-`MPTStreamingNotAcceptableError` as a bug in the request:
-
-```python
-from mpt_api_client.exceptions import MPTStreamingNotSupportedError
-
-try:
-    records = list(service.stream())
-except MPTStreamingNotSupportedError:
-    records = list(service.iterate())
-```
-
-Treat the request-shape and endpoint-support failures — `MPTStreamingNotEnabledError`,
-`MPTStreamingFormatMismatchError`, `MPTStreamingNotSupportedError`,
-`MPTStreamingNotAcceptableError`, `MPTStreamingOverCapError`
-and `MPTStreamingItemCountMissingError` — as exactly that rather than transient failures:
-retrying the same call against the same endpoint fails the same way, and an over-cap export
-needs a narrower request, not a retry. `MPTStreamingIncompleteError` is different: it reports a
-stream that terminated gracefully but did not match its declared count, for example after an
-intermediary swallowed part of the body. Discard the partial records and re-run the export.
-The three HTTP-backed types also subclass `MPTHttpError`, so existing `except MPTHttpError`
-handlers keep working and `status_code` remains available. Any other HTTP status passes
-through unchanged.
-
-A body the client cannot parse is not a streaming error but a `json.JSONDecodeError`, in
-either format: a malformed record line in the line-delimited format, a malformed or
-unterminated envelope in the envelope format. Because a body cut short loses records before
-it loses its closing tokens, a truncated envelope normally reports the more precise
-`MPTStreamingIncompleteError` instead.
-
-`MPTStreamingNotEnabledError`, `MPTStreamingFormatMismatchError` and
-`MPTStreamingItemCountMissingError` are raised before the
-body is read, so no partial data is consumed. A response that omits `Content-Type` is not
-treated as a mismatch. `MPTStreamingIncompleteError` can only be raised
-once the body has been consumed to the end — records already yielded have been processed by
-then, which is why the count must pass before the result set is treated as complete. Closing
-the stream early on purpose, such as breaking out of the loop, does not raise: the check
-applies only to a stream consumed to completion.
-
-`MPTStreamingTruncatedError` is the opposite case: the API signals an internal mid-stream
-failure by aborting the connection without completing the HTTP message, so it is raised after
-records have already been yielded. It is not retry exhaustion — transparent retry runs while
-the response is opened, and cannot re-request once the body has started, so `MPTMaxRetryError`
-stays reserved for a request that never delivered a body at all.
-
-Resume is a non-goal: a new request opens a new snapshot, so records from a failed attempt
-cannot be spliced onto a later one. Discard everything the failed attempt produced and restart
-the export from scratch:
-
-```python
-from mpt_api_client.exceptions import MPTStreamingTruncatedError
-
-try:
-    records = list(service.stream())
-except MPTStreamingTruncatedError:
-    records = list(service.stream())  # a new snapshot, not a continuation
-```
-
-### Over-Cap Exports
-
-The API answers `413` when the result set is larger than the configured `MaxExportKeys` cap.
-`MPTStreamingOverCapError` keeps the `problem+json` body as structured data on `payload`
-rather than flattening it into the message, because the configured cap is the value a caller
-acts on:
-
-```python
-from mpt_api_client.exceptions import MPTStreamingOverCapError
-
-try:
-    records = list(service.stream())
-except MPTStreamingOverCapError as error:
-    logger.error("Export refused: %s", error.payload)
-    records = list(service.stream(limit=10_000))
-```
-
-`payload` is an empty mapping when the response carries no JSON body, so read it defensively.
-The ways forward are the ones the body names: narrow the filter, set an explicit `limit=N`, or
-split the export into key or date ranges.
+**Read [the streaming guide](streaming.md) before shipping a stream consumer.** It covers
+when to stream instead of paging, both wire formats, `limit` semantics, the streaming
+exceptions, and the three obligations a consumer cannot skip — verifying completeness against
+`MPT-Item-Count`, handling deletion stubs (and when
+[opting out](streaming.md#opting-out-of-deletion-stubs) is legitimate), and restarting rather
+than resuming a failed export — plus the timeout setting that decides whether a large export
+works at all.
 
 > **Note:** `StreamJSONLMixin` exposes the separately named `stream_jsonl()` for endpoints
 > that assign `application/jsonl` their own meaning outside streaming mode, such as billing
 > statement charges. It sends no `MPT-Streaming` header and performs no confirmation check.
 > The distinct names let a service compose both streaming mixins side by side. See
-> [architecture.md](architecture.md) for the distinction.
+> [the streaming guide](streaming.md#do-not-confuse-stream-with-stream_jsonl) for the
+> distinction.
+
 
 ## Navigate The API Surface
 
@@ -583,6 +366,7 @@ for product in (
 ## Related Documents
 
 - [testing.md](testing.md): validation and test command behavior
+- [streaming.md](streaming.md): streaming guide — access pattern, obligations, timeouts
 - [rql.md](rql.md): RQL builder guide
 - [architecture.md](architecture.md): repository structure and abstractions
 - [local-development.md](local-development.md): repository-local Docker workflow for contributors
