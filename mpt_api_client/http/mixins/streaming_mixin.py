@@ -508,9 +508,10 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 record, stubs included — even a stub withheld by ``skip_deleted``, so a
                 progress report still reaches the declared total — and `completed` once
                 when the response body is fully consumed and verified complete.
-                `set_total_items` is called with ``$meta.pagination.total`` when the
-                envelope reports it, and never in the line-delimited format, which carries
-                no envelope.
+                `set_total_items` is called exactly once, with the declared
+                ``MPT-Item-Count``, as soon as the response headers are verified —
+                before the first record, in both wire formats; the envelope's mirror
+                of that count in ``$meta.pagination.total`` is not re-reported.
             skip_deleted: When set, deletion stubs are filtered out at yield time, for a
                 consumer that does not ingest deletions and would otherwise write the
                 ``isinstance`` branch only to drop the stubs. The completeness accounting
@@ -564,6 +565,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             confirm_stream_format(response.headers, path, stream_format)
+            if progress:
+                progress.set_total_items(declared_item_count(response.headers, path))
             events = iter_stream_events(
                 response,
                 path,
@@ -595,8 +598,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
     ) -> Iterator[Model | DeletionStub]:
         for event in events:
             if isinstance(event, StreamedTotal):
-                if progress:
-                    progress.set_total_items(event.total)
+                # The envelope total mirrors MPT-Item-Count (TDR 4.6), which already
+                # fed the receiver; forwarding the copy could only overwrite the
+                # authoritative value when a faulty response makes them differ.
                 continue
             result = deserialize_stream_record(
                 event.record,
@@ -687,9 +691,10 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 record, stubs included — even a stub withheld by ``skip_deleted``, so a
                 progress report still reaches the declared total — and `completed` once
                 when the response body is fully consumed and verified complete.
-                `set_total_items` is called with ``$meta.pagination.total`` when the
-                envelope reports it, and never in the line-delimited format, which carries
-                no envelope.
+                `set_total_items` is called exactly once, with the declared
+                ``MPT-Item-Count``, as soon as the response headers are verified —
+                before the first record, in both wire formats; the envelope's mirror
+                of that count in ``$meta.pagination.total`` is not re-reported.
             skip_deleted: When set, deletion stubs are filtered out at yield time, for a
                 consumer that does not ingest deletions and would otherwise write the
                 ``isinstance`` branch only to drop the stubs. The completeness accounting
@@ -744,6 +749,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             confirm_stream_format(response.headers, path, stream_format)
+            if progress:
+                await progress.set_total_items(declared_item_count(response.headers, path))
             async for result in self._stream_results(
                 aiter_stream_events(
                     response,
@@ -779,8 +786,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
     ) -> AsyncIterator[Model | DeletionStub]:
         async for event in events:
             if isinstance(event, StreamedTotal):
-                if progress:
-                    await progress.set_total_items(event.total)
+                # The envelope total mirrors MPT-Item-Count (TDR 4.6), which already
+                # fed the receiver; forwarding the copy could only overwrite the
+                # authoritative value when a faulty response makes them differ.
                 continue
             result = deserialize_stream_record(
                 event.record,

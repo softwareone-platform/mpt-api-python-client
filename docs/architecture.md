@@ -176,10 +176,12 @@ decode error, while the envelope reader loses the record and reports the more pr
 `MPTStreamingIncompleteError`. The envelope is tokenized by
 `JSONEnvelopeParser` (`http/json_envelope_parser.py`), which emits a record when its closing
 brace arrives rather than when the body completes, consumes the insignificant whitespace a
-streaming response emits between tokens as keep-alives, and reports `$meta.pagination.total`
-to a `progress` receiver through `set_total_items` — the same event `iterate()` raises per
-page. The parser reads the record array out of the service's `_collection_key`, the member the
-paged path deserializes, so streamed and paged responses read the same envelope.
+streaming response emits between tokens as keep-alives, and surfaces `$meta.pagination.total`
+as a parse event that `stream()` deliberately does not forward to a `progress` receiver —
+the receiver's total comes from the `MPT-Item-Count` header; see
+[the streaming guide](streaming.md#reporting-progress) for the consumer-facing progress
+contract. The parser reads the record array out of the service's `_collection_key`, the
+member the paged path deserializes, so streamed and paged responses read the same envelope.
 
 `StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
 unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:

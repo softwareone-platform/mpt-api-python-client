@@ -170,18 +170,20 @@ Keep-alives differ in shape and are invisible either way. The line-delimited for
 blank lines; the envelope format emits insignificant whitespace between tokens, consumed
 while tokenizing. Neither reaches your loop, and neither counts as a record.
 
-Pick the envelope when you want the total. Only the envelope carries
-`$meta.pagination.total`, which equals `MPT-Item-Count` — and is likewise the capped
-`min(matches, N)` under a bounded `limit=N`. It reaches a `progress` receiver through
-`set_total_items` as soon as `$meta` arrives, so a progress report can render a percentage of
-a streamed export. The line-delimited format carries no envelope and never reports a total.
+The total does not depend on the format: in both, a `progress` receiver gets the declared
+`MPT-Item-Count` through `set_total_items`, exactly once, before the first record arrives,
+so a progress report can render a percentage of a streamed export either way. The envelope
+also carries `$meta.pagination.total` — contractually a mirror of the header, likewise the
+capped `min(matches, N)` under a bounded `limit=N` — which the client does not re-report:
+the header stays the single source of the receiver's total.
 
 Pick the line-delimited format when you want the simplest thing to store or pipe: one record
 per line survives `split`, `tail` and append-only files, where a single enclosing envelope
-does not.
+does not; pick the envelope when a consumer expects the standard `{$meta, data}` shape.
 
 Everything else is format-independent: query state, `limit` and `offset`, deletion stubs, the
-completeness check against `MPT-Item-Count`, and every streaming error.
+completeness check against `MPT-Item-Count`, the total reported to `progress`, and every
+streaming error.
 
 ## Bounding An Export
 
@@ -248,11 +250,10 @@ The count does not survive persisting the payload. If you write the raw records 
 and verify them later, store the expected count alongside them — once the response is gone,
 the export's own completeness signal is gone with it.
 
-Getting that number takes a deliberate step, because `stream()` verifies the count for you and
-does not hand it over: it yields records, not headers. Either stream `StreamFormat.JSON`, where
-the envelope's total reaches a `progress` receiver through `set_total_items`, or drop to
-`client.http_client.stream(...)` and read the `MPT-Item-Count` header yourself — which means
-parsing and verifying the body yourself too, so prefer the first.
+The supported way to capture it is a `progress` receiver: `stream()` calls `set_total_items`
+with the declared `MPT-Item-Count` before the first record, in both wire formats, so the
+count is in hand before any record is written. `stream()` still yields records, not headers —
+there is no need to drop to `client.http_client.stream(...)` just to read the header.
 
 ### 2. Check For A Deletion Stub Before Ingesting A Record
 
@@ -612,17 +613,16 @@ for order in client.commerce.orders.stream(progress=ConsoleProgress()):
     print(order.id)
 ```
 
-Whether a total is reported depends on the wire format. In the envelope format
-`set_total_items` receives `$meta.pagination.total` as soon as `$meta` arrives, so
-`ConsoleProgress` can render a real percentage. In the default line-delimited format there is
-no envelope and no total, so `ConsoleProgress` renders its total as `0` — the record count is
-then the meaningful half of the line.
+The total is reported the same way in both wire formats: `set_total_items` is called exactly
+once, with the declared `MPT-Item-Count`, when the response headers are verified — before
+the first record — so `ConsoleProgress` renders a real percentage from the start of the
+export. The envelope's `$meta.pagination.total` is contractually a mirror of that header and
+is not re-reported.
 
-A progress receiver never sees `MPT-Item-Count`. The client reads that header to verify the
-export and does not pass it on, and `set_total_items` is called only when the *response*
-reports a total. So a percentage needs either `StreamFormat.JSON`, or a total you already
-know from elsewhere. Implement the `Progress` protocol (or `AsyncProgress` for the async
-client) to route progress somewhere other than the console.
+The receiver is also where you capture the declared count when the payload is stored for
+later verification, as [obligation 1](#1-verify-completeness-against-mpt-item-count)
+describes. Implement the `Progress` protocol (or `AsyncProgress` for the async client) to
+route progress somewhere other than the console.
 
 ## Related Documents
 

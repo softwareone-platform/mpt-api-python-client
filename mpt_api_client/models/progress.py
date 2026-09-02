@@ -16,9 +16,9 @@ class Progress(Protocol):
     def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
 
-        `iterate()` calls it after each page fetch; an envelope-format `stream()`
-        calls it once, mid-stream, when the envelope's `$meta` arrives — which may
-        be after records have already been processed.
+        `iterate()` calls it after each page fetch; `stream()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record, in
+        both wire formats.
         """
 
     def item_processed(self) -> None:
@@ -40,9 +40,9 @@ class AsyncProgress(Protocol):
     async def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
 
-        `iterate()` calls it after each page fetch; an envelope-format `stream()`
-        calls it once, mid-stream, when the envelope's `$meta` arrives — which may
-        be after records have already been processed.
+        `iterate()` calls it after each page fetch; `stream()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record, in
+        both wire formats.
         """
 
     async def item_processed(self) -> None:
@@ -97,7 +97,7 @@ class ProgressReport(abc.ABC):
         self._count = 0
 
     def set_total_items(self, total: int) -> None:
-        """Store the current pagination total."""
+        """Store the current declared item total."""
         self._total = total
 
     def item_processed(self) -> None:
@@ -116,7 +116,7 @@ class ProgressReport(abc.ABC):
 
         Args:
             current: Number of records processed so far.
-            total: Current pagination total, 0 when unknown.
+            total: Current declared item total, 0 when unknown.
             completed: True only for the final report emitted by `completed()`.
         """
 
@@ -177,7 +177,7 @@ class AsyncProgressReport(abc.ABC):
         self._count = 0
 
     async def set_total_items(self, total: int) -> None:
-        """Store the current pagination total."""
+        """Store the current declared item total."""
         self._total = total
 
     async def item_processed(self) -> None:
@@ -196,7 +196,7 @@ class AsyncProgressReport(abc.ABC):
 
         Args:
             current: Number of records processed so far.
-            total: Current pagination total, 0 when unknown.
+            total: Current declared item total, 0 when unknown.
             completed: True only for the final report emitted by `completed()`.
         """
 
