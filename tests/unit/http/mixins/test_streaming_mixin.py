@@ -255,6 +255,7 @@ def test_stream_progress_events(streaming_service, recording_progress: Recording
     list(streaming_service.stream(progress=recording_progress))  # act
 
     assert recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -314,6 +315,7 @@ async def test_async_stream_progress_events(
     [order async for order in async_streaming_service.stream(progress=async_recording_progress)]
 
     assert async_recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -477,7 +479,11 @@ def test_incomplete_skips_progress_completed(streaming_service, recording_progre
     with pytest.raises(MPTStreamingIncompleteError):
         list(iterator)
 
-    assert recording_progress.events == [("item_processed",), ("item_processed",)]
+    assert recording_progress.events == [
+        ("set_total_items", 3),
+        ("item_processed",),
+        ("item_processed",),
+    ]
 
 
 @respx.mock
@@ -618,6 +624,7 @@ def test_stream_progress_counts_stub(
     list(nullable_fields_service.stream(progress=recording_progress))  # act
 
     assert recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -667,6 +674,7 @@ def test_stream_skip_deleted_reports_progress(
     list(stream)  # act
 
     assert recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -723,6 +731,7 @@ async def test_async_stream_progress_counts_stub(
     [entry async for entry in stream]  # act
 
     assert async_recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -756,6 +765,7 @@ async def test_async_skip_deleted_reports_progress(
     [entry async for entry in stream]  # act
 
     assert async_recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -976,15 +986,34 @@ def test_stream_envelope_reports_the_total(
 
 
 @respx.mock
-def test_stream_jsonl_reports_no_pagination_total(streaming_service, recording_progress):
-    respx.get(STREAM_URL).mock(return_value=streaming_response())
+def test_stream_envelope_total_not_reforwarded(
+    streaming_service, recording_progress, data_record, second_data_record
+):
+    # A divergent envelope total proves the point: the receiver's total comes from
+    # the authoritative MPT-Item-Count header, and the envelope's copy is ignored.
+    body = envelope_body([data_record, second_data_record], total=7)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = streaming_service.stream(stream_format=StreamFormat.JSON, progress=recording_progress)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_jsonl_empty_reports_total(streaming_service, recording_progress):
+    respx.get(STREAM_URL).mock(return_value=records_response([], item_count="0"))
     stream = streaming_service.stream(stream_format=StreamFormat.JSONL, progress=recording_progress)
 
     list(stream)  # act
 
     assert recording_progress.events == [
-        ("item_processed",),
-        ("item_processed",),
+        ("set_total_items", 0),
         ("completed",),
     ]
 
@@ -1135,6 +1164,27 @@ async def test_async_stream_envelope_reports_total(
     async_streaming_service, async_recording_progress, data_record, second_data_record
 ):
     body = envelope_body([data_record, second_data_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = async_streaming_service.stream(
+        stream_format=StreamFormat.JSON, progress=async_recording_progress
+    )
+
+    [order async for order in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+async def test_async_envelope_total_not_reforwarded(
+    async_streaming_service, async_recording_progress, data_record, second_data_record
+):
+    # A divergent envelope total is ignored, as in the sync counterpart.
+    body = envelope_body([data_record, second_data_record], total=7)
     respx.get(STREAM_URL).mock(return_value=envelope_response(body))
     stream = async_streaming_service.stream(
         stream_format=StreamFormat.JSON, progress=async_recording_progress

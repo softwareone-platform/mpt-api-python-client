@@ -188,10 +188,10 @@ for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1
 > unknown when rendering progress.
 
 The `progress` parameter is also accepted by `stream()` and `stream_jsonl()` described in
-[Streaming Large Result Sets](#streaming-large-result-sets); there `set_total_items` is called
-only when the envelope wire format reports `$meta.pagination.total`, and never in the
-line-delimited format, which carries no envelope — see
-[Choosing The Wire Format](streaming.md#choosing-the-wire-format) — so design progress
+[Streaming Large Result Sets](#streaming-large-result-sets). `stream()` calls
+`set_total_items` with the declared `MPT-Item-Count` before the first record, in both wire
+formats — see [Choosing The Wire Format](streaming.md#choosing-the-wire-format) — while
+`stream_jsonl()` never calls it, so design progress
 implementations to work while the total is still unknown. The async `iterate()`, `stream()`
 and `stream_jsonl()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
