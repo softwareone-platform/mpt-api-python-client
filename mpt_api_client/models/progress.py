@@ -22,7 +22,12 @@ class Progress(Protocol):
         """
 
     def item_processed(self) -> None:
-        """Called once per record, just before it is yielded."""
+        """Called once per consumed record, before it is yielded.
+
+        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        stub, because the declared item count includes stubs: a report fed only the
+        records the caller sees would never reach that total.
+        """
 
     def completed(self) -> None:
         """Called once when iteration finishes normally."""
@@ -41,7 +46,12 @@ class AsyncProgress(Protocol):
         """
 
     async def item_processed(self) -> None:
-        """Called once per record, just before it is yielded."""
+        """Called once per consumed record, before it is yielded.
+
+        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        stub, because the declared item count includes stubs: a report fed only the
+        records the caller sees would never reach that total.
+        """
 
     async def completed(self) -> None:
         """Called once when iteration finishes normally."""
