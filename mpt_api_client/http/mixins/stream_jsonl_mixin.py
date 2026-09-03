@@ -1,8 +1,11 @@
-import json
 from collections.abc import AsyncIterator, Iterator
 
 from mpt_api_client.constants import APPLICATION_JSONL
-from mpt_api_client.http.jsonl_lines import aiter_jsonl_lines, iter_jsonl_lines
+from mpt_api_client.http.jsonl_lines import (
+    aiter_jsonl_lines,
+    decode_record_line,
+    iter_jsonl_lines,
+)
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.models import AsyncProgress, Progress
 from mpt_api_client.models import Model as BaseModel
@@ -26,6 +29,10 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
 
         Yields:
             Resources, one per non-empty line of the response.
+
+        Raises:
+            JSONDecodeError: If a line is not valid JSON, or decodes to anything but
+                an object.
         """
         with self.http_client.stream(  # type: ignore[attr-defined]
             "GET",
@@ -35,7 +42,7 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
             for line in iter_jsonl_lines(response.iter_text()):
                 if not line.strip():
                     continue
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
                     progress.item_processed()
                 yield model
@@ -61,6 +68,10 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
 
         Yields:
             Resources, one per non-empty line of the response.
+
+        Raises:
+            JSONDecodeError: If a line is not valid JSON, or decodes to anything but
+                an object.
         """
         async with self.http_client.stream(  # type: ignore[attr-defined]
             "GET",
@@ -70,7 +81,7 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
             async for line in aiter_jsonl_lines(response.aiter_text()):
                 if not line.strip():
                     continue
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
                     await progress.item_processed()  # noqa: WPS476
                 yield model

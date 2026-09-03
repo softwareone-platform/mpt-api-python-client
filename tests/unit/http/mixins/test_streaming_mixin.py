@@ -28,6 +28,7 @@ from mpt_api_client.models import DeletionStub, Model
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
+    NON_OBJECT_LINE_CASES,
     AsyncRecordingProgress,
     RecordingProgress,
 )
@@ -65,6 +66,10 @@ UNUSABLE_COUNT_CASES = (
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "abc"}, id="not a number"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": ""}, id="empty"),
 )
+
+# Rejected with the same typed decode error the envelope parser raises for a non-object
+# record element, never an AttributeError out of stub detection.
+NON_OBJECT_LINE_MATCH = "record must be an object"
 
 
 class DummyStreamingService(
@@ -163,6 +168,14 @@ def records_response(records, item_count=None):
         httpx.codes.OK,
         content=body,
         headers={"MPT-Streaming": "true", "MPT-Item-Count": declared},
+    )
+
+
+def raw_line_response(line):
+    return httpx.Response(
+        httpx.codes.OK,
+        content=f"{line}\n".encode(),
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "1"},
     )
 
 
@@ -490,6 +503,16 @@ def test_stream_raises_on_unusable_item_count(streaming_service, headers):
         next(iterator)
 
 
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+def test_stream_rejects_non_object_record_line(streaming_service, line):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=NON_OBJECT_LINE_MATCH):
+        list(iterator)
+
+
 @respx.mock
 def test_stream_early_close_skips_verification(streaming_service):
     respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
@@ -533,6 +556,16 @@ async def test_async_stream_raises_on_unusable_count(async_streaming_service, he
 
     with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
         await anext(iterator)
+
+
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+async def test_async_stream_rejects_non_object_line(async_streaming_service, line):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=NON_OBJECT_LINE_MATCH):
+        [entry async for entry in iterator]
 
 
 @respx.mock

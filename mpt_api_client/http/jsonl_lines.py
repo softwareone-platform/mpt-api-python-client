@@ -1,4 +1,30 @@
+import json
 from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
+from typing import Any
+
+
+def decode_record_line(line: str) -> dict[str, Any]:
+    """Decode one record line of a JSONL body.
+
+    The decoded value is required to be an object, the same guard the envelope parser
+    applies to its record elements: a valid-JSON line holding anything else fails here
+    as the documented decode error instead of an arbitrary error — or a silently empty
+    record — out of whatever consumes the value next.
+
+    Args:
+        line: Non-blank body line carrying one record.
+
+    Returns:
+        The decoded record.
+
+    Raises:
+        JSONDecodeError: If the line is not valid JSON, or decodes to anything but
+            an object.
+    """
+    record = json.loads(line)
+    if not isinstance(record, dict):
+        raise json.JSONDecodeError("JSONL record must be an object", line, 0)
+    return record
 
 
 def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:

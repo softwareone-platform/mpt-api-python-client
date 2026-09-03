@@ -22,6 +22,15 @@ JSON_LEGAL_SEPARATORS = (
     pytest.param("\u0085", id="U+0085 next line"),
 )
 
+# Valid JSON that is not a record object: every JSONL reader rejects it with the typed
+# decode error instead of failing arbitrarily \u2014 or passing silently \u2014 downstream.
+NON_OBJECT_LINE_CASES = (
+    pytest.param("42", id="number"),
+    pytest.param("null", id="null"),
+    pytest.param('"x"', id="string"),
+    pytest.param("[1]", id="array"),
+)
+
 
 class DummyService(
     ManagedResourceMixin[DummyModel],

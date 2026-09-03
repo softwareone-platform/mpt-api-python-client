@@ -96,6 +96,10 @@ download, while `stream()` is the streaming-mode read it inherits with every oth
 collection service. Reach for `stream_jsonl()` only when you specifically want that
 endpoint's JSONL contract; for everything else `stream()` is the streaming read.
 
+The line grammar is shared: in both methods a record line must decode to a JSON object,
+and a line holding any other valid JSON value — a bare scalar, an array, `null` — raises
+`json.JSONDecodeError` rather than producing a bogus model.
+
 ## Memory Characteristics
 
 `stream()` holds one record at a time. The response body is parsed as it arrives and each
@@ -526,8 +530,10 @@ body is read, so no partial data is consumed. The three HTTP-backed types also s
 remains available. Any other HTTP status passes through unchanged.
 
 A body the client cannot parse is not a streaming error at all but a `json.JSONDecodeError` —
-a malformed record line in the line-delimited format, a malformed or unterminated envelope in
-the envelope format. A body cut short usually loses records before it loses its closing
+a malformed or non-object record line in the line-delimited format, a malformed or
+unterminated envelope in the envelope format. A record must be a JSON object in both formats:
+a line holding a bare scalar, array, or `null` is rejected with the same typed decode error a
+non-object envelope element gets, not surfaced as a crash deeper in record handling. A body cut short usually loses records before it loses its closing
 tokens, so a truncated export normally reports the more precise `MPTStreamingIncompleteError`
 instead.
 
