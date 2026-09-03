@@ -13,3 +13,9 @@ MPT_PAGINATION_FIELD = "pagination"
 MPT_PAGINATION_TOTAL_FIELD = "total"
 
 CONTENT_TYPE_HEADER = "Content-Type"
+
+# The byte order mark some producers still put in front of UTF-8 text. json.loads on raw
+# bytes — how the paged read path parses a body — strips one before parsing, while httpx's
+# iter_text decodes plain utf-8 and hands it through, so the streamed readers of both wire
+# formats drop it themselves.
+UTF8_BOM = "\ufeff"

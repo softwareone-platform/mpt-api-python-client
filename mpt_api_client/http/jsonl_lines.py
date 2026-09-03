@@ -2,6 +2,8 @@ import json
 from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
 from typing import Any
 
+from mpt_api_client.constants import UTF8_BOM
+
 
 def decode_record_line(line: str) -> dict[str, Any]:
     """Decode one record line of a JSONL body.
@@ -34,6 +36,10 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
     Splitting with ``str.splitlines()`` semantics — what ``httpx``'s ``iter_lines()``
     does — would also break at U+2028, U+2029 and U+0085, which are legal unescaped
     inside a JSON string value, fracturing such a record into unparseable fragments.
+    A single byte order mark opening the body is dropped before the first line is
+    formed, and only there: the sibling read paths tolerate exactly that one — the
+    paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
+    it at envelope start — so a BOM-emitting producer parses the same in every format.
 
     Args:
         text_chunks: Decoded text chunks of the body, in arrival order.
@@ -44,8 +50,16 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
         is yielded as an empty string, for the caller to skip.
     """
     pending = ""
+    at_body_start = True
     for chunk in text_chunks:
-        lines = (pending + chunk).split("\n")
+        if at_body_start and chunk:
+            # `pending` is necessarily empty before the first non-empty chunk, so the
+            # body's first character — the only place a BOM is tolerated — is its start.
+            pending = chunk.removeprefix(UTF8_BOM)
+            at_body_start = False
+        else:
+            pending += chunk
+        lines = pending.split("\n")
         pending = lines.pop()
         for line in lines:
             yield line.removesuffix("\r")
@@ -60,6 +74,10 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
     Splitting with ``str.splitlines()`` semantics — what ``httpx``'s ``aiter_lines()``
     does — would also break at U+2028, U+2029 and U+0085, which are legal unescaped
     inside a JSON string value, fracturing such a record into unparseable fragments.
+    A single byte order mark opening the body is dropped before the first line is
+    formed, and only there: the sibling read paths tolerate exactly that one — the
+    paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
+    it at envelope start — so a BOM-emitting producer parses the same in every format.
 
     Args:
         text_chunks: Decoded text chunks of the body, in arrival order.
@@ -70,8 +88,16 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
         is yielded as an empty string, for the caller to skip.
     """
     pending = ""
+    at_body_start = True
     async for chunk in text_chunks:
-        lines = (pending + chunk).split("\n")
+        if at_body_start and chunk:
+            # `pending` is necessarily empty before the first non-empty chunk, so the
+            # body's first character — the only place a BOM is tolerated — is its start.
+            pending = chunk.removeprefix(UTF8_BOM)
+            at_body_start = False
+        else:
+            pending += chunk
+        lines = pending.split("\n")
         pending = lines.pop()
         for line in lines:
             yield line.removesuffix("\r")
