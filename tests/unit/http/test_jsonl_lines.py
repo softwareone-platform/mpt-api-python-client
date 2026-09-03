@@ -1,9 +1,14 @@
 import asyncio
+import json
 
 import pytest
 
-from mpt_api_client.http.jsonl_lines import aiter_jsonl_lines, iter_jsonl_lines
-from tests.unit.http.conftest import JSON_LEGAL_SEPARATORS
+from mpt_api_client.http.jsonl_lines import (
+    aiter_jsonl_lines,
+    decode_record_line,
+    iter_jsonl_lines,
+)
+from tests.unit.http.conftest import JSON_LEGAL_SEPARATORS, NON_OBJECT_LINE_CASES
 
 
 async def async_chunks(chunks):
@@ -57,6 +62,18 @@ def test_yields_nothing_for_empty_body():
     result = list(iter_jsonl_lines([]))
 
     assert result == []
+
+
+def test_decode_record_line_returns_the_object():
+    result = decode_record_line('{"id": "ID-1"}')
+
+    assert result == {"id": "ID-1"}
+
+
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+def test_decode_record_line_rejects_non_object(line):
+    with pytest.raises(json.JSONDecodeError, match="record must be an object"):
+        decode_record_line(line)
 
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)

@@ -1,4 +1,3 @@
-import json
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
 from enum import StrEnum
@@ -28,7 +27,11 @@ from mpt_api_client.http.json_envelope_parser import (
     StreamedTotal,
     StreamEvent,
 )
-from mpt_api_client.http.jsonl_lines import aiter_jsonl_lines, iter_jsonl_lines
+from mpt_api_client.http.jsonl_lines import (
+    aiter_jsonl_lines,
+    decode_record_line,
+    iter_jsonl_lines,
+)
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
@@ -236,9 +239,17 @@ def iter_jsonl_events(response: HTTPXResponse, path: str) -> Iterator[StreamEven
     Yields:
         One record event per record line. The format carries no envelope, so it never
         reports a total.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body emitted a number of
+            records different from the declared item count.
+        JSONDecodeError: If a record line is not valid JSON, or decodes to anything
+            but an object.
     """
     for line in iter_verified_lines(response, path):
-        yield StreamedRecord(json.loads(line))
+        yield StreamedRecord(decode_record_line(line))
 
 
 async def aiter_jsonl_events(response: HTTPXResponse, path: str) -> AsyncIterator[StreamEvent]:
@@ -251,9 +262,17 @@ async def aiter_jsonl_events(response: HTTPXResponse, path: str) -> AsyncIterato
     Yields:
         One record event per record line. The format carries no envelope, so it never
         reports a total.
+
+    Raises:
+        MPTStreamingItemCountMissingError: If the declared item count is absent or is
+            not a non-negative integer.
+        MPTStreamingIncompleteError: If the fully consumed body emitted a number of
+            records different from the declared item count.
+        JSONDecodeError: If a record line is not valid JSON, or decodes to anything
+            but an object.
     """
     async for line in aiter_verified_lines(response, path):
-        yield StreamedRecord(json.loads(line))
+        yield StreamedRecord(decode_record_line(line))
 
 
 def iter_envelope_events(
@@ -544,8 +563,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
-                a malformed record line in the line-delimited format, or a malformed or
-                unterminated envelope in the envelope format.
+                a malformed or non-object record line in the line-delimited format, or a
+                malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
         """
@@ -727,8 +746,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
-                a malformed record line in the line-delimited format, or a malformed or
-                unterminated envelope in the envelope format.
+                a malformed or non-object record line in the line-delimited format, or a
+                malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
         """

@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 import respx
@@ -8,6 +10,7 @@ from mpt_api_client.http.mixins import AsyncStreamJSONLMixin, StreamJSONLMixin
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
+    NON_OBJECT_LINE_CASES,
     AsyncRecordingProgress,
     RecordingProgress,
 )
@@ -19,6 +22,10 @@ MALFORMED_JSONL_BODY = b'not-json\n{"id": "ID-1", "name": "Charge 1"}\n'
 def separator_jsonl_response(separator):
     body = f'{{"id": "ID-1", "name": "a{separator}b"}}\n'.encode()
     return httpx.Response(httpx.codes.OK, content=body)
+
+
+def raw_line_response(line):
+    return httpx.Response(httpx.codes.OK, content=f"{line}\n".encode())
 
 
 class DummyStreamJSONLService(
@@ -126,6 +133,16 @@ def test_stream_jsonl_progress_bad_line(stream_service, recording_progress: Reco
     assert recording_progress.events == []
 
 
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+def test_stream_jsonl_rejects_non_object_line(stream_service, line):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
+    iterator = stream_service.stream_jsonl()
+
+    with pytest.raises(json.JSONDecodeError, match="record must be an object"):
+        next(iterator)
+
+
 @respx.mock
 async def test_async_stream_jsonl_yields_models(async_stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
@@ -199,3 +216,13 @@ async def test_async_stream_jsonl_progress_bad_line(
         await anext(iterator)
 
     assert async_recording_progress.events == []
+
+
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+async def test_async_stream_jsonl_rejects_non_object(async_stream_service, line):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
+    iterator = async_stream_service.stream_jsonl()
+
+    with pytest.raises(json.JSONDecodeError, match="record must be an object"):
+        await anext(iterator)
