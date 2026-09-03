@@ -14,6 +14,14 @@ from mpt_api_client.http.mixins import (
 )
 from tests.unit.conftest import DummyModel
 
+# Line-separator characters that are legal unescaped inside a JSON string value, yet
+# split a line under str.splitlines() semantics; a JSONL reader must keep them inline.
+JSON_LEGAL_SEPARATORS = (
+    pytest.param("\u2028", id="U+2028 line separator"),
+    pytest.param("\u2029", id="U+2029 paragraph separator"),
+    pytest.param("\u0085", id="U+0085 next line"),
+)
+
 
 class DummyService(
     ManagedResourceMixin[DummyModel],

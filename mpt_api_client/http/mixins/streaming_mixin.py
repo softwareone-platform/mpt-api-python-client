@@ -28,6 +28,7 @@ from mpt_api_client.http.json_envelope_parser import (
     StreamedTotal,
     StreamEvent,
 )
+from mpt_api_client.http.jsonl_lines import aiter_jsonl_lines, iter_jsonl_lines
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
@@ -163,6 +164,8 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
     ends, because a truncated body that terminates gracefully carries no other failure
     signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
     the iterator early skips the comparison: only a body consumed to the end is verified.
+    Lines are split on newlines alone, so a record carrying a Unicode line separator
+    inside a string value stays whole.
 
     Args:
         response: Open streaming response to consume.
@@ -179,7 +182,7 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
     """
     expected_count = declared_item_count(response.headers, path)
     received_count = 0
-    for line in response.iter_lines():
+    for line in iter_jsonl_lines(response.iter_text()):
         if not line.strip():
             continue
         received_count += 1
@@ -196,6 +199,8 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
     ends, because a truncated body that terminates gracefully carries no other failure
     signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
     the iterator early skips the comparison: only a body consumed to the end is verified.
+    Lines are split on newlines alone, so a record carrying a Unicode line separator
+    inside a string value stays whole.
 
     Args:
         response: Open streaming response to consume.
@@ -212,7 +217,7 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
     """
     expected_count = declared_item_count(response.headers, path)
     received_count = 0
-    async for line in response.aiter_lines():
+    async for line in aiter_jsonl_lines(response.aiter_text()):
         if not line.strip():
             continue
         received_count += 1
