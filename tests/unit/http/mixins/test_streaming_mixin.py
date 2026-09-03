@@ -179,6 +179,17 @@ def raw_line_response(line):
     )
 
 
+def bom_prefixed_response():
+    # A producer that opens its UTF-8 output with a byte order mark: the paged path's
+    # json.loads on raw bytes strips it, so the streamed formats tolerate it too.
+    bom_bytes = "\ufeff".encode()
+    return httpx.Response(
+        httpx.codes.OK,
+        content=bom_bytes + JSONL_BODY,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "2"},
+    )
+
+
 @respx.mock
 def test_stream_sends_streaming_opt_in_headers(streaming_service):
     route = respx.get(STREAM_URL).mock(return_value=streaming_response())
@@ -217,6 +228,15 @@ def test_stream_keeps_json_legal_separator(streaming_service, separator):
     result = list(streaming_service.stream())
 
     assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+def test_stream_accepts_a_leading_byte_order_mark(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=bom_prefixed_response())
+
+    result = list(streaming_service.stream())
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
 
 
 @respx.mock
@@ -324,6 +344,15 @@ async def test_async_stream_keeps_json_legal_separator(async_streaming_service, 
     result = [order async for order in async_streaming_service.stream()]
 
     assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+async def test_async_stream_accepts_a_leading_bom(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=bom_prefixed_response())
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
 
 
 @pytest.mark.parametrize(("pagination", "expected_query"), PAGINATION_CASES)

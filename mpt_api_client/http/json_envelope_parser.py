@@ -11,6 +11,7 @@ from mpt_api_client.constants import (
     MPT_META_FIELD,
     MPT_PAGINATION_FIELD,
     MPT_PAGINATION_TOTAL_FIELD,
+    UTF8_BOM,
 )
 from mpt_api_client.models.model import Resource
 
@@ -50,11 +51,6 @@ INCOMPLETE_VALUE_PREFIXES = ("null", "true", "false", "NaN", "Infinity", "-Infin
 # number before the continuation character, so inside a container the failure surfaces
 # as a delimiter error whose remainder is exactly one of these tails.
 NUMBER_CONTINUATION_TAILS = (".", "e", "E", "e+", "e-", "E+", "E-")
-
-# The byte order mark some producers still put in front of UTF-8 text. json.loads on the
-# raw bytes — how the paged read path parses the same envelope — strips one before
-# parsing, while iter_text decodes plain utf-8 and hands it through.
-UTF8_BOM = "\ufeff"
 
 _DECODER = json.JSONDecoder()
 

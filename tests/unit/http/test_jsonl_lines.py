@@ -64,6 +64,39 @@ def test_yields_nothing_for_empty_body():
     assert result == []
 
 
+def test_drops_a_byte_order_mark_opening_the_body():
+    result = list(iter_jsonl_lines(['\ufeff{"id": 1}\n{"id": 2}\n']))
+
+    assert result == ['{"id": 1}', '{"id": 2}']
+
+
+def test_drops_the_bom_arriving_as_its_own_chunk():
+    result = list(iter_jsonl_lines(["\ufeff", '{"id": 1}\n']))
+
+    assert result == ['{"id": 1}']
+
+
+def test_drops_the_bom_after_an_empty_first_chunk():
+    result = list(iter_jsonl_lines(["", '\ufeff{"id": 1}\n']))
+
+    assert result == ['{"id": 1}']
+
+
+def test_drops_only_one_leading_bom():
+    # json.loads on raw bytes strips a single BOM, so a second one still fails decode.
+    doubled_bom_body = '\ufeff\ufeff{"id": 1}\n'
+
+    result = list(iter_jsonl_lines([doubled_bom_body]))
+
+    assert result == ['\ufeff{"id": 1}']
+
+
+def test_keeps_a_bom_after_the_body_start():
+    result = list(iter_jsonl_lines(['{"id": 1}\n\ufeff{"id": 2}\n']))
+
+    assert result == ['{"id": 1}', '\ufeff{"id": 2}']
+
+
 def test_decode_record_line_returns_the_object():
     result = decode_record_line('{"id": "ID-1"}')
 
@@ -115,3 +148,19 @@ async def test_async_preserves_standalone_trailing_cr():
     result = [line async for line in aiter_jsonl_lines(chunks)]
 
     assert result == ['{"id": 1}\r']
+
+
+async def test_async_drops_a_bom_opening_the_body():
+    chunks = async_chunks(['\ufeff{"id": 1}\n{"id": 2}\n'])
+
+    result = [line async for line in aiter_jsonl_lines(chunks)]
+
+    assert result == ['{"id": 1}', '{"id": 2}']
+
+
+async def test_async_drops_the_bom_in_its_own_chunk():
+    chunks = async_chunks(["\ufeff", '{"id": 1}\n'])
+
+    result = [line async for line in aiter_jsonl_lines(chunks)]
+
+    assert result == ['{"id": 1}']
