@@ -6,10 +6,19 @@ from mpt_api_client import RQLQuery
 from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamJSONLMixin, StreamJSONLMixin
 from tests.unit.conftest import API_URL, DummyModel
-from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
+from tests.unit.http.conftest import (
+    JSON_LEGAL_SEPARATORS,
+    AsyncRecordingProgress,
+    RecordingProgress,
+)
 
 JSONL_BODY = b'{"id": "ID-1", "name": "Charge 1"}\n\n{"id": "ID-2", "name": "Charge 2"}\n'
 MALFORMED_JSONL_BODY = b'not-json\n{"id": "ID-1", "name": "Charge 1"}\n'
+
+
+def separator_jsonl_response(separator):
+    body = f'{{"id": "ID-1", "name": "a{separator}b"}}\n'.encode()
+    return httpx.Response(httpx.codes.OK, content=body)
 
 
 class DummyStreamJSONLService(
@@ -50,6 +59,17 @@ def test_stream_jsonl_yields_models(stream_service):
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
     assert all(isinstance(charge, DummyModel) for charge in result)
     assert request.headers["Accept"] == "application/jsonl"
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@respx.mock
+def test_stream_jsonl_keeps_json_legal_separator(stream_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=separator_jsonl_response(separator))
+
+    result = list(stream_service.stream_jsonl())
+
+    assert [(charge.id, charge.name) for charge in result] == [expected_pair]
 
 
 @respx.mock
@@ -118,6 +138,17 @@ async def test_async_stream_jsonl_yields_models(async_stream_service):
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
     assert all(isinstance(charge, DummyModel) for charge in result)
     assert request.headers["Accept"] == "application/jsonl"
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@respx.mock
+async def test_async_stream_jsonl_keeps_separator(async_stream_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=separator_jsonl_response(separator))
+
+    result = [charge async for charge in async_stream_service.stream_jsonl()]
+
+    assert [(charge.id, charge.name) for charge in result] == [expected_pair]
 
 
 @respx.mock

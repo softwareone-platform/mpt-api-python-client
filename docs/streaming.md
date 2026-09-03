@@ -175,6 +175,11 @@ Keep-alives differ in shape and are invisible either way. The line-delimited for
 blank lines; the envelope format emits insignificant whitespace between tokens, consumed
 while tokenizing. Neither reaches your loop, and neither counts as a record.
 
+Record boundaries in the line-delimited format are newlines alone: a record ends at a line
+feed, optionally preceded by a carriage return. Unicode line separators that are legal
+unescaped inside JSON string values — U+2028, U+2029 and U+0085 — never split a record, so
+text fields carrying them arrive whole in either format.
+
 The total does not depend on the format: in both, a `progress` receiver gets the declared
 `MPT-Item-Count` through `set_total_items`, exactly once, before the first record arrives,
 so a progress report can render a percentage of a streamed export either way. The envelope

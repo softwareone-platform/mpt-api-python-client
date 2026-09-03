@@ -34,6 +34,7 @@ mpt_api_client/
 │   ├── client_utils.py      # URL validation helpers
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
 │   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
+│   ├── jsonl_lines.py       # JSONL record-line splitting (newlines only)
 │   └── mixins/              # Composable HTTP operation mixins
 │       ├── collection_mixin.py
 │       ├── create_mixin.py
@@ -170,7 +171,9 @@ meaning outside streaming mode.
 `StreamFormat.JSON` reads the standard `{$meta, data}` envelope. Both formats are parsed as the
 body arrives and yield the same objects through the same record path, so deletion stubs, the
 completeness check and the streaming error types are format-independent, and a body the client
-cannot parse raises `json.JSONDecodeError` in either format. The one asymmetry is a body cut
+cannot parse raises `json.JSONDecodeError` in either format. Record lines are split by
+`http/jsonl_lines.py`; see [the streaming guide](streaming.md#choosing-the-wire-format) for
+the record-boundary contract. The one asymmetry is a body cut
 short mid-record: the line-delimited reader hits it as a malformed last line and raises the
 decode error, while the envelope reader loses the record and reports the more precise
 `MPTStreamingIncompleteError`. The envelope is tokenized by

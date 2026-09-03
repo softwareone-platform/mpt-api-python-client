@@ -2,6 +2,7 @@ import json
 from collections.abc import AsyncIterator, Iterator
 
 from mpt_api_client.constants import APPLICATION_JSONL
+from mpt_api_client.http.jsonl_lines import aiter_jsonl_lines, iter_jsonl_lines
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.models import AsyncProgress, Progress
 from mpt_api_client.models import Model as BaseModel
@@ -31,7 +32,7 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
             self.build_path(),  # type: ignore[attr-defined]
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
-            for line in response.iter_lines():
+            for line in iter_jsonl_lines(response.iter_text()):
                 if not line.strip():
                     continue
                 model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
@@ -66,7 +67,7 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
             self.build_path(),  # type: ignore[attr-defined]
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
-            async for line in response.aiter_lines():
+            async for line in aiter_jsonl_lines(response.aiter_text()):
                 if not line.strip():
                     continue
                 model = self._model_class(json.loads(line))  # type: ignore[attr-defined]

@@ -26,7 +26,11 @@ from mpt_api_client.http.mixins.streaming_mixin import (
 )
 from mpt_api_client.models import DeletionStub, Model
 from tests.unit.conftest import API_URL, DummyModel
-from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
+from tests.unit.http.conftest import (
+    JSON_LEGAL_SEPARATORS,
+    AsyncRecordingProgress,
+    RecordingProgress,
+)
 
 STREAM_URL = f"{API_URL}/api/v1/orders"
 JSONL_BODY = b'{"id": "ID-1", "name": "Order 1"}\n\n{"id": "ID-2", "name": "Order 2"}\n'
@@ -151,7 +155,9 @@ def jsonl_response(headers=None):
 
 
 def records_response(records, item_count=None):
-    body = "\n".join(json.dumps(record) for record in records).encode()
+    # Raw UTF-8, as real encoders emit it: JSON-legal separators like U+2028 stay unescaped.
+    record_lines = (json.dumps(record, ensure_ascii=False) for record in records)
+    body = "\n".join(record_lines).encode()
     declared = str(len(records)) if item_count is None else item_count
     return httpx.Response(
         httpx.codes.OK,
@@ -186,6 +192,18 @@ def test_stream_yields_models(streaming_service, pagination):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@respx.mock
+def test_stream_keeps_json_legal_separator(streaming_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    record = {"id": "ID-1", "name": f"a{separator}b"}
+    respx.get(STREAM_URL).mock(return_value=records_response([record]))
+
+    result = list(streaming_service.stream())
+
+    assert [(order.id, order.name) for order in result] == [expected_pair]
 
 
 @respx.mock
@@ -281,6 +299,18 @@ async def test_async_stream_yields_models(async_streaming_service):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@respx.mock
+async def test_async_stream_keeps_json_legal_separator(async_streaming_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    record = {"id": "ID-1", "name": f"a{separator}b"}
+    respx.get(STREAM_URL).mock(return_value=records_response([record]))
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [(order.id, order.name) for order in result] == [expected_pair]
 
 
 @pytest.mark.parametrize(("pagination", "expected_query"), PAGINATION_CASES)
