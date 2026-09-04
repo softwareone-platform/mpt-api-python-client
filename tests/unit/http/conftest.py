@@ -82,6 +82,42 @@ class AsyncRecordingProgress:
         self.events.append(("completed",))
 
 
+class ClosableByteStream(httpx.SyncByteStream):
+    """Response body recording whether the consumer closed it.
+
+    A body backed by bytes reports itself closed from the start, so releasing the
+    response is only observable on a stream that records the close itself.
+    """
+
+    def __init__(self, body):
+        self._body = body
+        self.closed = False
+
+    def __iter__(self):
+        yield self._body
+
+    def close(self):
+        self.closed = True
+
+
+class ClosableAsyncByteStream(httpx.AsyncByteStream):
+    """Async response body recording whether the consumer closed it.
+
+    A body backed by bytes reports itself closed from the start, so releasing the
+    response is only observable on a stream that records the close itself.
+    """
+
+    def __init__(self, body):
+        self._body = body
+        self.closed = False
+
+    async def __aiter__(self):
+        yield self._body
+
+    async def aclose(self):
+        self.closed = True
+
+
 @pytest.fixture
 def recording_progress():
     return RecordingProgress()
