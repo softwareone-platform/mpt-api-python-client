@@ -29,6 +29,40 @@ def decode_record_line(line: str) -> dict[str, Any]:
     return record
 
 
+type _SplitResult = tuple[list[str], list[str]]
+
+
+def _split_chunk(pending: list[str], chunk: str, *, at_body_start: bool) -> _SplitResult:
+    """Split one body chunk into the lines it completes.
+
+    The fragments of the line still being assembled are kept as a list and joined once,
+    when a line feed finally ends that line. Accumulating them into one string instead
+    would copy and re-scan the whole partial record on every chunk, making a record that
+    spans many chunks quadratic in its own length.
+
+    Args:
+        pending: Fragments of the line still being assembled, in arrival order; the list
+            is consumed here, so the caller must go on with the one returned.
+        chunk: Next non-empty decoded chunk of the body.
+        at_body_start: Whether this chunk opens the body, and so may carry the one
+            tolerated byte order mark — `pending` is necessarily empty in that case.
+
+    Returns:
+        The lines this chunk completes, without their line endings, and the fragments
+        buffered for the next chunk.
+    """
+    fragment = chunk.removeprefix(UTF8_BOM) if at_body_start else chunk
+    if "\n" not in fragment:
+        pending.append(fragment)
+        return [], pending
+    lines = fragment.split("\n")
+    pending.append(lines[0])
+    lines[0] = "".join(pending)
+    trailing = lines.pop()
+    completed = [line.removesuffix("\r") for line in lines]
+    return completed, ([trailing] if trailing else [])
+
+
 def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
     """Iterate the lines of a JSONL body, splitting on newlines alone.
 
@@ -49,22 +83,16 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
         of a CRLF ending, so a final unterminated line is yielded as-is; a blank line
         is yielded as an empty string, for the caller to skip.
     """
-    pending = ""
+    pending: list[str] = []
     at_body_start = True
     for chunk in text_chunks:
-        if at_body_start and chunk:
-            # `pending` is necessarily empty before the first non-empty chunk, so the
-            # body's first character — the only place a BOM is tolerated — is its start.
-            pending = chunk.removeprefix(UTF8_BOM)
-            at_body_start = False
-        else:
-            pending += chunk
-        lines = pending.split("\n")
-        pending = lines.pop()
-        for line in lines:
-            yield line.removesuffix("\r")
+        if not chunk:
+            continue
+        completed, pending = _split_chunk(pending, chunk, at_body_start=at_body_start)
+        at_body_start = False
+        yield from completed
     if pending:
-        yield pending
+        yield "".join(pending)
 
 
 async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[str]:
@@ -87,19 +115,14 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
         of a CRLF ending, so a final unterminated line is yielded as-is; a blank line
         is yielded as an empty string, for the caller to skip.
     """
-    pending = ""
+    pending: list[str] = []
     at_body_start = True
     async for chunk in text_chunks:
-        if at_body_start and chunk:
-            # `pending` is necessarily empty before the first non-empty chunk, so the
-            # body's first character — the only place a BOM is tolerated — is its start.
-            pending = chunk.removeprefix(UTF8_BOM)
-            at_body_start = False
-        else:
-            pending += chunk
-        lines = pending.split("\n")
-        pending = lines.pop()
-        for line in lines:
-            yield line.removesuffix("\r")
+        if not chunk:
+            continue
+        completed, pending = _split_chunk(pending, chunk, at_body_start=at_body_start)
+        at_body_start = False
+        for line in completed:
+            yield line
     if pending:
-        yield pending
+        yield "".join(pending)
