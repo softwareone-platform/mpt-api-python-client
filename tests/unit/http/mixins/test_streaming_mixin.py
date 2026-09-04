@@ -65,6 +65,7 @@ UNUSABLE_COUNT_CASES = (
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "-1"}, id="negative"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "abc"}, id="not a number"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": ""}, id="empty"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "1_0"}, id="python literal"),
 )
 
 # Rejected with the same typed decode error the envelope parser raises for a non-object
@@ -487,12 +488,38 @@ async def test_async_stream_raises_negotiation_error(
         await anext(iterator)
 
 
-def test_declared_item_count_reads_header():
-    headers = {"MPT-Item-Count": "0"}
+@pytest.mark.parametrize(
+    ("header_value", "expected_count"),
+    [
+        pytest.param("0", 0, id="zero"),
+        pytest.param("10", 10, id="plain digits"),
+        pytest.param("007", 7, id="leading zeros"),
+    ],
+)
+def test_declared_item_count_reads_header(header_value, expected_count):
+    headers = {"MPT-Item-Count": header_value}
 
     result = declared_item_count(headers, "/api/v1/orders")
 
-    assert result == 0
+    assert result == expected_count
+
+
+# Forms a bare int() would accept but the header contract does not: each would silently
+# normalize a garbled count and surface later as a bogus mismatch instead of failing here.
+@pytest.mark.parametrize(
+    "header_value",
+    [
+        pytest.param("1_0", id="underscore literal"),
+        pytest.param("+5", id="leading plus"),
+        pytest.param(" 5 ", id="surrounding whitespace"),
+        pytest.param("\N{ARABIC-INDIC DIGIT FIVE}", id="non-ascii digits"),
+    ],
+)
+def test_declared_item_count_rejects_int_forms(header_value):
+    headers = {"MPT-Item-Count": header_value}
+
+    with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
+        declared_item_count(headers, "/api/v1/orders")
 
 
 @pytest.mark.parametrize(
