@@ -287,7 +287,9 @@ contract uses for it:
 Only `id` is guaranteed on a stub. No other property of the deleted row is carried. A
 **truthy** `deleted` marker is what identifies a stub; a record with no `$meta`, no `deleted`
 key, or a falsy one is data. In practice the platform omits `$meta` entirely on a normal
-record, so those cases are defensive rather than expected.
+record, so those cases are defensive rather than expected. A stub that carries no string
+`id` breaks the one guarantee the contract makes, so `stream()` raises `TypeError` rather
+than yielding a stub that identifies nothing.
 
 `stream()` yields these as `DeletionStub`, never as a model, so the object cannot be mistaken
 for a record by code that expects one. Deserializing a stub as a model would produce an

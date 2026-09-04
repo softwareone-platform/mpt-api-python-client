@@ -553,6 +553,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             models when ``skip_deleted`` is set.
 
         Raises:
+            MPTMaxRetryError: If opening the response fails after maximum retry attempts;
+                transparent retry ends once the response commits, so it never follows
+                the first record.
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingFormatMismatchError: If the response ``Content-Type`` names a
                 media type other than the requested format.
@@ -560,6 +563,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
             MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingTruncatedError: If the connection aborts mid-body, ending the
+                response before the HTTP message completes; the records yielded before
+                the abort are an incomplete snapshot to discard.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
@@ -567,6 +573,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
+            TypeError: If a deletion stub carries no string ``id``, the one property the
+                contract guarantees on a stub.
         """
         # Coerce eagerly: an equal plain string becomes its member, anything else fails
         # with a clear ValueError instead of an AttributeError deep in header building.
@@ -736,6 +744,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             models when ``skip_deleted`` is set.
 
         Raises:
+            MPTMaxRetryError: If opening the response fails after maximum retry attempts;
+                transparent retry ends once the response commits, so it never follows
+                the first record.
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingFormatMismatchError: If the response ``Content-Type`` names a
                 media type other than the requested format.
@@ -743,6 +754,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
             MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingTruncatedError: If the connection aborts mid-body, ending the
+                response before the HTTP message completes; the records yielded before
+                the abort are an incomplete snapshot to discard.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
@@ -750,6 +764,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
+            TypeError: If a deletion stub carries no string ``id``, the one property the
+                contract guarantees on a stub.
         """
         # Coerce eagerly: an equal plain string becomes its member, anything else fails
         # with a clear ValueError instead of an AttributeError deep in header building.
