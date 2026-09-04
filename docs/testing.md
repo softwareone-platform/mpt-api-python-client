@@ -21,7 +21,8 @@ Run all test commands through Docker-based make targets:
 ```bash
 make test
 make test args="tests/unit/http"
-make test args="tests/e2e"
+make e2e
+make e2e path=tests/e2e/catalog
 make check
 make check-all
 ```
@@ -29,6 +30,8 @@ make check-all
 Repository command mapping:
 
 - `make test` runs `pytest` against `tests/unit` unless `args` overrides the path
+- `make e2e` runs `pytest` against `tests/e2e`, narrowed by `path`; its `args` only adds
+  pytest options and never replaces the path
 - `make check` runs `ruff format --check`, `ruff check`, `flake8`, `mypy`, and `uv lock --check`
 - `make check-all` runs both `check` and `test`
 

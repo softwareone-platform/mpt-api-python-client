@@ -27,8 +27,15 @@ tests/
 
 ```bash
 make e2e                              # run the E2E suite
-make e2e args="tests/e2e/catalog"     # run a subset of E2E tests
+make e2e path=tests/e2e/catalog       # run a subset of E2E tests
+make e2e args="-x -k streaming"       # add pytest options, keeping the E2E path
 ```
+
+`path` narrows which tests run and defaults to `tests/e2e`; `args` only adds pytest
+options. Keep them separate: the target appends `path` (or `tests/e2e`) *after* `args`, so a
+path passed through `args` is an extra pytest path rather than a replacement —
+`args="tests/e2e/catalog"` runs `pytest tests/e2e/catalog tests/e2e`, widening the run back
+to the whole suite instead of narrowing it. Use `path` to select a subset.
 
 E2E tests need live API credentials and run against the real API, so they have their own
 target: `make test` covers `tests/unit` only, and `make check-all` does not run them.
