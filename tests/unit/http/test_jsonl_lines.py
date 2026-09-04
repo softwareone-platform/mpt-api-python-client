@@ -106,11 +106,18 @@ def test_keeps_a_bom_after_the_body_start():
 
 
 LONG_RECORD_CHUNK_SIZE = 8 * 1024
-# A 16MB record: the linear splitter needs a few milliseconds for it, while re-splitting
-# the whole buffer on every chunk needed seconds, so the budget below is generous on a
-# slow machine and still fails on a return to quadratic behaviour.
-LONG_RECORD = json.dumps({"note": "a" * (16 * 1024 * 1024)})
+LONG_RECORD_SIZE = 16 * 1024 * 1024
+# The linear splitter needs a few milliseconds for a 16MB record, while re-splitting the
+# whole buffer on every chunk needed seconds, so this budget is generous on a slow
+# machine and still fails on a return to quadratic behaviour.
 LONG_RECORD_BUDGET_SECONDS = 2
+
+
+@pytest.fixture(scope="module")
+def long_record():
+    # Built on demand rather than at import, so runs that do not select the tests below
+    # do not pay for the 16MB body during collection.
+    return json.dumps({"note": "a" * LONG_RECORD_SIZE})
 
 
 def chunked(body, size=LONG_RECORD_CHUNK_SIZE):
@@ -139,23 +146,23 @@ async def timed_async_lines(chunks):
     return TimedLines(lines, time.perf_counter() - started_at)
 
 
-def test_long_record_across_chunks_is_linear():
-    chunks = chunked(f"{LONG_RECORD}\n")
+def test_long_record_across_chunks_is_linear(long_record):
+    chunks = chunked(f"{long_record}\n")
 
     result = timed_lines(chunks)
 
-    assert result.lines == [LONG_RECORD]
+    assert result.lines == [long_record]
     assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
 
 
-def test_unterminated_long_record_is_linear():
+def test_unterminated_long_record_is_linear(long_record):
     # The body confirm_stream_format tolerates without a content type: a single long
     # line, unterminated, so every chunk stays buffered and nothing is flushed early.
-    chunks = chunked(LONG_RECORD)
+    chunks = chunked(long_record)
 
     result = timed_lines(chunks)
 
-    assert result.lines == [LONG_RECORD]
+    assert result.lines == [long_record]
     assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
 
 
@@ -212,12 +219,12 @@ async def test_async_preserves_standalone_trailing_cr():
     assert result == ['{"id": 1}\r']
 
 
-async def test_async_long_record_is_linear():
-    chunks = async_chunks(chunked(f"{LONG_RECORD}\n"))
+async def test_async_long_record_is_linear(long_record):
+    chunks = async_chunks(chunked(f"{long_record}\n"))
 
     result = await timed_async_lines(chunks)
 
-    assert result.lines == [LONG_RECORD]
+    assert result.lines == [long_record]
     assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
 
 
