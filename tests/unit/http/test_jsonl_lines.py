@@ -1,14 +1,20 @@
 import asyncio
 import json
+import re
+from pathlib import Path
 
 import pytest
 
+import mpt_api_client
 from mpt_api_client.http.jsonl_lines import (
     aiter_jsonl_lines,
     decode_record_line,
     iter_jsonl_lines,
 )
 from tests.unit.http.conftest import JSON_LEGAL_SEPARATORS, NON_OBJECT_LINE_CASES
+
+PACKAGE_ROOT = Path(mpt_api_client.__file__).parent
+HTTPX_LINE_ITERATOR_CALL = re.compile(r"\.a?iter_lines\(")
 
 
 async def async_chunks(chunks):
@@ -164,3 +170,21 @@ async def test_async_drops_the_bom_in_its_own_chunk():
     result = [line async for line in aiter_jsonl_lines(chunks)]
 
     assert result == ['{"id": 1}']
+
+
+def test_package_never_calls_httpx_iter_lines():
+    """No JSONL reader may go back to the response's own line iterator.
+
+    It follows ``str.splitlines()``, so it breaks a record at U+2028, U+2029 or U+0085 -
+    the defect these helpers exist to avoid. Naming it in prose stays allowed; calling it
+    does not, so a new reader cannot reintroduce the fracture unnoticed.
+    """
+    sources = sorted(PACKAGE_ROOT.rglob("*.py"))
+
+    result = [
+        str(source.relative_to(PACKAGE_ROOT))
+        for source in sources
+        if HTTPX_LINE_ITERATOR_CALL.search(source.read_text(encoding="utf-8"))
+    ]
+
+    assert result == []
