@@ -8,10 +8,19 @@ from mpt_api_client.resources.notifications.categories import (
     CategoriesService,
 )
 from mpt_api_client.resources.notifications.contacts import AsyncContactsService, ContactsService
+from mpt_api_client.resources.notifications.directories import (
+    AsyncDirectoriesService,
+    DirectoriesService,
+)
+from mpt_api_client.resources.notifications.footers import AsyncFootersService, FootersService
 from mpt_api_client.resources.notifications.messages import AsyncMessagesService, MessagesService
 from mpt_api_client.resources.notifications.subscribers import (
     AsyncSubscribersService,
     SubscribersService,
+)
+from mpt_api_client.resources.notifications.webhooks import (
+    AsyncWebhooksService,
+    WebhooksService,
 )
 
 
@@ -37,6 +46,9 @@ def test_async_notifications_init(async_http_client):
         ("messages", MessagesService),
         ("batches", BatchesService),
         ("subscribers", SubscribersService),
+        ("directories", DirectoriesService),
+        ("footers", FootersService),
+        ("webhooks", WebhooksService),
     ],
 )
 def test_notifications_properties(http_client, attr_name, expected):
@@ -55,6 +67,9 @@ def test_notifications_properties(http_client, attr_name, expected):
         ("messages", AsyncMessagesService),
         ("batches", AsyncBatchesService),
         ("subscribers", AsyncSubscribersService),
+        ("directories", AsyncDirectoriesService),
+        ("footers", AsyncFootersService),
+        ("webhooks", AsyncWebhooksService),
     ],
 )
 def test_async_notifications_properties(http_client, attr_name, expected):
