@@ -294,6 +294,10 @@ async def main():
 asyncio.run(main())
 ```
 
+This loop runs to the end of the export. An async loop that can leave early has to close the
+stream itself — see
+[Leaving An Async Stream Early](streaming.md#leaving-an-async-stream-early).
+
 **Read [the streaming guide](streaming.md) before shipping a stream consumer.** It covers
 when to stream instead of paging, both wire formats, `limit` semantics, the streaming
 exceptions, and the three obligations a consumer cannot skip — verifying completeness against

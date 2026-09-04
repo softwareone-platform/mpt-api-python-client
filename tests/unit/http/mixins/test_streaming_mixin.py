@@ -1,5 +1,6 @@
 import asyncio
 import json
+from contextlib import aclosing
 
 import httpx
 import pytest
@@ -30,6 +31,8 @@ from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
     NON_OBJECT_LINE_CASES,
     AsyncRecordingProgress,
+    ClosableAsyncByteStream,
+    ClosableByteStream,
     RecordingProgress,
 )
 
@@ -176,6 +179,15 @@ def raw_line_response(line):
         httpx.codes.OK,
         content=f"{line}\n".encode(),
         headers={"MPT-Streaming": "true", "MPT-Item-Count": "1"},
+    )
+
+
+def closable_stream_response(body):
+    # Declares more records than the body carries, so the loop is abandoned mid-export.
+    return httpx.Response(
+        httpx.codes.OK,
+        stream=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "3"},
     )
 
 
@@ -606,6 +618,50 @@ async def test_async_early_close_skips_verification(async_streaming_service):
     await iterator.aclose()  # act
 
     assert first.id == "ID-1"
+
+
+@respx.mock
+def test_stream_break_releases_response(streaming_service):
+    # The sync twin needs no explicit close: dropping the suspended generator closes it.
+    body = ClosableByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    for record in streaming_service.stream():  # act
+        consumed.append(record.id)
+        break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_async_stream_aclosing_releases_body(async_streaming_service):
+    # An abandoned async generator is finalized by the event loop's async-generator hook,
+    # so only an explicit close releases the response at a point the caller controls.
+    body = ClosableAsyncByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    async with aclosing(async_streaming_service.stream()) as records:  # act
+        async for record in records:
+            consumed.append(record.id)
+            break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_aclosing_skips_progress_completed(
+    async_streaming_service,
+    async_recording_progress,
+):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    records = async_streaming_service.stream(progress=async_recording_progress)
+
+    async with aclosing(records):  # act
+        await anext(records)
+
+    assert async_recording_progress.events == [("set_total_items", 3), ("item_processed",)]
 
 
 def over_cap_problem():

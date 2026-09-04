@@ -262,6 +262,10 @@ for order in client.commerce.orders.stream():
         break  # deliberate early exit, no completeness check
 ```
 
+On the async client a deliberate early exit also has to close the stream, or the response
+stays open until the event loop gets around to finalizing the generator. See
+[Leaving An Async Stream Early](#leaving-an-async-stream-early).
+
 The count does not survive persisting the payload. If you write the raw records to storage
 and verify them later, store the expected count alongside them — once the response is gone,
 the export's own completeness signal is gone with it.
@@ -616,7 +620,51 @@ asyncio.run(export_orders())
 ```
 
 Everything above applies unchanged: the same headers, the same completeness check, the same
-stubs, the same restart rule. Only the `Async*` mixins and an `await`ed body differ.
+stubs, the same restart rule. The `Async*` mixins and an `await`ed body are the visible
+difference; leaving a stream early is the one behavioural one.
+
+### Leaving An Async Stream Early
+
+A loop that runs to the last record needs nothing extra — the generator closes the response
+on its way out. Leaving early is the one place the async form does not behave like the sync
+one, so wrap the stream in `contextlib.aclosing()` whenever the loop can exit before the end:
+a `break`, a `return`, an exception.
+
+```python
+from contextlib import aclosing
+
+async with aclosing(client.commerce.orders.stream()) as orders:
+    async for order in orders:
+        if order.id == "ORD-0000-0001":
+            break  # the response is released when the async with block exits
+```
+
+Without the wrapper, the `break` leaves the generator suspended and still holding the open
+response. Python does not close an abandoned async generator when its last reference goes; it
+hands it to the event loop's async-generator finalization hook, which runs the `aclose()` at
+a moment nothing in your code controls. Until that happens the HTTP connection stays checked
+out of the `httpx` pool.
+
+In a short script this is invisible. In a long-lived service that breaks out of many streams,
+the checked-out connections accumulate against the pool limit, and the debt surfaces at loop
+shutdown as unclosed-response and unfinalized-async-generator warnings — which point at the
+shutdown rather than at the loop that caused them.
+
+The sync form needs no wrapper on CPython: dropping the last reference to a suspended
+generator closes it there and then, so `break`-ing out of a `for` releases the response
+promptly. `contextlib.closing()` states the same thing explicitly if you would rather not
+rely on refcounting.
+
+Two things the wrapper does not change:
+
+- **The completeness check is still skipped.** Closing the iterator releases the connection;
+  it does not verify the export. An early exit is not reported as an incomplete stream, as
+  [obligation 1](#1-verify-completeness-against-mpt-item-count) describes.
+- **`progress` still sees no `completed()`.** The export was abandoned rather than finished,
+  so the receiver ends on the last `item_processed` it was given.
+
+`stream_jsonl()` is an async generator over an open response too, so an early exit from one
+takes the same wrapper.
 
 ## Reporting Progress
 

@@ -699,6 +699,24 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
 
+        A loop that can leave before the last record — a ``break``, a ``return``, an
+        exception — has to close this generator to release the response, which
+        `contextlib.aclosing` does at the end of its block::
+
+            from contextlib import aclosing
+
+            async with aclosing(service.stream()) as records:
+                async for record in records:
+                    break
+
+        Without that wrapper the abandoned generator stays suspended holding the open
+        response: Python finalizes an async generator through the event loop's
+        async-generator hook rather than when its last reference goes, so the connection
+        stays checked out of the pool until the hook runs. A long-lived service that
+        breaks out of many streams accumulates connections that way and reports the debt
+        as unclosed responses at loop shutdown. The sync twin needs no wrapper on CPython,
+        where dropping the last reference closes the generator promptly.
+
         Args:
             limit: Number of records to export, counted from the start of the stream
                 order. Left unset by default, which exports the full snapshot, as does
