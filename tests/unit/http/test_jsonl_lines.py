@@ -1,7 +1,9 @@
 import asyncio
 import json
 import re
+import time
 from pathlib import Path
+from typing import NamedTuple
 
 import pytest
 
@@ -103,6 +105,67 @@ def test_keeps_a_bom_after_the_body_start():
     assert result == ['{"id": 1}', '\ufeff{"id": 2}']
 
 
+LONG_RECORD_CHUNK_SIZE = 8 * 1024
+LONG_RECORD_SIZE = 16 * 1024 * 1024
+# The linear splitter needs a few milliseconds for a 16MB record, while re-splitting the
+# whole buffer on every chunk needed seconds, so this budget is generous on a slow
+# machine and still fails on a return to quadratic behaviour.
+LONG_RECORD_BUDGET_SECONDS = 2
+
+
+@pytest.fixture(scope="module")
+def long_record():
+    # Built on demand rather than at import, so runs that do not select the tests below
+    # do not pay for the 16MB body during collection.
+    return json.dumps({"note": "a" * LONG_RECORD_SIZE})
+
+
+def chunked(body, size=LONG_RECORD_CHUNK_SIZE):
+    offsets = range(0, len(body), size)
+    return [body[offset : offset + size] for offset in offsets]
+
+
+class TimedLines(NamedTuple):
+    lines: list[str]
+    elapsed: float
+
+
+def timed_lines(chunks):
+    started_at = time.perf_counter()
+    lines = list(iter_jsonl_lines(chunks))
+    return TimedLines(lines, time.perf_counter() - started_at)
+
+
+async def collected_lines(chunks):
+    return [line async for line in aiter_jsonl_lines(chunks)]
+
+
+async def timed_async_lines(chunks):
+    started_at = time.perf_counter()
+    lines = await collected_lines(chunks)
+    return TimedLines(lines, time.perf_counter() - started_at)
+
+
+def test_long_record_across_chunks_is_linear(long_record):
+    chunks = chunked(f"{long_record}\n")
+
+    result = timed_lines(chunks)
+
+    assert result.lines == [long_record]
+    assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
+
+
+def test_unterminated_long_record_is_linear(long_record):
+    # The body confirm_stream_format tolerates without a content type: a single long
+    # line, unterminated, so every chunk stays buffered and nothing is flushed early.
+    chunks = chunked(long_record)
+
+    result = timed_lines(chunks)
+
+    assert result.lines == [long_record]
+    assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
+
+
 def test_decode_record_line_returns_the_object():
     result = decode_record_line('{"id": "ID-1"}')
 
@@ -156,12 +219,29 @@ async def test_async_preserves_standalone_trailing_cr():
     assert result == ['{"id": 1}\r']
 
 
+async def test_async_long_record_is_linear(long_record):
+    chunks = async_chunks(chunked(f"{long_record}\n"))
+
+    result = await timed_async_lines(chunks)
+
+    assert result.lines == [long_record]
+    assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
+
+
 async def test_async_drops_a_bom_opening_the_body():
     chunks = async_chunks(['\ufeff{"id": 1}\n{"id": 2}\n'])
 
     result = [line async for line in aiter_jsonl_lines(chunks)]
 
     assert result == ['{"id": 1}', '{"id": 2}']
+
+
+async def test_async_drops_bom_after_empty_chunk():
+    chunks = async_chunks(["", '\ufeff{"id": 1}\n'])
+
+    result = await collected_lines(chunks)
+
+    assert result == ['{"id": 1}']
 
 
 async def test_async_drops_the_bom_in_its_own_chunk():
