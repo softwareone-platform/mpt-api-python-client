@@ -1,3 +1,4 @@
+import re
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
 from enum import StrEnum
@@ -37,6 +38,11 @@ from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.model import Resource
+
+# The canonical count form: ASCII digits only. A bare int() would also admit Python literal
+# forms — '1_0', '+5', ' 5 ', non-ASCII digits — silently normalizing a garbled header into
+# a wrong count instead of rejecting it before the body is consumed.
+ITEM_COUNT_PATTERN = re.compile(r"[0-9]+")
 
 
 class StreamFormat(StrEnum):
@@ -145,18 +151,12 @@ def declared_item_count(response_headers: Mapping[str, str], path: str) -> int:
 
     Raises:
         MPTStreamingItemCountMissingError: If the ``MPT-Item-Count`` response header
-            is absent or is not a non-negative integer.
+            is absent or is not a canonical non-negative integer: ASCII digits only.
     """
     header_value = response_headers.get(MPT_ITEM_COUNT_HEADER)
-    if header_value is None:
+    if header_value is None or not ITEM_COUNT_PATTERN.fullmatch(header_value):
         raise MPTStreamingItemCountMissingError(path, header_value)
-    try:
-        expected_count = int(header_value)
-    except ValueError as parse_error:
-        raise MPTStreamingItemCountMissingError(path, header_value) from parse_error
-    if expected_count < 0:
-        raise MPTStreamingItemCountMissingError(path, header_value)
-    return expected_count
+    return int(header_value)
 
 
 def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
@@ -179,7 +179,7 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
     """
@@ -214,7 +214,7 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
     """
@@ -242,7 +242,7 @@ def iter_jsonl_events(response: HTTPXResponse, path: str) -> Iterator[StreamEven
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
         JSONDecodeError: If a record line is not valid JSON, or decodes to anything
@@ -265,7 +265,7 @@ async def aiter_jsonl_events(response: HTTPXResponse, path: str) -> AsyncIterato
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
         JSONDecodeError: If a record line is not valid JSON, or decodes to anything
@@ -297,7 +297,7 @@ def iter_envelope_events(
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body carried a number of
             records different from the declared item count.
         JSONDecodeError: If the body is not a well-formed envelope, or ends before
@@ -336,7 +336,7 @@ async def aiter_envelope_events(
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body carried a number of
             records different from the declared item count.
         JSONDecodeError: If the body is not a well-formed envelope, or ends before
