@@ -33,8 +33,15 @@ from mpt_api_client.http.jsonl_lines import (
     iter_jsonl_lines,
 )
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
-from mpt_api_client.http.types import HeaderTypes
-from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
+from mpt_api_client.http.types import HeaderTypes, Response
+from mpt_api_client.models import (
+    AsyncProgress,
+    DeletionStub,
+    Meta,
+    Pagination,
+    Progress,
+    is_deletion_stub,
+)
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.model import Resource
 
@@ -157,6 +164,34 @@ def declared_item_count(response_headers: Mapping[str, str], path: str) -> int:
     if expected_count < 0:
         raise MPTStreamingItemCountMissingError(path, header_value)
     return expected_count
+
+
+def streaming_meta(response: HTTPXResponse, declared_count: int) -> Meta:
+    """Build the Meta shared by every model of one streaming read.
+
+    The paged read path hands each model a Meta built from its buffered page response,
+    so ``model.meta`` must survive a move between ``iterate()`` and ``stream()``. A
+    streaming body is consumed as it arrives and never buffered, so the response is
+    snapshotted to its headers and status code with an empty body, and the pagination
+    carries the declared item count as its total — the value the envelope format mirrors
+    in ``$meta.pagination.total`` — with no page geometry, because a stream has no pages.
+
+    Args:
+        response: Open streaming response with verified headers.
+        declared_count: Record count the response declared in ``MPT-Item-Count``.
+
+    Returns:
+        The Meta attached to every model deserialized from this stream.
+    """
+    response_snapshot = Response(
+        headers=dict(response.headers),
+        status_code=response.status_code,
+        content=b"",
+    )
+    return Meta(
+        response=response_snapshot,
+        pagination=Pagination(total=declared_count),
+    )
 
 
 def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
@@ -427,6 +462,7 @@ def aiter_stream_events(
 def deserialize_stream_record[Model: BaseModel](
     record: Resource,
     model_class: type[Model],
+    meta: Meta,
 ) -> Model | DeletionStub:
     """Deserialize one streamed record into a model or a deletion stub.
 
@@ -435,11 +471,14 @@ def deserialize_stream_record[Model: BaseModel](
     of None fields, indistinguishable from a record whose values really are unset, and
     writing it back would overwrite the stored record with nulls. Every record still
     produces exactly one object, stubs included, so a stub counts towards the declared
-    item count.
+    item count. A model carries the stream's shared ``meta``, exactly as the paged read
+    path attaches its page's Meta; a stub does not, because it is not a model and
+    guarantees nothing but its ``id``.
 
     Args:
         record: Deserialized record read from one line of the stream.
         model_class: Model class of the streamed resource.
+        meta: Stream-level Meta attached to every model of this read.
 
     Returns:
         A model for a data record, or a `DeletionStub` for a deletion stub.
@@ -449,7 +488,7 @@ def deserialize_stream_record[Model: BaseModel](
     """
     if is_deletion_stub(record):
         return DeletionStub.from_record(record)
-    return model_class(record)
+    return model_class(record, meta)
 
 
 class StreamingMixin[Model: BaseModel](QueryableMixin):
@@ -515,6 +554,12 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         Once the body is fully consumed, the record count is verified against the
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
+        Every model carries the ``meta`` attribute the paged reads attach — one Meta
+        shared by the whole stream, exactly as one page's models share theirs. Its
+        ``response`` is a headers-and-status snapshot of the streaming response with an
+        empty body, because the body is the stream itself and is never buffered, and its
+        ``pagination.total`` is the declared ``MPT-Item-Count``, identical in both wire
+        formats. A `DeletionStub` carries no ``meta``.
 
         Args:
             limit: Number of records to export, counted from the start of the stream
@@ -548,9 +593,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 one object per snapshot member, stubs visible.
 
         Yields:
-            Resources, one per record of the response, each either a model or a
-            `DeletionStub` for a member deleted after the membership snapshot; only the
-            models when ``skip_deleted`` is set.
+            Resources, one per record of the response, each either a model — carrying
+            the stream's shared ``meta`` — or a `DeletionStub` for a member deleted
+            after the membership snapshot; only the models when ``skip_deleted`` is set.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -589,28 +634,44 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             confirm_stream_format(response.headers, path, stream_format)
-            if progress:
-                progress.set_total_items(declared_item_count(response.headers, path))
-            events = iter_stream_events(
-                response,
-                path,
-                stream_format,
-                self._collection_key,  # type: ignore[attr-defined]
+            # The events are a generator that has not been started, so the total still
+            # reaches the receiver before the first record is read off the wire.
+            yield from self._stream_results(
+                iter_stream_events(
+                    response,
+                    path,
+                    stream_format,
+                    self._collection_key,  # type: ignore[attr-defined]
+                ),
+                progress,
+                self._negotiated_meta(response, path, progress),
+                skip_deleted=skip_deleted,
             )
-            yield from self._stream_results(events, progress, skip_deleted=skip_deleted)
         if progress:
             progress.completed()
+
+    def _negotiated_meta(
+        self,
+        response: HTTPXResponse,
+        path: str,
+        progress: Progress | None,
+    ) -> Meta:
+        declared_count = declared_item_count(response.headers, path)
+        if progress:
+            progress.set_total_items(declared_count)
+        return streaming_meta(response, declared_count)
 
     def _stream_results(
         self,
         events: Iterator[StreamEvent],
         progress: Progress | None,
+        meta: Meta,
         *,
         skip_deleted: bool,
     ) -> Iterator[Model | DeletionStub]:
         # A withheld stub was still ticked upstream: the declared total includes stubs,
         # so a progress report fed only visible records would never reach it.
-        for result in self._deserialized_results(events, progress):
+        for result in self._deserialized_results(events, progress, meta):
             if skip_deleted and isinstance(result, DeletionStub):
                 continue
             yield result
@@ -619,16 +680,19 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
         self,
         events: Iterator[StreamEvent],
         progress: Progress | None,
+        meta: Meta,
     ) -> Iterator[Model | DeletionStub]:
         for event in events:
             if isinstance(event, StreamedTotal):
                 # The envelope total mirrors MPT-Item-Count (TDR 4.6), which already
-                # fed the receiver; forwarding the copy could only overwrite the
-                # authoritative value when a faulty response makes them differ.
+                # fed the receiver and the shared Meta; forwarding the copy could only
+                # overwrite the authoritative value when a faulty response makes them
+                # differ.
                 continue
             result = deserialize_stream_record(
                 event.record,
                 self._model_class,  # type: ignore[attr-defined]
+                meta,
             )
             if progress:
                 progress.item_processed()
@@ -698,6 +762,12 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         Once the body is fully consumed, the record count is verified against the
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
+        Every model carries the ``meta`` attribute the paged reads attach — one Meta
+        shared by the whole stream, exactly as one page's models share theirs. Its
+        ``response`` is a headers-and-status snapshot of the streaming response with an
+        empty body, because the body is the stream itself and is never buffered, and its
+        ``pagination.total`` is the declared ``MPT-Item-Count``, identical in both wire
+        formats. A `DeletionStub` carries no ``meta``.
 
         Args:
             limit: Number of records to export, counted from the start of the stream
@@ -731,9 +801,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 one object per snapshot member, stubs visible.
 
         Yields:
-            Resources, one per record of the response, each either a model or a
-            `DeletionStub` for a member deleted after the membership snapshot; only the
-            models when ``skip_deleted`` is set.
+            Resources, one per record of the response, each either a model — carrying
+            the stream's shared ``meta`` — or a `DeletionStub` for a member deleted
+            after the membership snapshot; only the models when ``skip_deleted`` is set.
 
         Raises:
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
@@ -773,8 +843,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 raise_streaming_error(http_error, path)
             confirm_streaming_mode(response.headers, path)
             confirm_stream_format(response.headers, path, stream_format)
-            if progress:
-                await progress.set_total_items(declared_item_count(response.headers, path))
+            # The events are an async generator that has not been started, so the total
+            # still reaches the receiver before the first record is read off the wire.
             async for result in self._stream_results(
                 aiter_stream_events(
                     response,
@@ -783,22 +853,35 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                     self._collection_key,  # type: ignore[attr-defined]
                 ),
                 progress,
+                await self._negotiated_meta(response, path, progress),
                 skip_deleted=skip_deleted,
             ):
                 yield result
         if progress:
             await progress.completed()
 
+    async def _negotiated_meta(
+        self,
+        response: HTTPXResponse,
+        path: str,
+        progress: AsyncProgress | None,
+    ) -> Meta:
+        declared_count = declared_item_count(response.headers, path)
+        if progress:
+            await progress.set_total_items(declared_count)
+        return streaming_meta(response, declared_count)
+
     async def _stream_results(
         self,
         events: AsyncIterator[StreamEvent],
         progress: AsyncProgress | None,
+        meta: Meta,
         *,
         skip_deleted: bool,
     ) -> AsyncIterator[Model | DeletionStub]:
         # A withheld stub was still ticked upstream: the declared total includes stubs,
         # so a progress report fed only visible records would never reach it.
-        async for result in self._deserialized_results(events, progress):
+        async for result in self._deserialized_results(events, progress, meta):
             if skip_deleted and isinstance(result, DeletionStub):
                 continue
             yield result
@@ -807,16 +890,19 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         self,
         events: AsyncIterator[StreamEvent],
         progress: AsyncProgress | None,
+        meta: Meta,
     ) -> AsyncIterator[Model | DeletionStub]:
         async for event in events:
             if isinstance(event, StreamedTotal):
                 # The envelope total mirrors MPT-Item-Count (TDR 4.6), which already
-                # fed the receiver; forwarding the copy could only overwrite the
-                # authoritative value when a faulty response makes them differ.
+                # fed the receiver and the shared Meta; forwarding the copy could only
+                # overwrite the authoritative value when a faulty response makes them
+                # differ.
                 continue
             result = deserialize_stream_record(
                 event.record,
                 self._model_class,  # type: ignore[attr-defined]
+                meta,
             )
             if progress:
                 await progress.item_processed()  # noqa: WPS476

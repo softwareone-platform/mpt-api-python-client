@@ -24,7 +24,8 @@ from mpt_api_client.http.mixins.streaming_mixin import (
     declared_item_count,
     deserialize_stream_record,
 )
-from mpt_api_client.models import DeletionStub, Model
+from mpt_api_client.http.types import Response
+from mpt_api_client.models import DeletionStub, Meta, Model, Pagination
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
@@ -151,6 +152,18 @@ def deleted_status_record():
     return {"id": "ID-3", "name": "Order 3", "status": "DELETED"}
 
 
+@pytest.fixture
+def stream_meta():
+    return Meta(
+        response=Response(
+            headers={"mpt-item-count": "2"},
+            status_code=httpx.codes.OK,
+            content=b"",
+        ),
+        pagination=Pagination(total=2),
+    )
+
+
 def streaming_response(item_count="2"):
     return jsonl_response({"MPT-Streaming": "true", "MPT-Item-Count": item_count})
 
@@ -216,6 +229,52 @@ def test_stream_yields_models(streaming_service, pagination):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@respx.mock
+def test_stream_meta_carries_declared_count(streaming_service):
+    # Code moved from iterate() to stream() keeps reading model.meta, so a streamed model
+    # must carry one too rather than None.
+    respx.get(STREAM_URL).mock(return_value=streaming_response())
+    expected_pagination = [Pagination(total=2), Pagination(total=2)]
+
+    result = list(streaming_service.stream())
+
+    assert [order.meta.pagination for order in result] == expected_pagination
+
+
+@respx.mock
+def test_stream_meta_snapshots_response_sans_body(streaming_service):
+    # Header names are lowercased by the dict conversion, exactly as the paged path
+    # lowercases them, so the same lookup works on a streamed and an iterated model.
+    respx.get(STREAM_URL).mock(return_value=streaming_response())
+
+    result = list(streaming_service.stream())
+
+    snapshot = result[0].meta.response
+    assert (snapshot.status_code, snapshot.headers["mpt-item-count"], snapshot.content) == (
+        httpx.codes.OK,
+        "2",
+        b"",
+    )
+
+
+@respx.mock
+def test_stream_shares_one_meta_across_models(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response())
+
+    result = list(streaming_service.stream())
+
+    assert result[0].meta is result[1].meta
+
+
+@respx.mock
+def test_stream_meta_not_in_serialized_record(streaming_service, data_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([data_record]))
+
+    result = list(streaming_service.stream())
+
+    assert result[0].to_dict() == data_record
 
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
@@ -332,6 +391,16 @@ async def test_async_stream_yields_models(async_streaming_service):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@respx.mock
+async def test_async_stream_meta_carries_declared_count(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=streaming_response())
+    expected_pagination = [Pagination(total=2), Pagination(total=2)]
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [order.meta.pagination for order in result] == expected_pagination
 
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
@@ -876,15 +945,21 @@ async def test_async_skip_deleted_verifies_count(
         [entry async for entry in iterator]
 
 
-def test_deserialize_stream_record_builds_a_model(data_record):
-    result = deserialize_stream_record(data_record, NullableFieldsModel)
+def test_deserialize_stream_record_builds_a_model(data_record, stream_meta):
+    result = deserialize_stream_record(data_record, NullableFieldsModel, stream_meta)
 
     assert isinstance(result, NullableFieldsModel)
     assert result.name == "Order 1"
 
 
-def test_deserialize_stream_record_builds_a_stub(deletion_stub_record):
-    result = deserialize_stream_record(deletion_stub_record, NullableFieldsModel)
+def test_deserialize_attaches_stream_meta(data_record, stream_meta):
+    result = deserialize_stream_record(data_record, NullableFieldsModel, stream_meta)
+
+    assert result.meta is stream_meta
+
+
+def test_deserialize_stream_record_builds_a_stub(deletion_stub_record, stream_meta):
+    result = deserialize_stream_record(deletion_stub_record, NullableFieldsModel, stream_meta)
 
     assert result == DeletionStub(id="ID-2")
 
@@ -902,8 +977,8 @@ def test_deserialize_stream_record_builds_a_stub(deletion_stub_record):
         ),
     ],
 )
-def test_deserialize_keeps_unmarked_records(record):
-    result = deserialize_stream_record(dict(record), NullableFieldsModel)
+def test_deserialize_keeps_unmarked_records(record, stream_meta):
+    result = deserialize_stream_record(dict(record), NullableFieldsModel, stream_meta)
 
     assert isinstance(result, NullableFieldsModel)
 
@@ -947,6 +1022,18 @@ def test_stream_envelope_sends_json_accept_header(streaming_service, data_record
 
     request = route.calls[0].request
     assert request.headers["Accept"] == "application/json"
+
+
+@respx.mock
+def test_stream_envelope_meta_carries_count(streaming_service, data_record):
+    # The envelope's own $meta is parsed into a total and dropped, so the models' meta
+    # comes from the declared header exactly as it does in the line-delimited format.
+    body = envelope_body([data_record], total=1)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+
+    result = list(streaming_service.stream(stream_format=StreamFormat.JSON))
+
+    assert result[0].meta.pagination == Pagination(total=1)
 
 
 def formatted_response(body, content_type, item_count="2"):

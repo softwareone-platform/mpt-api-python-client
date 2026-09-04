@@ -23,6 +23,7 @@ what the client can guarantee about it.
 | Deleted members | Absent from later pages | Emitted as a `DeletionStub` |
 | Recovery from failure | Re-fetch the failed page | Restart the whole export |
 | Peak memory | One page | One record |
+| `model.meta` | One Meta per page | One Meta for the whole stream |
 
 Use `iterate()` when you want the collection as it is right now and you will consume all of
 it promptly: it is the plain paged read, and a failure costs one page. Use it also for
@@ -78,6 +79,40 @@ try:
 except MPTStreamingNotSupportedError:
     records = list(client.commerce.orders.iterate())
 ```
+
+### What `model.meta` Carries On A Streamed Model
+
+Streamed models carry `meta` just as paged ones do, so code that reads it keeps working
+when a read moves from `iterate()` to `stream()`. What differs is the scope: a paged model's
+Meta belongs to its page, while a streamed model's Meta belongs to the whole export — every
+model of one stream shares one instance.
+
+| | Paged model | Streamed model |
+|---|---|---|
+| `meta.response` | The buffered page response | The streaming response, headers and status only, with an empty body |
+| `meta.pagination.total` | The page envelope's total | The declared `MPT-Item-Count` |
+| `meta.pagination.limit` / `.offset` | The page geometry | `0` — a stream has no pages |
+| `meta.ignored` | From the page's `$meta` | Empty |
+
+```python
+for order in client.commerce.orders.stream():
+    print(order.meta.pagination.total)  # the declared MPT-Item-Count, on every record
+```
+
+Two properties are worth being deliberate about:
+
+- **The body is not on the snapshot.** `meta.response.content` is empty and
+  `meta.response.json()` raises, because the body *is* the stream and is never buffered —
+  buffering it to populate the snapshot would give up the memory bound that makes streaming
+  worth using. `text` is empty for the same reason. Headers and `status_code` are there, and
+  header names are lowercased by the dict conversion, exactly as on the paged path.
+- **There is no page geometry.** `limit` and `offset` stay `0`, so `has_next()` is `False`
+  and `total_pages()` is `0`. A stream is one response, not a cursor into a sequence of them.
+
+A `DeletionStub` carries no `meta` at all — it is not a model, and the contract guarantees
+nothing on it but `id`. Reading `.meta` on a streamed object without the
+[stub branch](#2-check-for-a-deletion-stub-before-ingesting-a-record) raises `AttributeError`
+on the first deleted member.
 
 ### Do Not Confuse `stream()` With `stream_jsonl()`
 
