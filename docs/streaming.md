@@ -108,6 +108,10 @@ record rather than by the size of the export. A ten-million-record stream costs 
 ten-record one. This holds in both wire formats — the envelope is tokenized incrementally
 rather than buffered.
 
+Time scales the same way. A record that spans many body chunks is assembled once, when its
+line ends, so the cost of a record is linear in its own length: doubling the record size
+doubles the work rather than quadrupling it.
+
 The buffering paths, for contrast:
 
 - `iterate()` holds one page. It buffers each page response in full, deserializes it into a
