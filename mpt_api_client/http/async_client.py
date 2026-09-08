@@ -130,11 +130,12 @@ class AsyncHTTPClient:
         records for you; drop to this only for a body they do not model. Redirects are
         followed automatically.
 
-        Split a JSONL/NDJSON body with ``aiter_jsonl_lines(response.aiter_text())`` and
-        decode each non-blank line with ``decode_record_line``, both from
-        ``mpt_api_client.http.jsonl_lines`` — not with the response's own
-        ``aiter_lines()``, which follows ``str.splitlines()`` and so breaks a record at
-        U+2028, U+2029 or U+0085, all legal unescaped inside a JSON string value.
+        Split a JSONL/NDJSON body with ``aiter_jsonl_lines(response.aiter_text())``, skip
+        the keep-alives ``is_keep_alive_line`` reports, and decode the rest with
+        ``decode_record_line``, all from ``mpt_api_client.http.jsonl_lines`` — not with
+        the response's own ``aiter_lines()``, which follows ``str.splitlines()`` and so
+        breaks a record at U+2028, U+2029 or U+0085, all legal unescaped inside a JSON
+        string value.
 
         Args:
             method: HTTP method.
