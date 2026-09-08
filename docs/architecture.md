@@ -274,3 +274,12 @@ MPTError
     ├── MPTStreamingNotAcceptableError      # 406, format unsupported (also MPTStreamingError)
     └── MPTStreamingOverCapError            # 413, export over cap (also MPTStreamingError)
 ```
+
+An error response becomes an `MPTAPIError` only when its body parses as a JSON object, whose
+members populate `title`, `detail`, `trace_id` and `errors`. httpx detects the JSON encoding
+before parsing, so an object arriving as UTF-16 or UTF-32 keeps its members too — tolerance of
+a non-conforming body, not an endorsement of it: RFC 8259 requires UTF-8 for interchange.
+Any other body — valid JSON that is not an object (a bare string, `null`, an array), a body
+that is not JSON at all, or bytes that do not decode — carries no members to read and becomes
+a plain `MPTHttpError` whose `body` holds the raw diagnostic, with undecodable bytes replaced.
+Either way `status_code` is preserved, so a caller can always branch on the status.
