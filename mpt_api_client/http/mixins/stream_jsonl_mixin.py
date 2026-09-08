@@ -60,6 +60,22 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
         consumes a ``application/jsonl`` response line by line without buffering the
         whole body in memory.
 
+        A loop that can leave before the last line — a ``break``, a ``return``, an
+        exception — has to close this generator to release the response, which
+        `contextlib.aclosing` does at the end of its block::
+
+            from contextlib import aclosing
+
+            async with aclosing(service.stream_jsonl()) as records:
+                async for record in records:
+                    break
+
+        Without that wrapper the abandoned generator stays suspended holding the open
+        response, because Python finalizes an async generator through the event loop's
+        async-generator hook rather than when its last reference goes. The sync twin
+        needs no wrapper on CPython, where dropping the last reference closes the
+        generator promptly.
+
         Args:
             progress: Optional progress receiver. `item_processed` is awaited once
                 per line before the model is yielded and `completed` once when the

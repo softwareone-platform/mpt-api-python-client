@@ -1,3 +1,4 @@
+import re
 from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import AsyncExitStack, ExitStack
 from enum import StrEnum
@@ -37,6 +38,11 @@ from mpt_api_client.http.types import HeaderTypes
 from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_deletion_stub
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.model import Resource
+
+# The canonical count form: ASCII digits only. A bare int() would also admit Python literal
+# forms — '1_0', '+5', ' 5 ', non-ASCII digits — silently normalizing a garbled header into
+# a wrong count instead of rejecting it before the body is consumed.
+ITEM_COUNT_PATTERN = re.compile(r"[0-9]+")
 
 
 class StreamFormat(StrEnum):
@@ -145,18 +151,12 @@ def declared_item_count(response_headers: Mapping[str, str], path: str) -> int:
 
     Raises:
         MPTStreamingItemCountMissingError: If the ``MPT-Item-Count`` response header
-            is absent or is not a non-negative integer.
+            is absent or is not a canonical non-negative integer: ASCII digits only.
     """
     header_value = response_headers.get(MPT_ITEM_COUNT_HEADER)
-    if header_value is None:
+    if header_value is None or not ITEM_COUNT_PATTERN.fullmatch(header_value):
         raise MPTStreamingItemCountMissingError(path, header_value)
-    try:
-        expected_count = int(header_value)
-    except ValueError as parse_error:
-        raise MPTStreamingItemCountMissingError(path, header_value) from parse_error
-    if expected_count < 0:
-        raise MPTStreamingItemCountMissingError(path, header_value)
-    return expected_count
+    return int(header_value)
 
 
 def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
@@ -179,7 +179,7 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
     """
@@ -214,7 +214,7 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
     """
@@ -242,7 +242,7 @@ def iter_jsonl_events(response: HTTPXResponse, path: str) -> Iterator[StreamEven
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
         JSONDecodeError: If a record line is not valid JSON, or decodes to anything
@@ -265,7 +265,7 @@ async def aiter_jsonl_events(response: HTTPXResponse, path: str) -> AsyncIterato
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body emitted a number of
             records different from the declared item count.
         JSONDecodeError: If a record line is not valid JSON, or decodes to anything
@@ -297,7 +297,7 @@ def iter_envelope_events(
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body carried a number of
             records different from the declared item count.
         JSONDecodeError: If the body is not a well-formed envelope, or ends before
@@ -336,7 +336,7 @@ async def aiter_envelope_events(
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
-            not a non-negative integer.
+            not a canonical non-negative integer.
         MPTStreamingIncompleteError: If the fully consumed body carried a number of
             records different from the declared item count.
         JSONDecodeError: If the body is not a well-formed envelope, or ends before
@@ -553,6 +553,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             models when ``skip_deleted`` is set.
 
         Raises:
+            MPTMaxRetryError: If opening the response fails after maximum retry attempts;
+                transparent retry ends once the response commits, so it never follows
+                the first record.
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingFormatMismatchError: If the response ``Content-Type`` names a
                 media type other than the requested format.
@@ -560,6 +563,9 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
             MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingTruncatedError: If the connection aborts mid-body, ending the
+                response before the HTTP message completes; the records yielded before
+                the abort are an incomplete snapshot to discard.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
@@ -567,6 +573,8 @@ class StreamingMixin[Model: BaseModel](QueryableMixin):
                 malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
+            TypeError: If a deletion stub carries no string ``id``, the one property the
+                contract guarantees on a stub.
         """
         # Coerce eagerly: an equal plain string becomes its member, anything else fails
         # with a clear ValueError instead of an AttributeError deep in header building.
@@ -699,6 +707,24 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
         ``MPT-Item-Count`` response header, so a short export raises instead of ending as
         a silently partial result. Closing the iterator early skips that check.
 
+        A loop that can leave before the last record — a ``break``, a ``return``, an
+        exception — has to close this generator to release the response, which
+        `contextlib.aclosing` does at the end of its block::
+
+            from contextlib import aclosing
+
+            async with aclosing(service.stream()) as records:
+                async for record in records:
+                    break
+
+        Without that wrapper the abandoned generator stays suspended holding the open
+        response: Python finalizes an async generator through the event loop's
+        async-generator hook rather than when its last reference goes, so the connection
+        stays checked out of the pool until the hook runs. A long-lived service that
+        breaks out of many streams accumulates connections that way and reports the debt
+        as unclosed responses at loop shutdown. The sync twin needs no wrapper on CPython,
+        where dropping the last reference closes the generator promptly.
+
         Args:
             limit: Number of records to export, counted from the start of the stream
                 order. Left unset by default, which exports the full snapshot, as does
@@ -736,6 +762,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             models when ``skip_deleted`` is set.
 
         Raises:
+            MPTMaxRetryError: If opening the response fails after maximum retry attempts;
+                transparent retry ends once the response commits, so it never follows
+                the first record.
             MPTStreamingNotEnabledError: If the API does not confirm streaming mode.
             MPTStreamingFormatMismatchError: If the response ``Content-Type`` names a
                 media type other than the requested format.
@@ -743,6 +772,9 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
             MPTStreamingNotAcceptableError: If the requested format is unsupported (``406``).
             MPTStreamingOverCapError: If the export exceeds the configured cap (``413``).
             MPTStreamingItemCountMissingError: If the response declares no usable item count.
+            MPTStreamingTruncatedError: If the connection aborts mid-body, ending the
+                response before the HTTP message completes; the records yielded before
+                the abort are an incomplete snapshot to discard.
             MPTStreamingIncompleteError: If the fully consumed stream does not match the
                 declared item count.
             JSONDecodeError: If the body cannot be parsed in the requested wire format —
@@ -750,6 +782,8 @@ class AsyncStreamingMixin[Model: BaseModel](QueryableMixin):
                 malformed or unterminated envelope in the envelope format.
             ValueError: If ``stream_format`` is neither a `StreamFormat` member nor a
                 member's value.
+            TypeError: If a deletion stub carries no string ``id``, the one property the
+                contract guarantees on a stub.
         """
         # Coerce eagerly: an equal plain string becomes its member, anything else fails
         # with a clear ValueError instead of an AttributeError deep in header building.

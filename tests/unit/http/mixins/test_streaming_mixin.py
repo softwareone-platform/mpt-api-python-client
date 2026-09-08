@@ -1,5 +1,6 @@
 import asyncio
 import json
+from contextlib import aclosing
 
 import httpx
 import pytest
@@ -30,6 +31,8 @@ from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
     NON_OBJECT_LINE_CASES,
     AsyncRecordingProgress,
+    ClosableAsyncByteStream,
+    ClosableByteStream,
     RecordingProgress,
 )
 
@@ -65,6 +68,7 @@ UNUSABLE_COUNT_CASES = (
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "-1"}, id="negative"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "abc"}, id="not a number"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": ""}, id="empty"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "1_0"}, id="python literal"),
 )
 
 # Rejected with the same typed decode error the envelope parser raises for a non-object
@@ -176,6 +180,15 @@ def raw_line_response(line):
         httpx.codes.OK,
         content=f"{line}\n".encode(),
         headers={"MPT-Streaming": "true", "MPT-Item-Count": "1"},
+    )
+
+
+def closable_stream_response(body):
+    # Declares more records than the body carries, so the loop is abandoned mid-export.
+    return httpx.Response(
+        httpx.codes.OK,
+        stream=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "3"},
     )
 
 
@@ -487,12 +500,38 @@ async def test_async_stream_raises_negotiation_error(
         await anext(iterator)
 
 
-def test_declared_item_count_reads_header():
-    headers = {"MPT-Item-Count": "0"}
+@pytest.mark.parametrize(
+    ("header_value", "expected_count"),
+    [
+        pytest.param("0", 0, id="zero"),
+        pytest.param("10", 10, id="plain digits"),
+        pytest.param("007", 7, id="leading zeros"),
+    ],
+)
+def test_declared_item_count_reads_header(header_value, expected_count):
+    headers = {"MPT-Item-Count": header_value}
 
     result = declared_item_count(headers, "/api/v1/orders")
 
-    assert result == 0
+    assert result == expected_count
+
+
+# Forms a bare int() would accept but the header contract does not: each would silently
+# normalize a garbled count and surface later as a bogus mismatch instead of failing here.
+@pytest.mark.parametrize(
+    "header_value",
+    [
+        pytest.param("1_0", id="underscore literal"),
+        pytest.param("+5", id="leading plus"),
+        pytest.param(" 5 ", id="surrounding whitespace"),
+        pytest.param("\N{ARABIC-INDIC DIGIT FIVE}", id="non-ascii digits"),
+    ],
+)
+def test_declared_item_count_rejects_int_forms(header_value):
+    headers = {"MPT-Item-Count": header_value}
+
+    with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
+        declared_item_count(headers, "/api/v1/orders")
 
 
 @pytest.mark.parametrize(
@@ -606,6 +645,50 @@ async def test_async_early_close_skips_verification(async_streaming_service):
     await iterator.aclose()  # act
 
     assert first.id == "ID-1"
+
+
+@respx.mock
+def test_stream_break_releases_response(streaming_service):
+    # The sync twin needs no explicit close: dropping the suspended generator closes it.
+    body = ClosableByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    for record in streaming_service.stream():  # act
+        consumed.append(record.id)
+        break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_async_stream_aclosing_releases_body(async_streaming_service):
+    # An abandoned async generator is finalized by the event loop's async-generator hook,
+    # so only an explicit close releases the response at a point the caller controls.
+    body = ClosableAsyncByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    async with aclosing(async_streaming_service.stream()) as records:  # act
+        async for record in records:
+            consumed.append(record.id)
+            break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_aclosing_skips_progress_completed(
+    async_streaming_service,
+    async_recording_progress,
+):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    records = async_streaming_service.stream(progress=async_recording_progress)
+
+    async with aclosing(records):  # act
+        await anext(records)
+
+    assert async_recording_progress.events == [("set_total_items", 3), ("item_processed",)]
 
 
 def over_cap_problem():
