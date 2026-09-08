@@ -12,6 +12,7 @@ from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
     JSON_LEGAL_SEPARATORS,
     NON_OBJECT_LINE_CASES,
+    RECORD_TERMINATORS,
     AsyncRecordingProgress,
     ClosableAsyncByteStream,
     ClosableByteStream,
@@ -24,6 +25,11 @@ MALFORMED_JSONL_BODY = b'not-json\n{"id": "ID-1", "name": "Charge 1"}\n'
 
 def separator_jsonl_response(separator):
     body = f'{{"id": "ID-1", "name": "a{separator}b"}}\n'.encode()
+    return httpx.Response(httpx.codes.OK, content=body)
+
+
+def terminated_jsonl_response(terminator):
+    body = f'{{"id": "ID-1"}}{terminator}{{"id": "ID-2"}}{terminator}'.encode()
     return httpx.Response(httpx.codes.OK, content=body)
 
 
@@ -69,6 +75,16 @@ def test_stream_jsonl_yields_models(stream_service):
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
     assert all(isinstance(charge, DummyModel) for charge in result)
     assert request.headers["Accept"] == "application/jsonl"
+
+
+@pytest.mark.parametrize("terminator", RECORD_TERMINATORS)
+@respx.mock
+def test_stream_jsonl_splits_on_terminator(stream_service, terminator):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=terminated_jsonl_response(terminator))
+
+    result = list(stream_service.stream_jsonl())
+
+    assert [charge.id for charge in result] == ["ID-1", "ID-2"]
 
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
@@ -158,6 +174,16 @@ async def test_async_stream_jsonl_yields_models(async_stream_service):
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
     assert all(isinstance(charge, DummyModel) for charge in result)
     assert request.headers["Accept"] == "application/jsonl"
+
+
+@pytest.mark.parametrize("terminator", RECORD_TERMINATORS)
+@respx.mock
+async def test_async_stream_jsonl_splits_on_terminator(async_stream_service, terminator):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=terminated_jsonl_response(terminator))
+
+    result = [charge async for charge in async_stream_service.stream_jsonl()]
+
+    assert [charge.id for charge in result] == ["ID-1", "ID-2"]
 
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)

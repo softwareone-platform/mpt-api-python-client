@@ -13,10 +13,30 @@ from mpt_api_client.http.jsonl_lines import (
     decode_record_line,
     iter_jsonl_lines,
 )
-from tests.unit.http.conftest import JSON_LEGAL_SEPARATORS, NON_OBJECT_LINE_CASES
+from tests.unit.http.conftest import (
+    JSON_LEGAL_SEPARATORS,
+    NON_OBJECT_LINE_CASES,
+    RECORD_TERMINATORS,
+)
 
 PACKAGE_ROOT = Path(mpt_api_client.__file__).parent
 HTTPX_LINE_ITERATOR_CALL = re.compile(r"\.a?iter_lines\(")
+
+# Chunkings that must still yield the same two records: the framing decisions live at the
+# chunk boundary, where an ending can arrive alone or be split down the middle.
+TWO_RECORD_CHUNKINGS = (
+    pytest.param(['{"id": 1}', "\r\n", '{"id": 2}'], id="ending in its own chunk"),
+    pytest.param(['{"id": 1}\r', '\n{"id": 2}\n'], id="CRLF straddling a boundary"),
+    pytest.param(['{"id": 1}\r', '{"id": 2}\n'], id="chunk-trailing CR alone"),
+    pytest.param(['{"id": 1}\n{"id": 2}'], id="unterminated final line"),
+)
+
+# A single byte order mark opening the body is dropped however the body is chunked.
+LEADING_BOM_CHUNKINGS = (
+    pytest.param(['﻿{"id": 1}\n'], id="BOM opening the first chunk"),
+    pytest.param(["﻿", '{"id": 1}\n'], id="BOM in its own chunk"),
+    pytest.param(["", '﻿{"id": 1}\n'], id="BOM after an empty chunk"),
+)
 
 
 async def async_chunks(chunks):
@@ -34,8 +54,27 @@ def test_keeps_json_legal_separator_inline(separator):
     assert result == [record_line]
 
 
-def test_splits_on_crlf():
-    result = list(iter_jsonl_lines(['{"id": 1}\r\n{"id": 2}\r\n']))
+@pytest.mark.parametrize("terminator", RECORD_TERMINATORS)
+def test_splits_on_every_record_terminator(terminator):
+    body = f'{{"id": 1}}{terminator}{{"id": 2}}{terminator}'
+
+    result = list(iter_jsonl_lines([body]))
+
+    assert result == ['{"id": 1}', '{"id": 2}']
+
+
+@pytest.mark.parametrize("terminator", RECORD_TERMINATORS)
+def test_matches_splitlines_on_terminator(terminator):
+    body = f'{{"id": 1}}{terminator}{{"id": 2}}{terminator}'
+
+    result = list(iter_jsonl_lines([body]))
+
+    assert result == body.splitlines()
+
+
+@pytest.mark.parametrize("chunks", TWO_RECORD_CHUNKINGS)
+def test_splits_records_across_chunk_boundaries(chunks):
+    result = list(iter_jsonl_lines(chunks))
 
     assert result == ['{"id": 1}', '{"id": 2}']
 
@@ -48,16 +87,10 @@ def test_reassembles_line_split_across_chunks():
     assert result == ['{"id": "ID-1"}', '{"id": "ID-2"}']
 
 
-def test_yields_final_line_without_newline():
-    result = list(iter_jsonl_lines(['{"id": 1}\n{"id": 2}']))
-
-    assert result == ['{"id": 1}', '{"id": 2}']
-
-
-def test_preserves_standalone_trailing_cr():
+def test_ends_final_line_on_trailing_cr():
     result = list(iter_jsonl_lines(['{"id": 1}\r']))
 
-    assert result == ['{"id": 1}\r']
+    assert result == ['{"id": 1}']
 
 
 def test_yields_blank_lines_for_caller_to_skip():
@@ -72,37 +105,26 @@ def test_yields_nothing_for_empty_body():
     assert result == []
 
 
-def test_drops_a_byte_order_mark_opening_the_body():
-    result = list(iter_jsonl_lines(['\ufeff{"id": 1}\n{"id": 2}\n']))
-
-    assert result == ['{"id": 1}', '{"id": 2}']
-
-
-def test_drops_the_bom_arriving_as_its_own_chunk():
-    result = list(iter_jsonl_lines(["\ufeff", '{"id": 1}\n']))
-
-    assert result == ['{"id": 1}']
-
-
-def test_drops_the_bom_after_an_empty_first_chunk():
-    result = list(iter_jsonl_lines(["", '\ufeff{"id": 1}\n']))
+@pytest.mark.parametrize("chunks", LEADING_BOM_CHUNKINGS)
+def test_drops_a_byte_order_mark_opening_the_body(chunks):
+    result = list(iter_jsonl_lines(chunks))
 
     assert result == ['{"id": 1}']
 
 
 def test_drops_only_one_leading_bom():
     # json.loads on raw bytes strips a single BOM, so a second one still fails decode.
-    doubled_bom_body = '\ufeff\ufeff{"id": 1}\n'
+    doubled_bom_body = '﻿﻿{"id": 1}\n'
 
     result = list(iter_jsonl_lines([doubled_bom_body]))
 
-    assert result == ['\ufeff{"id": 1}']
+    assert result == ['﻿{"id": 1}']
 
 
 def test_keeps_a_bom_after_the_body_start():
-    result = list(iter_jsonl_lines(['{"id": 1}\n\ufeff{"id": 2}\n']))
+    result = list(iter_jsonl_lines(['{"id": 1}\n﻿{"id": 2}\n']))
 
-    assert result == ['{"id": 1}', '\ufeff{"id": 2}']
+    assert result == ['{"id": 1}', '﻿{"id": 2}']
 
 
 LONG_RECORD_CHUNK_SIZE = 8 * 1024
@@ -182,15 +204,23 @@ def test_decode_record_line_rejects_non_object(line):
 async def test_async_keeps_json_legal_separator_inline(separator):
     record_line = f'{{"note": "a{separator}b"}}'
 
-    result = [line async for line in aiter_jsonl_lines(async_chunks([f"{record_line}\n"]))]
+    result = await collected_lines(async_chunks([f"{record_line}\n"]))
 
     assert result == [record_line]
 
 
-async def test_async_splits_on_crlf():
-    chunks = async_chunks(['{"id": 1}\r\n{"id": 2}\r\n'])
+@pytest.mark.parametrize("terminator", RECORD_TERMINATORS)
+async def test_async_splits_on_every_record_terminator(terminator):
+    body = f'{{"id": 1}}{terminator}{{"id": 2}}{terminator}'
 
-    result = [line async for line in aiter_jsonl_lines(chunks)]
+    result = await collected_lines(async_chunks([body]))
+
+    assert result == body.splitlines()
+
+
+@pytest.mark.parametrize("chunks", TWO_RECORD_CHUNKINGS)
+async def test_async_splits_records_across_boundaries(chunks):
+    result = await collected_lines(async_chunks(chunks))
 
     assert result == ['{"id": 1}', '{"id": 2}']
 
@@ -198,25 +228,17 @@ async def test_async_splits_on_crlf():
 async def test_async_reassembles_line_across_chunks():
     chunks = async_chunks(['{"id": ', '"ID-1"}', '\n{"id": "ID-2"}\n'])
 
-    result = [line async for line in aiter_jsonl_lines(chunks)]
+    result = await collected_lines(chunks)
 
     assert result == ['{"id": "ID-1"}', '{"id": "ID-2"}']
 
 
-async def test_async_yields_final_line_without_newline():
-    chunks = async_chunks(['{"id": 1}\n{"id": 2}'])
-
-    result = [line async for line in aiter_jsonl_lines(chunks)]
-
-    assert result == ['{"id": 1}', '{"id": 2}']
-
-
-async def test_async_preserves_standalone_trailing_cr():
+async def test_async_ends_final_line_on_trailing_cr():
     chunks = async_chunks(['{"id": 1}\r'])
 
-    result = [line async for line in aiter_jsonl_lines(chunks)]
+    result = await collected_lines(chunks)
 
-    assert result == ['{"id": 1}\r']
+    assert result == ['{"id": 1}']
 
 
 async def test_async_long_record_is_linear(long_record):
@@ -228,26 +250,9 @@ async def test_async_long_record_is_linear(long_record):
     assert result.elapsed < LONG_RECORD_BUDGET_SECONDS
 
 
-async def test_async_drops_a_bom_opening_the_body():
-    chunks = async_chunks(['\ufeff{"id": 1}\n{"id": 2}\n'])
-
-    result = [line async for line in aiter_jsonl_lines(chunks)]
-
-    assert result == ['{"id": 1}', '{"id": 2}']
-
-
-async def test_async_drops_bom_after_empty_chunk():
-    chunks = async_chunks(["", '\ufeff{"id": 1}\n'])
-
-    result = await collected_lines(chunks)
-
-    assert result == ['{"id": 1}']
-
-
-async def test_async_drops_the_bom_in_its_own_chunk():
-    chunks = async_chunks(["\ufeff", '{"id": 1}\n'])
-
-    result = [line async for line in aiter_jsonl_lines(chunks)]
+@pytest.mark.parametrize("chunks", LEADING_BOM_CHUNKINGS)
+async def test_async_drops_a_bom_opening_the_body(chunks):
+    result = await collected_lines(async_chunks(chunks))
 
     assert result == ['{"id": 1}']
 

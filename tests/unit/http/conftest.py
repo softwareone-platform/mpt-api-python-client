@@ -22,6 +22,19 @@ JSON_LEGAL_SEPARATORS = (
     pytest.param("\u0085", id="U+0085 next line"),
 )
 
+# Every record terminator the JSONL readers honour: str.splitlines() semantics minus the
+# separators above, with CRLF ending one record rather than two.
+RECORD_TERMINATORS = (
+    pytest.param("\r\n", id="CRLF"),
+    pytest.param("\n", id="LF"),
+    pytest.param("\r", id="lone CR"),
+    pytest.param("\v", id="U+000B line tabulation"),
+    pytest.param("\f", id="U+000C form feed"),
+    pytest.param("\x1c", id="U+001C file separator"),
+    pytest.param("\x1d", id="U+001D group separator"),
+    pytest.param("\x1e", id="U+001E record separator"),
+)
+
 # Valid JSON that is not a record object: every JSONL reader rejects it with the typed
 # decode error instead of failing arbitrarily \u2014 or passing silently \u2014 downstream.
 NON_OBJECT_LINE_CASES = (

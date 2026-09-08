@@ -167,8 +167,8 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
     ends, because a truncated body that terminates gracefully carries no other failure
     signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
     the iterator early skips the comparison: only a body consumed to the end is verified.
-    Lines are split on newlines alone, so a record carrying a Unicode line separator
-    inside a string value stays whole.
+    Lines are split as ``str.splitlines()`` splits them, minus U+2028, U+2029 and U+0085,
+    so a record carrying one of those inside a string value stays whole.
 
     Args:
         response: Open streaming response to consume.
@@ -202,8 +202,8 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
     ends, because a truncated body that terminates gracefully carries no other failure
     signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
     the iterator early skips the comparison: only a body consumed to the end is verified.
-    Lines are split on newlines alone, so a record carrying a Unicode line separator
-    inside a string value stays whole.
+    Lines are split as ``str.splitlines()`` splits them, minus U+2028, U+2029 and U+0085,
+    so a record carrying one of those inside a string value stays whole.
 
     Args:
         response: Open streaming response to consume.

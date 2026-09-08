@@ -34,7 +34,7 @@ mpt_api_client/
 │   ├── client_utils.py      # URL validation helpers
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
 │   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
-│   ├── jsonl_lines.py       # JSONL record-line splitting (newlines only)
+│   ├── jsonl_lines.py       # JSONL record-line splitting (splitlines minus U+2028/9/85)
 │   └── mixins/              # Composable HTTP operation mixins
 │       ├── collection_mixin.py
 │       ├── create_mixin.py
