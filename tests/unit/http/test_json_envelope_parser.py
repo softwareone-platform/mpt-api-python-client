@@ -291,6 +291,8 @@ def test_feed_rejects_an_undecodable_value(body, error_match):
         pytest.param('{"x": 12.}, "data": []}', id="dead fraction"),
         pytest.param('{"x": 1e+}, "data": []}', id="dead signed exponent"),
         pytest.param('{"x": truee}', id="literal with a tail"),
+        pytest.param('{"x": 12.\u0665}, "data": []}', id="non-ASCII fraction digit"),
+        pytest.param('{"x": 12.\n', id="fraction cut before a trailing newline"),
     ],
 )
 def test_feed_rejects_a_dead_number_continuation(body):
