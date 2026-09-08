@@ -108,6 +108,10 @@ record rather than by the size of the export. A ten-million-record stream costs 
 ten-record one. This holds in both wire formats — the envelope is tokenized incrementally
 rather than buffered.
 
+Time scales the same way. A record that spans many body chunks is assembled once, when its
+line ends, so the cost of a record is linear in its own length: doubling the record size
+doubles the work rather than quadrupling it.
+
 The buffering paths, for contrast:
 
 - `iterate()` holds one page. It buffers each page response in full, deserializes it into a
@@ -291,7 +295,9 @@ contract uses for it:
 Only `id` is guaranteed on a stub. No other property of the deleted row is carried. A
 **truthy** `deleted` marker is what identifies a stub; a record with no `$meta`, no `deleted`
 key, or a falsy one is data. In practice the platform omits `$meta` entirely on a normal
-record, so those cases are defensive rather than expected.
+record, so those cases are defensive rather than expected. A stub that carries no string
+`id` breaks the one guarantee the contract makes, so `stream()` raises `TypeError` rather
+than yielding a stub that identifies nothing.
 
 `stream()` yields these as `DeletionStub`, never as a model, so the object cannot be mistaken
 for a record by code that expects one. Deserializing a stub as a model would produce an
