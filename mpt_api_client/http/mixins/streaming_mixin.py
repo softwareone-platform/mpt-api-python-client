@@ -31,6 +31,7 @@ from mpt_api_client.http.json_envelope_parser import (
 from mpt_api_client.http.jsonl_lines import (
     aiter_jsonl_lines,
     decode_record_line,
+    is_keep_alive_line,
     iter_jsonl_lines,
 )
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
@@ -167,17 +168,19 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
     The declared record count is read from the ``MPT-Item-Count`` header before the
     first line is yielded, and compared with the number of yielded lines when the body
     ends, because a truncated body that terminates gracefully carries no other failure
-    signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
-    the iterator early skips the comparison: only a body consumed to the end is verified.
-    Lines are split on newlines alone, so a record carrying a Unicode line separator
-    inside a string value stays whole.
+    signal. Keep-alive lines are skipped and not counted, and only JSON's own insignificant
+    whitespace makes a line one: a line of U+00A0, U+2028 or U+001E is a malformed record,
+    counted and decoded rather than waved through. A consumer that closes the iterator early
+    skips the comparison: only a body consumed to the end is verified. Lines are split on
+    newlines alone, so a record carrying a Unicode line separator inside a string value
+    stays whole.
 
     Args:
         response: Open streaming response to consume.
         path: Requested path, used to build error messages.
 
     Yields:
-        Non-blank body lines, one per record.
+        Body lines other than keep-alives, one per record.
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
@@ -188,7 +191,7 @@ def iter_verified_lines(response: HTTPXResponse, path: str) -> Iterator[str]:
     expected_count = declared_item_count(response.headers, path)
     received_count = 0
     for line in iter_jsonl_lines(response.iter_text()):
-        if not line.strip():
+        if is_keep_alive_line(line):
             continue
         received_count += 1
         yield line
@@ -202,17 +205,19 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
     The declared record count is read from the ``MPT-Item-Count`` header before the
     first line is yielded, and compared with the number of yielded lines when the body
     ends, because a truncated body that terminates gracefully carries no other failure
-    signal. Blank keep-alive lines are skipped and not counted. A consumer that closes
-    the iterator early skips the comparison: only a body consumed to the end is verified.
-    Lines are split on newlines alone, so a record carrying a Unicode line separator
-    inside a string value stays whole.
+    signal. Keep-alive lines are skipped and not counted, and only JSON's own insignificant
+    whitespace makes a line one: a line of U+00A0, U+2028 or U+001E is a malformed record,
+    counted and decoded rather than waved through. A consumer that closes the iterator early
+    skips the comparison: only a body consumed to the end is verified. Lines are split on
+    newlines alone, so a record carrying a Unicode line separator inside a string value
+    stays whole.
 
     Args:
         response: Open streaming response to consume.
         path: Requested path, used to build error messages.
 
     Yields:
-        Non-blank body lines, one per record.
+        Body lines other than keep-alives, one per record.
 
     Raises:
         MPTStreamingItemCountMissingError: If the declared item count is absent or is
@@ -223,7 +228,7 @@ async def aiter_verified_lines(response: HTTPXResponse, path: str) -> AsyncItera
     expected_count = declared_item_count(response.headers, path)
     received_count = 0
     async for line in aiter_jsonl_lines(response.aiter_text()):
-        if not line.strip():
+        if is_keep_alive_line(line):
             continue
         received_count += 1
         yield line

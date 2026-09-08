@@ -28,8 +28,10 @@ from mpt_api_client.http.mixins.streaming_mixin import (
 from mpt_api_client.models import DeletionStub, Model
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
-    JSON_LEGAL_SEPARATORS,
+    JSON_LEGAL_IN_STRING,
+    KEEPALIVE_LINE,
     NON_OBJECT_LINE_CASES,
+    UNDECODABLE_LINES,
     AsyncRecordingProgress,
     ClosableAsyncByteStream,
     ClosableByteStream,
@@ -183,6 +185,16 @@ def raw_line_response(line):
     )
 
 
+def lines_response(lines, item_count):
+    # A body built line by line, so a line that is not a record can sit between two that are.
+    body = "".join(f"{line}\n" for line in lines).encode()
+    return httpx.Response(
+        httpx.codes.OK,
+        content=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": item_count},
+    )
+
+
 def closable_stream_response(body):
     # Declares more records than the body carries, so the loop is abandoned mid-export.
     return httpx.Response(
@@ -231,7 +243,7 @@ def test_stream_yields_models(streaming_service, pagination):
     assert all(isinstance(order, DummyModel) for order in result)
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
 def test_stream_keeps_json_legal_separator(streaming_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
@@ -241,6 +253,28 @@ def test_stream_keeps_json_legal_separator(streaming_service, separator):
     result = list(streaming_service.stream())
 
     assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+def test_stream_skips_keepalive_uncounted(streaming_service):
+    # The declared count is the two records: a keep-alive between them must not be one.
+    lines = ['{"id": "ID-1"}', KEEPALIVE_LINE, '{"id": "ID-2"}']
+    respx.get(STREAM_URL).mock(return_value=lines_response(lines, item_count="2"))
+
+    result = list(streaming_service.stream())
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+def test_stream_rejects_a_non_record_line(streaming_service, line, decode_error):
+    # Decoded and failed here, rather than skipped into a count mismatch reported at the end.
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    records = streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
+        next(records)
 
 
 @respx.mock
@@ -347,7 +381,7 @@ async def test_async_stream_yields_models(async_streaming_service):
     assert all(isinstance(order, DummyModel) for order in result)
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
 async def test_async_stream_keeps_json_legal_separator(async_streaming_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
@@ -357,6 +391,26 @@ async def test_async_stream_keeps_json_legal_separator(async_streaming_service, 
     result = [order async for order in async_streaming_service.stream()]
 
     assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+async def test_async_stream_skips_keepalive_uncounted(async_streaming_service):
+    lines = ['{"id": "ID-1"}', KEEPALIVE_LINE, '{"id": "ID-2"}']
+    respx.get(STREAM_URL).mock(return_value=lines_response(lines, item_count="2"))
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+async def test_async_stream_rejects_non_record_line(async_streaming_service, line, decode_error):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    records = async_streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
+        await anext(records)
 
 
 @respx.mock

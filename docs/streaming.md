@@ -183,14 +183,28 @@ when its own closing brace arrives, not when the envelope completes.
 
 Keep-alives differ in shape and are invisible either way. The line-delimited format emits
 blank lines; the envelope format emits insignificant whitespace between tokens, consumed
-while tokenizing. Neither reaches your loop, and neither counts as a record.
+while tokenizing. Both formats mean the same four characters by whitespace — space, tab,
+line feed and carriage return, the set RFC 8259 fixes — so a line is a keep-alive only when
+there is nothing else on it. Neither reaches your loop, and neither counts as a record.
 
 Record boundaries in the line-delimited format are newlines alone: a record ends at a line
-feed, optionally preceded by a carriage return. Unicode line separators that are legal
-unescaped inside JSON string values — U+2028, U+2029 and U+0085 — never split a record, so
-text fields carrying them arrive whole in either format. A single UTF-8 byte order mark
-opening the body is dropped in either format — the same tolerance `json.loads` gives the
-paged path — so a BOM-emitting producer parses identically everywhere.
+feed, optionally preceded by a carriage return, and nothing else ends one. Inside a JSON
+string value every character from `%x20` up is legal unescaped except `"` and `\`, so
+U+0085, U+00A0, U+2028, U+2029, U+3000 and U+FEFF arrive whole in your text fields, in
+either format. Outside a value none of them is whitespace or a separator, so each of these
+is a malformed body rather than something the reader absorbs, and raises
+`json.JSONDecodeError`:
+
+- a line carrying only one of them, which is not a keep-alive and does count towards
+  `MPT-Item-Count`
+- a record padded with one of them outside its value
+- a body that frames its records with a lone carriage return, or with U+001E — a separator
+  of `application/json-seq`, a different media type from the `application/jsonl` this
+  client requests
+
+A single UTF-8 byte order mark opening the body is dropped in either format — the same
+tolerance `json.loads` gives the paged path — so a BOM-emitting producer parses identically
+everywhere.
 
 The total does not depend on the format: in both, a `progress` receiver gets the declared
 `MPT-Item-Count` through `set_total_items`, exactly once, before the first record arrives,
@@ -478,7 +492,8 @@ Three things to know about it:
 - It bounds a single read, not the whole export. No total-duration timeout is applied: an
   export runs for as long as the server keeps sending. Server-side keep-alives count as data
   and reset the read clock — blank lines in the line-delimited format, insignificant
-  whitespace between tokens in the envelope.
+  whitespace between tokens in the envelope. A line of anything else fails the read instead
+  of extending it.
 - Lowering it below the SLO is the trap. If you tune timeouts down for a low-latency service
   and set `stream_read_timeout` from the same budget as your regular calls, large exports
   start failing while small ones keep working — which reads as a size-dependent server bug

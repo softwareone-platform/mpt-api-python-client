@@ -2,7 +2,27 @@ import json
 from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator
 from typing import Any
 
-from mpt_api_client.constants import UTF8_BOM
+from mpt_api_client.constants import JSON_WHITESPACE, UTF8_BOM
+
+
+def is_keep_alive_line(line: str) -> bool:
+    """Report whether a body line is an ignorable keep-alive rather than a record.
+
+    Only JSON's own insignificant whitespace makes a line ignorable, the same four
+    characters the envelope parser consumes between tokens. A bare ``str.strip()`` would
+    apply Python's far wider Unicode whitespace set and silently discard a line of
+    U+00A0, U+2028, U+0085 or U+001E — none of which is whitespace outside a JSON string
+    value, and U+001E a record separator of ``application/json-seq``, a different media
+    type from the ``application/jsonl`` these readers ask for. Such a line is a malformed
+    body, owed a decode error and a place in the record count, not a free pass.
+
+    Args:
+        line: Body line, without its line ending.
+
+    Returns:
+        Whether the line holds nothing but JSON whitespace.
+    """
+    return not line.strip(JSON_WHITESPACE)
 
 
 def decode_record_line(line: str) -> dict[str, Any]:
@@ -70,6 +90,20 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
     Splitting with ``str.splitlines()`` semantics — what ``httpx``'s ``iter_lines()``
     does — would also break at U+2028, U+2029 and U+0085, which are legal unescaped
     inside a JSON string value, fracturing such a record into unparseable fragments.
+
+    Those endings are the only record boundaries. RFC 8259 leaves every character from
+    %x20 upward legal unescaped inside a string value bar the quotation mark and the
+    backslash, so U+0085, U+00A0, U+2028, U+2029, U+3000 and U+FEFF reach the caller
+    intact in record data; outside a value, insignificant whitespace is only space, tab,
+    line feed and carriage return. Ending a record is the narrower job of the two: a lone
+    carriage return ends none, so two records it sits between arrive as one unparseable
+    line, yet it stays whitespace, and a line of nothing but carriage returns and spaces
+    is still a keep-alive. U+000B, U+000C and U+001C to U+001E are neither — U+001E
+    separates records in ``application/json-seq``, a different media type from the
+    ``application/jsonl`` these bodies carry — so a line made of those is a malformed
+    record rather than an ignorable keep-alive, and `is_keep_alive_line` leaves it for
+    `decode_record_line` to reject.
+
     A single byte order mark opening the body is dropped before the first line is
     formed, and only there: the sibling read paths tolerate exactly that one — the
     paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
@@ -81,7 +115,8 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
     Yields:
         Each line without its line ending — a carriage return is stripped only as part
         of a CRLF ending, so a final unterminated line is yielded as-is; a blank line
-        is yielded as an empty string, for the caller to skip.
+        is yielded as an empty string, for the caller to skip through
+        `is_keep_alive_line`.
     """
     pending: list[str] = []
     at_body_start = True
@@ -102,6 +137,20 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
     Splitting with ``str.splitlines()`` semantics — what ``httpx``'s ``aiter_lines()``
     does — would also break at U+2028, U+2029 and U+0085, which are legal unescaped
     inside a JSON string value, fracturing such a record into unparseable fragments.
+
+    Those endings are the only record boundaries. RFC 8259 leaves every character from
+    %x20 upward legal unescaped inside a string value bar the quotation mark and the
+    backslash, so U+0085, U+00A0, U+2028, U+2029, U+3000 and U+FEFF reach the caller
+    intact in record data; outside a value, insignificant whitespace is only space, tab,
+    line feed and carriage return. Ending a record is the narrower job of the two: a lone
+    carriage return ends none, so two records it sits between arrive as one unparseable
+    line, yet it stays whitespace, and a line of nothing but carriage returns and spaces
+    is still a keep-alive. U+000B, U+000C and U+001C to U+001E are neither — U+001E
+    separates records in ``application/json-seq``, a different media type from the
+    ``application/jsonl`` these bodies carry — so a line made of those is a malformed
+    record rather than an ignorable keep-alive, and `is_keep_alive_line` leaves it for
+    `decode_record_line` to reject.
+
     A single byte order mark opening the body is dropped before the first line is
     formed, and only there: the sibling read paths tolerate exactly that one — the
     paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
@@ -113,7 +162,8 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
     Yields:
         Each line without its line ending — a carriage return is stripped only as part
         of a CRLF ending, so a final unterminated line is yielded as-is; a blank line
-        is yielded as an empty string, for the caller to skip.
+        is yielded as an empty string, for the caller to skip through
+        `is_keep_alive_line`.
     """
     pending: list[str] = []
     at_body_start = True

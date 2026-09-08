@@ -4,6 +4,7 @@ from mpt_api_client.constants import APPLICATION_JSONL
 from mpt_api_client.http.jsonl_lines import (
     aiter_jsonl_lines,
     decode_record_line,
+    is_keep_alive_line,
     iter_jsonl_lines,
 )
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
@@ -21,6 +22,10 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
         consumes a ``application/jsonl`` response line by line without buffering the
         whole body in memory.
 
+        A line holding nothing but JSON whitespace is a keep-alive and is skipped. Nothing
+        wider counts as one: a line of U+00A0, U+2028 or U+001E is not whitespace outside a
+        JSON string value, so it is decoded and fails rather than being dropped in silence.
+
         Args:
             progress: Optional progress receiver. `item_processed` is called once
                 per line before the model is yielded and `completed` once when the
@@ -28,7 +33,7 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
                 because JSONL responses carry no total.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per record line of the response.
 
         Raises:
             JSONDecodeError: If a line is not valid JSON, or decodes to anything but
@@ -40,7 +45,7 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
             for line in iter_jsonl_lines(response.iter_text()):
-                if not line.strip():
+                if is_keep_alive_line(line):
                     continue
                 model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
@@ -59,6 +64,10 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
         Unlike ``iterate()``, which paginates and deserializes full pages, this
         consumes a ``application/jsonl`` response line by line without buffering the
         whole body in memory.
+
+        A line holding nothing but JSON whitespace is a keep-alive and is skipped. Nothing
+        wider counts as one: a line of U+00A0, U+2028 or U+001E is not whitespace outside a
+        JSON string value, so it is decoded and fails rather than being dropped in silence.
 
         A loop that can leave before the last line — a ``break``, a ``return``, an
         exception — has to close this generator to release the response, which
@@ -83,7 +92,7 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
                 because JSONL responses carry no total.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per record line of the response.
 
         Raises:
             JSONDecodeError: If a line is not valid JSON, or decodes to anything but
@@ -95,7 +104,7 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
             async for line in aiter_jsonl_lines(response.aiter_text()):
-                if not line.strip():
+                if is_keep_alive_line(line):
                     continue
                 model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
