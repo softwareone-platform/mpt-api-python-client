@@ -74,6 +74,7 @@ mpt_api_client/
 │
 └── rql/                     # RQL query builder
     ├── query_builder.py     # RQLQuery, RQLProperty, RQLValue
+    ├── encoding.py          # Percent-encoding for RQL field names and values
     └── constants.py         # RQL operator constants
 ```
 
@@ -240,7 +241,8 @@ provider is always passed explicitly.
 
 ### RQL Query Builder — `rql/`
 
-See [the RQL guide](rql.md) for the fluent query builder, filter chaining, and usage examples.
+See [the RQL guide](rql.md) for the fluent query builder, filter chaining, value encoding,
+and usage examples.
 
 ### Model Layer — `models/`
 

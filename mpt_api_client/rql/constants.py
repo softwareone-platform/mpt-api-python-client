@@ -5,3 +5,6 @@ NULL = "null"
 EMPTY = "empty"
 
 KEYWORDS = (*COMP, *SEARCH, *LIST, NULL, EMPTY)
+
+NULL_EXPR = "null()"
+EMPTY_EXPR = "empty()"
