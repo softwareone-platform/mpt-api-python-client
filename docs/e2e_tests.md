@@ -8,7 +8,9 @@ They live under `tests/e2e/` and rely on live credentials and configurable endpo
 ```text
 tests/
 └── e2e/
-    ├── conftest.py      # E2E fixtures (mpt_vendor, mpt_client, mpt_operations)
+    ├── conftest.py      # Shared E2E fixtures, one client per token scope
+    ├── helper.py        # Resource setup and teardown helpers shared across domains
+    ├── test_access.py   # Authentication and access coverage, not tied to one domain
     ├── accounts/
     ├── audit/
     ├── billing/
@@ -22,6 +24,11 @@ tests/
     ├── spotlight/
     └── streaming/
 ```
+
+`conftest.py` builds one client fixture per token scope — `mpt_vendor`, `mpt_ops` and
+`mpt_client` — plus an async counterpart for each: `async_mpt_vendor`, `async_mpt_ops` and
+`async_mpt_client`. Ask for the scope the endpoint requires; the operations-scoped pair is
+what the streaming suites use.
 
 Most directories mirror an API domain. `streaming/` is the exception: it covers the
 platform streaming read mode itself — the contract `stream()` implements — rather than
@@ -47,18 +54,27 @@ result depends on the size of the live dataset, so it carries requirements the r
 `tests/e2e/` does not.
 
 It streams operations-scoped `catalog.items`, which holds well over the 20,000 records the
-coverage exports. The measurement is a `tracemalloc` allocation peak — Python allocations
-rather than process resident size, so it does not move with allocator or kernel behaviour —
-taken over three whole reads: a 2,000-record export, a 20,000-record export, and the same
-20,000-record export buffered with `list()`. Ten times the records must not cost materially
-more memory, and buffering the same export must cost far more, which is what shows the
-measurement is sensitive enough to see buffering reintroduced.
+largest single read exports. The measurement is a `tracemalloc` allocation peak — Python
+allocations rather than process resident size, so it does not move with allocator or kernel
+behaviour — taken over four whole reads: a 500-record warmup that pays for connection setup,
+lazy imports and the first read buffers outside every comparison, then a 2,000-record export,
+a 20,000-record export, and the same 20,000-record export buffered with `list()`. Only the
+last three are measured; the warmup is a separate read rather than a prologue of a measured
+one, so nothing can hide in it. Ten times the records must not cost materially more memory,
+and buffering the same export must cost far more, which is what shows the measurement is
+sensitive enough to see buffering reintroduced.
 
 Each case runs once per `StreamFormat`, because the property must hold for every wire format
 and they reach it differently: `JSONL` reads one record per line, while `JSON` parses records
 out of the `{$meta, data}` envelope incrementally — the easier one to regress, since the
 obvious implementation deserializes the whole body first. The parametrisation enumerates the
 enum, so a format added later is covered without editing the tests.
+
+That makes the suite the heaviest consumer of live data in `tests/e2e/`: 42,500 records per
+wire format per case (500 + 2,000 + 20,000 + 20,000), so 85,000 for the sync suite across the
+two current formats and roughly 170,000 including the async twin. Size the run against a
+rate-limited or metered environment from that figure, not from the 20,000 of the largest
+single read.
 
 The comparison is against the peaks measured in the same run rather than an absolute byte
 threshold, so it does not need recalibrating per environment. If the environment holds fewer
