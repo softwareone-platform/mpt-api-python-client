@@ -39,10 +39,12 @@ from mpt_api_client.models import AsyncProgress, DeletionStub, Progress, is_dele
 from mpt_api_client.models import Model as BaseModel
 from mpt_api_client.models.model import Resource
 
-# The canonical count form: ASCII digits only. A bare int() would also admit Python literal
-# forms — '1_0', '+5', ' 5 ', non-ASCII digits — silently normalizing a garbled header into
-# a wrong count instead of rejecting it before the body is consumed.
-ITEM_COUNT_PATTERN = re.compile(r"[0-9]+")
+# The canonical count form: ASCII digits only. ``re.ASCII`` is load-bearing: a bare ``\d``
+# is Unicode-aware and would match U+0665 and its kin, re-admitting the non-ASCII digits
+# this guard exists to reject. A bare int() would also admit Python literal forms — '1_0',
+# '+5', ' 5 ' — silently normalizing a garbled header into a wrong count instead of
+# rejecting it before the body is consumed.
+ITEM_COUNT_PATTERN = re.compile(r"\d+", re.ASCII)
 
 
 class StreamFormat(StrEnum):
