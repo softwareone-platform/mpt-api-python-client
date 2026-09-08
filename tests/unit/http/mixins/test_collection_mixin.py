@@ -1,3 +1,5 @@
+from urllib.parse import parse_qsl
+
 import httpx
 import pytest
 import respx
@@ -782,3 +784,87 @@ async def test_async_col_mx_stream_inherited(async_dummy_service, streaming_mode
         result = [resource.id async for resource in async_dummy_service.stream()]
 
     assert result == ["ID-1", "ID-2"]
+
+
+# The same delimiter matrix as tests/unit/rql/query_builder/test_rql_encoding.py, checked
+# one layer further out: what a standard query parser makes of the URL actually sent.
+FILTER_VALUES_ON_THE_WIRE = (
+    pytest.param("A&B", "A%26B", id="ampersand splits the query"),
+    pytest.param("a#b", "a%23b", id="hash truncates the query"),
+    pytest.param("a+b", "a%2Bb", id="plus decodes to a space"),
+    pytest.param("50%", "50%25", id="trailing percent"),
+    pytest.param("%d1", "%25d1", id="percent escape lookalike"),
+    pytest.param("a b", "a%20b", id="space"),
+    pytest.param("Grün", "Gr%C3%BCn", id="non-ascii"),
+)
+
+
+def sent_query(mock_route):
+    request = mock_route.calls[0].request
+    return request.url.query.decode()
+
+
+@pytest.mark.parametrize(("raw", "encoded"), FILTER_VALUES_ON_THE_WIRE)
+def test_col_mx_eq_filter_on_the_wire(dummy_service, single_page_response, raw, encoded):
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=single_page_response
+        )
+
+        dummy_service.filter(RQLQuery(name=raw)).fetch_page()  # act
+
+    assert sent_query(mock_route) == f"limit=100&offset=0&eq(name,'{encoded}')"
+
+
+@pytest.mark.parametrize(("raw", "encoded"), FILTER_VALUES_ON_THE_WIRE)
+def test_col_mx_eq_filter_parses_back(dummy_service, single_page_response, raw, encoded):
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=single_page_response
+        )
+
+        dummy_service.filter(RQLQuery(name=raw)).fetch_page()  # act
+
+    assert parse_qsl(sent_query(mock_route), keep_blank_values=True) == [
+        ("limit", "100"),
+        ("offset", "0"),
+        (f"eq(name,'{raw}')", ""),
+    ]
+
+
+@pytest.mark.parametrize(("raw", "encoded"), FILTER_VALUES_ON_THE_WIRE)
+def test_col_mx_in_filter_on_the_wire(dummy_service, single_page_response, raw, encoded):
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=single_page_response
+        )
+
+        dummy_service.filter(RQLQuery().name.in_([raw, "C=D"])).fetch_page()  # act
+
+    assert sent_query(mock_route) == f"limit=100&offset=0&in(name,('{encoded}','C%3DD'))"
+
+
+# httpx leaves a single-quote delimiter alone but percent-encodes a double quote, so the
+# delimiter itself arrives as %22. That is the form verified against the API: the server
+# decodes the parameter before parsing RQL, which is exactly why %22 works as a delimiter.
+def test_col_mx_quote_switches_delimiter(dummy_service, single_page_response):
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=single_page_response
+        )
+
+        dummy_service.filter(RQLQuery(name="Maria's Super Store")).fetch_page()  # act
+
+    assert sent_query(mock_route) == "limit=100&offset=0&eq(name,%22Maria%27s%20Super%20Store%22)"
+
+
+@pytest.mark.parametrize(("raw", "encoded"), FILTER_VALUES_ON_THE_WIRE)
+def test_col_mx_like_filter_on_the_wire(dummy_service, single_page_response, raw, encoded):
+    with respx.mock:
+        mock_route = respx.get("https://api.example.com/api/v1/test").mock(
+            return_value=single_page_response
+        )
+
+        dummy_service.filter(RQLQuery().name.like(f"*{raw}*")).fetch_page()  # act
+
+    assert sent_query(mock_route) == f"limit=100&offset=0&like(name,'*{encoded}*')"
