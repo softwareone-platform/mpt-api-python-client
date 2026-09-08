@@ -11,9 +11,16 @@ import mpt_api_client
 from mpt_api_client.http.jsonl_lines import (
     aiter_jsonl_lines,
     decode_record_line,
+    is_keep_alive_line,
     iter_jsonl_lines,
 )
-from tests.unit.http.conftest import JSON_LEGAL_SEPARATORS, NON_OBJECT_LINE_CASES
+from tests.unit.http.conftest import (
+    JSON_LEGAL_IN_STRING,
+    KEEPALIVE_LINE,
+    NON_JSON_WHITESPACE,
+    NON_OBJECT_LINE_CASES,
+    RECORD_NON_SEPARATORS,
+)
 
 PACKAGE_ROOT = Path(mpt_api_client.__file__).parent
 HTTPX_LINE_ITERATOR_CALL = re.compile(r"\.a?iter_lines\(")
@@ -25,7 +32,7 @@ async def async_chunks(chunks):
         yield chunk
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 def test_keeps_json_legal_separator_inline(separator):
     record_line = f'{{"note": "a{separator}b"}}'
 
@@ -58,6 +65,15 @@ def test_preserves_standalone_trailing_cr():
     result = list(iter_jsonl_lines(['{"id": 1}\r']))
 
     assert result == ['{"id": 1}\r']
+
+
+@pytest.mark.parametrize("separator", RECORD_NON_SEPARATORS)
+def test_non_separator_ends_no_record(separator):
+    joined_records = f'{{"id": 1}}{separator}{{"id": 2}}'
+
+    result = list(iter_jsonl_lines([f"{joined_records}\n"]))
+
+    assert result == [joined_records]
 
 
 def test_yields_blank_lines_for_caller_to_skip():
@@ -178,7 +194,46 @@ def test_decode_record_line_rejects_non_object(line):
         decode_record_line(line)
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize(
+    "line",
+    [
+        pytest.param("", id="empty"),
+        pytest.param(KEEPALIVE_LINE, id="space and tab"),
+        pytest.param(" \r", id="a trailing lone CR the splitter kept"),
+    ],
+)
+def test_keep_alive_line_is_json_whitespace(line):
+    result = is_keep_alive_line(line)
+
+    assert result is True
+
+
+@pytest.mark.parametrize("char", NON_JSON_WHITESPACE)
+def test_wider_whitespace_is_no_keep_alive(char):
+    result = is_keep_alive_line(char)
+
+    assert result is False
+
+
+def test_record_line_is_no_keep_alive():
+    result = is_keep_alive_line('{"id": 1}')
+
+    assert result is False
+
+
+@pytest.mark.parametrize("char", NON_JSON_WHITESPACE)
+def test_decode_rejects_padding_before_value(char):
+    with pytest.raises(json.JSONDecodeError, match="Expecting value"):
+        decode_record_line(f'{char}{{"id": "ID-1"}}')
+
+
+@pytest.mark.parametrize("char", NON_JSON_WHITESPACE)
+def test_decode_rejects_padding_after_value(char):
+    with pytest.raises(json.JSONDecodeError, match="Extra data"):
+        decode_record_line(f'{{"id": "ID-1"}}{char}')
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 async def test_async_keeps_json_legal_separator_inline(separator):
     record_line = f'{{"note": "a{separator}b"}}'
 
@@ -217,6 +272,15 @@ async def test_async_preserves_standalone_trailing_cr():
     result = [line async for line in aiter_jsonl_lines(chunks)]
 
     assert result == ['{"id": 1}\r']
+
+
+@pytest.mark.parametrize("separator", RECORD_NON_SEPARATORS)
+async def test_async_non_separator_ends_no_record(separator):
+    joined_records = f'{{"id": 1}}{separator}{{"id": 2}}'
+
+    result = await collected_lines(async_chunks([f"{joined_records}\n"]))
+
+    assert result == [joined_records]
 
 
 async def test_async_long_record_is_linear(long_record):

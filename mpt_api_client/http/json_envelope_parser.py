@@ -7,6 +7,7 @@ from enum import Enum, auto
 from typing import Any, NoReturn
 
 from mpt_api_client.constants import (
+    JSON_WHITESPACE,
     MPT_DATA_FIELD,
     MPT_META_FIELD,
     MPT_PAGINATION_FIELD,
@@ -14,11 +15,6 @@ from mpt_api_client.constants import (
     UTF8_BOM,
 )
 from mpt_api_client.models.model import Resource
-
-# The four characters JSON calls insignificant whitespace. A streaming response emits them
-# between tokens as keep-alives while the server builds the result set, so they carry no
-# information and are consumed as part of tokenizing.
-JSON_WHITESPACE = " \t\n\r"
 
 # An already-decoded number is extended by a later chunk only through a fraction or an
 # exponent that is still plausible: the continuation character either ends the buffered

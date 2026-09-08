@@ -10,8 +10,10 @@ from mpt_api_client.http import AsyncService, Service
 from mpt_api_client.http.mixins import AsyncStreamJSONLMixin, StreamJSONLMixin
 from tests.unit.conftest import API_URL, DummyModel
 from tests.unit.http.conftest import (
-    JSON_LEGAL_SEPARATORS,
+    JSON_LEGAL_IN_STRING,
+    KEEPALIVE_LINE,
     NON_OBJECT_LINE_CASES,
+    UNDECODABLE_LINES,
     AsyncRecordingProgress,
     ClosableAsyncByteStream,
     ClosableByteStream,
@@ -29,6 +31,11 @@ def separator_jsonl_response(separator):
 
 def raw_line_response(line):
     return httpx.Response(httpx.codes.OK, content=f"{line}\n".encode())
+
+
+def two_records_around(line):
+    body = f'{{"id": "ID-1"}}\n{line}\n{{"id": "ID-2"}}\n'.encode()
+    return httpx.Response(httpx.codes.OK, content=body)
 
 
 class DummyStreamJSONLService(
@@ -71,7 +78,7 @@ def test_stream_jsonl_yields_models(stream_service):
     assert request.headers["Accept"] == "application/jsonl"
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
 def test_stream_jsonl_keeps_json_legal_separator(stream_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
@@ -147,6 +154,25 @@ def test_stream_jsonl_rejects_non_object_line(stream_service, line):
 
 
 @respx.mock
+def test_stream_jsonl_skips_whitespace_keepalive(stream_service):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=two_records_around(KEEPALIVE_LINE))
+
+    result = list(stream_service.stream_jsonl())
+
+    assert [charge.id for charge in result] == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+def test_stream_jsonl_rejects_non_record_line(stream_service, line, decode_error):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
+    iterator = stream_service.stream_jsonl()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
+        next(iterator)
+
+
+@respx.mock
 async def test_async_stream_jsonl_yields_models(async_stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
@@ -160,7 +186,7 @@ async def test_async_stream_jsonl_yields_models(async_stream_service):
     assert request.headers["Accept"] == "application/jsonl"
 
 
-@pytest.mark.parametrize("separator", JSON_LEGAL_SEPARATORS)
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
 async def test_async_stream_jsonl_keeps_separator(async_stream_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
@@ -228,6 +254,26 @@ async def test_async_stream_jsonl_rejects_non_object(async_stream_service, line)
     iterator = async_stream_service.stream_jsonl()
 
     with pytest.raises(json.JSONDecodeError, match="record must be an object"):
+        await anext(iterator)
+
+
+@respx.mock
+async def test_async_jsonl_skips_whitespace_keepalive(async_stream_service):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=two_records_around(KEEPALIVE_LINE))
+
+    async with aclosing(async_stream_service.stream_jsonl()) as records:
+        result = [charge.id async for charge in records]
+
+    assert result == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+async def test_async_jsonl_rejects_non_record_line(async_stream_service, line, decode_error):
+    respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
+    iterator = async_stream_service.stream_jsonl()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
         await anext(iterator)
 
 
