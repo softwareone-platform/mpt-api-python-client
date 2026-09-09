@@ -1,7 +1,12 @@
-import json
 from collections.abc import AsyncIterator, Iterator
 
 from mpt_api_client.constants import APPLICATION_JSONL
+from mpt_api_client.http.jsonl_lines import (
+    aiter_jsonl_lines,
+    decode_record_line,
+    is_keep_alive_line,
+    iter_jsonl_lines,
+)
 from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
 from mpt_api_client.models import AsyncProgress, Progress
 from mpt_api_client.models import Model as BaseModel
@@ -10,12 +15,16 @@ from mpt_api_client.models import Model as BaseModel
 class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
     """Mixin providing JSONL (NDJSON) streaming of a collection line by line."""
 
-    def stream(self, *, progress: Progress | None = None) -> Iterator[Model]:
+    def stream_jsonl(self, *, progress: Progress | None = None) -> Iterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this
         consumes a ``application/jsonl`` response line by line without buffering the
         whole body in memory.
+
+        A line holding nothing but JSON whitespace is a keep-alive and is skipped. Nothing
+        wider counts as one: a line of U+00A0, U+2028 or U+001E is not whitespace outside a
+        JSON string value, so it is decoded and fails rather than being dropped in silence.
 
         Args:
             progress: Optional progress receiver. `item_processed` is called once
@@ -24,17 +33,21 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
                 because JSONL responses carry no total.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per record line of the response.
+
+        Raises:
+            JSONDecodeError: If a line is not valid JSON, or decodes to anything but
+                an object.
         """
         with self.http_client.stream(  # type: ignore[attr-defined]
             "GET",
             self.build_path(),  # type: ignore[attr-defined]
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
-            for line in response.iter_lines():
-                if not line.strip():
+            for line in iter_jsonl_lines(response.iter_text()):
+                if is_keep_alive_line(line):
                     continue
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
                     progress.item_processed()
                 yield model
@@ -45,12 +58,32 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
 class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
     """Async mixin providing JSONL (NDJSON) streaming of a collection line by line."""
 
-    async def stream(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
+    async def stream_jsonl(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this
         consumes a ``application/jsonl`` response line by line without buffering the
         whole body in memory.
+
+        A line holding nothing but JSON whitespace is a keep-alive and is skipped. Nothing
+        wider counts as one: a line of U+00A0, U+2028 or U+001E is not whitespace outside a
+        JSON string value, so it is decoded and fails rather than being dropped in silence.
+
+        A loop that can leave before the last line — a ``break``, a ``return``, an
+        exception — has to close this generator to release the response, which
+        `contextlib.aclosing` does at the end of its block::
+
+            from contextlib import aclosing
+
+            async with aclosing(service.stream_jsonl()) as records:
+                async for record in records:
+                    break
+
+        Without that wrapper the abandoned generator stays suspended holding the open
+        response, because Python finalizes an async generator through the event loop's
+        async-generator hook rather than when its last reference goes. The sync twin
+        needs no wrapper on CPython, where dropping the last reference closes the
+        generator promptly.
 
         Args:
             progress: Optional progress receiver. `item_processed` is awaited once
@@ -59,17 +92,21 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
                 because JSONL responses carry no total.
 
         Yields:
-            Resources, one per non-empty line of the response.
+            Resources, one per record line of the response.
+
+        Raises:
+            JSONDecodeError: If a line is not valid JSON, or decodes to anything but
+                an object.
         """
         async with self.http_client.stream(  # type: ignore[attr-defined]
             "GET",
             self.build_path(),  # type: ignore[attr-defined]
             headers={"Accept": APPLICATION_JSONL},
         ) as response:
-            async for line in response.aiter_lines():
-                if not line.strip():
+            async for line in aiter_jsonl_lines(response.aiter_text()):
+                if is_keep_alive_line(line):
                     continue
-                model = self._model_class(json.loads(line))  # type: ignore[attr-defined]
+                model = self._model_class(decode_record_line(line))  # type: ignore[attr-defined]
                 if progress:
                     await progress.item_processed()  # noqa: WPS476
                 yield model

@@ -19,6 +19,7 @@ Start with these documents:
 - [docs/e2e_tests.md](docs/e2e_tests.md): end-to-end test setup and execution
 - [docs/contributing.md](docs/contributing.md): repository-specific workflow and links to shared standards
 - [docs/documentation.md](docs/documentation.md): repository-specific documentation rules
+- [docs/streaming.md](docs/streaming.md): streaming guide — `stream()` versus `iterate()`, consumer obligations, and timeouts
 - [docs/rql.md](docs/rql.md): fluent RQL query builder guide
 - [MPT OpenAPI Spec](https://api.s1.show/public/v1/openapi.json): upstream API contract
 

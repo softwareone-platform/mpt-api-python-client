@@ -43,6 +43,27 @@ class MPTStreamingNotEnabledError(MPTStreamingError):
         )
 
 
+class MPTStreamingFormatMismatchError(MPTStreamingError):
+    """Represents a streaming response served in a format other than the requested one.
+
+    The requested wire format decides which parser consumes the body, so a response
+    whose ``Content-Type`` names a different media type would be read by the wrong
+    parser — in the narrowest case handing the caller the whole envelope as one bogus
+    record — and the response is not read. A response that omits ``Content-Type`` is
+    tolerated.
+    """
+
+    def __init__(self, path: str, requested: str, received: str):
+        self.path = path
+        self.requested = requested
+        self.received = received
+        super().__init__(
+            f"The API answered the streaming request for '{path}' in a different "
+            f"format: requested '{requested}' with the Accept header, the response "
+            f"Content-Type names '{received}'. The response body was not consumed."
+        )
+
+
 class MPTStreamingItemCountMissingError(MPTStreamingError):
     """Represents a streaming response that did not declare a usable item count.
 
@@ -253,8 +274,12 @@ class MPTAPIError(MPTHttpError):
 def transform_http_status_exception(http_status_exception: HTTPStatusError) -> MPTError:
     """Transforms httpx exceptions into MPT exceptions.
 
-    Attempts to extract API related information from HTTPStatusError and
-    raises MPTAPIError or MPTHttpError.
+    An error body that parses as a JSON object carries the API error members, so it
+    becomes an ``MPTAPIError``; httpx detects the JSON encoding, so a UTF-16 or UTF-32
+    object is read as readily as a UTF-8 one and keeps its members. Every other body — a
+    bare JSON string, ``null``, a JSON array, a body that is not JSON, or bytes that do
+    not decode — carries no members to read, so it becomes an ``MPTHttpError`` that still
+    preserves the status code.
 
     Args:
         http_status_exception: Native httpx exception
@@ -262,16 +287,23 @@ def transform_http_status_exception(http_status_exception: HTTPStatusError) -> M
     Returns:
         MPTError
     """
+    response = http_status_exception.response
     try:
+        payload = response.json()
+    except ValueError:
+        # JSONDecodeError for a body that is not JSON, UnicodeDecodeError for one whose
+        # bytes do not decode; both are ValueError and both mean there are no members.
+        payload = None
+    if isinstance(payload, dict):
         return MPTAPIError(
-            status_code=http_status_exception.response.status_code,
+            status_code=response.status_code,
             message=http_status_exception.args[0],
-            payload=http_status_exception.response.json(),
+            payload=payload,
         )
-    except json.JSONDecodeError:
-        body = http_status_exception.response.content.decode()
-        return MPTHttpError(
-            status_code=http_status_exception.response.status_code,
-            message=http_status_exception.args[0],
-            body=body,
-        )
+    return MPTHttpError(
+        status_code=response.status_code,
+        message=http_status_exception.args[0],
+        # The body is a human-readable diagnostic rather than record data, so replacing
+        # undecodable bytes keeps the status reachable instead of raising over them.
+        body=response.content.decode(errors="replace"),
+    )

@@ -86,3 +86,22 @@ def term_variant_inherited_data():
         "contentType": "application/pdf",
         "fileId": "FILE-001",
     }
+
+
+# Error-response body shapes. Only a JSON object carries the API error members, so every
+# other shape must still reach the caller as a typed error that preserves the status code:
+# valid JSON that is not an object gave a raw AttributeError before MPT-25030, and bytes
+# that are not valid UTF-8 escaped the decode guard as a UnicodeDecodeError.
+JSON_OBJECT_ERROR_BODY = b'{"detail": "Invalid filter expression"}'
+NON_OBJECT_ERROR_BODIES = (
+    pytest.param(b'"Invalid filter expression"', id="bare json string"),
+    pytest.param(b"null", id="json null"),
+    pytest.param(b'[{"code": "invalid-rql"}]', id="json array"),
+    pytest.param(b"<html>Bad Gateway</html>", id="body that is not json"),
+    pytest.param(b"", id="empty body"),
+    pytest.param("Grenzwert\u00a0erreicht".encode("iso-8859-1"), id="body that is not utf-8"),
+)
+ERROR_BODY_SHAPES = (
+    pytest.param(JSON_OBJECT_ERROR_BODY, id="json object"),
+    *NON_OBJECT_ERROR_BODIES,
+)

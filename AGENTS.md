@@ -25,6 +25,7 @@ When applicable, read the repository documentation in this order:
 7. `docs/documentation.md` — repository-specific documentation rules
 8. `docs/unit_tests.md` — unit test structure and guidance
 9. `docs/e2e_tests.md` — end-to-end test setup and execution
+10. `docs/streaming.md` — streaming read mode, consumer obligations, and timeouts
 
 Then inspect the code paths relevant to the task:
 

@@ -1,4 +1,6 @@
+import asyncio
 import json
+from contextlib import aclosing
 
 import httpx
 import pytest
@@ -8,28 +10,41 @@ from mpt_api_client import RQLQuery
 from mpt_api_client.exceptions import (
     MPTHttpError,
     MPTStreamingError,
+    MPTStreamingFormatMismatchError,
     MPTStreamingIncompleteError,
     MPTStreamingItemCountMissingError,
     MPTStreamingNotAcceptableError,
     MPTStreamingNotEnabledError,
     MPTStreamingNotSupportedError,
     MPTStreamingOverCapError,
+    MPTStreamingTruncatedError,
 )
 from mpt_api_client.http import AsyncService, Service
-from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamingMixin
+from mpt_api_client.http.mixins import AsyncStreamingMixin, StreamFormat, StreamingMixin
 from mpt_api_client.http.mixins.streaming_mixin import (
     declared_item_count,
     deserialize_stream_record,
 )
 from mpt_api_client.models import DeletionStub, Model
-from tests.unit.conftest import API_URL, DummyModel
-from tests.unit.http.conftest import AsyncRecordingProgress, RecordingProgress
+from tests.unit.conftest import API_URL, ERROR_BODY_SHAPES, DummyModel
+from tests.unit.http.conftest import (
+    JSON_LEGAL_IN_STRING,
+    KEEPALIVE_LINE,
+    NON_OBJECT_LINE_CASES,
+    UNDECODABLE_LINES,
+    AsyncRecordingProgress,
+    ClosableAsyncByteStream,
+    ClosableByteStream,
+    RecordingProgress,
+)
 
 STREAM_URL = f"{API_URL}/api/v1/orders"
 JSONL_BODY = b'{"id": "ID-1", "name": "Order 1"}\n\n{"id": "ID-2", "name": "Order 2"}\n'
 NOT_CONFIRMED_MATCH = "did not confirm streaming mode"
 COUNT_MISSING_MATCH = "did not declare the item count"
 COUNT_MISMATCH_MATCH = "declared 3, received 2"
+# Insignificant whitespace a streaming response emits between tokens as a keep-alive.
+KEEPALIVE = "\n \t\r\n "
 BOUNDED_LIMIT = 100
 PASSED_OFFSET = 50
 BOUNDED_QUERY = "limit=100&offset=50"
@@ -55,7 +70,12 @@ UNUSABLE_COUNT_CASES = (
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "-1"}, id="negative"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "abc"}, id="not a number"),
     pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": ""}, id="empty"),
+    pytest.param({"MPT-Streaming": "true", "MPT-Item-Count": "1_0"}, id="python literal"),
 )
+
+# Rejected with the same typed decode error the envelope parser raises for a non-object
+# record element, never an AttributeError out of stub detection.
+NON_OBJECT_LINE_MATCH = "record must be an object"
 
 
 class DummyStreamingService(
@@ -128,6 +148,11 @@ def data_record():
 
 
 @pytest.fixture
+def second_data_record():
+    return {"id": "ID-2", "name": "Order 2"}
+
+
+@pytest.fixture
 def deleted_status_record():
     return {"id": "ID-3", "name": "Order 3", "status": "DELETED"}
 
@@ -141,12 +166,52 @@ def jsonl_response(headers=None):
 
 
 def records_response(records, item_count=None):
-    body = "\n".join(json.dumps(record) for record in records).encode()
+    # Raw UTF-8, as real encoders emit it: JSON-legal separators like U+2028 stay unescaped.
+    record_lines = (json.dumps(record, ensure_ascii=False) for record in records)
+    body = "\n".join(record_lines).encode()
     declared = str(len(records)) if item_count is None else item_count
     return httpx.Response(
         httpx.codes.OK,
         content=body,
         headers={"MPT-Streaming": "true", "MPT-Item-Count": declared},
+    )
+
+
+def raw_line_response(line):
+    return httpx.Response(
+        httpx.codes.OK,
+        content=f"{line}\n".encode(),
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "1"},
+    )
+
+
+def lines_response(lines, item_count):
+    # A body built line by line, so a line that is not a record can sit between two that are.
+    body = "".join(f"{line}\n" for line in lines).encode()
+    return httpx.Response(
+        httpx.codes.OK,
+        content=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": item_count},
+    )
+
+
+def closable_stream_response(body):
+    # Declares more records than the body carries, so the loop is abandoned mid-export.
+    return httpx.Response(
+        httpx.codes.OK,
+        stream=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "3"},
+    )
+
+
+def bom_prefixed_response():
+    # A producer that opens its UTF-8 output with a byte order mark: the paged path's
+    # json.loads on raw bytes strips it, so the streamed formats tolerate it too.
+    bom_bytes = "\ufeff".encode()
+    return httpx.Response(
+        httpx.codes.OK,
+        content=bom_bytes + JSONL_BODY,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "2"},
     )
 
 
@@ -176,6 +241,49 @@ def test_stream_yields_models(streaming_service, pagination):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
+@respx.mock
+def test_stream_keeps_json_legal_separator(streaming_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    record = {"id": "ID-1", "name": f"a{separator}b"}
+    respx.get(STREAM_URL).mock(return_value=records_response([record]))
+
+    result = list(streaming_service.stream())
+
+    assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+def test_stream_skips_keepalive_uncounted(streaming_service):
+    # The declared count is the two records: a keep-alive between them must not be one.
+    lines = ['{"id": "ID-1"}', KEEPALIVE_LINE, '{"id": "ID-2"}']
+    respx.get(STREAM_URL).mock(return_value=lines_response(lines, item_count="2"))
+
+    result = list(streaming_service.stream())
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+def test_stream_rejects_a_non_record_line(streaming_service, line, decode_error):
+    # Decoded and failed here, rather than skipped into a count mismatch reported at the end.
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    records = streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
+        next(records)
+
+
+@respx.mock
+def test_stream_accepts_a_leading_byte_order_mark(streaming_service):
+    respx.get(STREAM_URL).mock(return_value=bom_prefixed_response())
+
+    result = list(streaming_service.stream())
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
 
 
 @respx.mock
@@ -245,6 +353,7 @@ def test_stream_progress_events(streaming_service, recording_progress: Recording
     list(streaming_service.stream(progress=recording_progress))  # act
 
     assert recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -270,6 +379,47 @@ async def test_async_stream_yields_models(async_streaming_service):
 
     assert [order.id for order in result] == ["ID-1", "ID-2"]
     assert all(isinstance(order, DummyModel) for order in result)
+
+
+@pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
+@respx.mock
+async def test_async_stream_keeps_json_legal_separator(async_streaming_service, separator):
+    expected_pair = ("ID-1", f"a{separator}b")
+    record = {"id": "ID-1", "name": f"a{separator}b"}
+    respx.get(STREAM_URL).mock(return_value=records_response([record]))
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [(order.id, order.name) for order in result] == [expected_pair]
+
+
+@respx.mock
+async def test_async_stream_skips_keepalive_uncounted(async_streaming_service):
+    lines = ['{"id": "ID-1"}', KEEPALIVE_LINE, '{"id": "ID-2"}']
+    respx.get(STREAM_URL).mock(return_value=lines_response(lines, item_count="2"))
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
+@respx.mock
+async def test_async_stream_rejects_non_record_line(async_streaming_service, line, decode_error):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    records = async_streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=decode_error):
+        await anext(records)
+
+
+@respx.mock
+async def test_async_stream_accepts_a_leading_bom(async_streaming_service):
+    respx.get(STREAM_URL).mock(return_value=bom_prefixed_response())
+
+    result = [order async for order in async_streaming_service.stream()]
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
 
 
 @pytest.mark.parametrize(("pagination", "expected_query"), PAGINATION_CASES)
@@ -304,6 +454,7 @@ async def test_async_stream_progress_events(
     [order async for order in async_streaming_service.stream(progress=async_recording_progress)]
 
     assert async_recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -403,12 +554,38 @@ async def test_async_stream_raises_negotiation_error(
         await anext(iterator)
 
 
-def test_declared_item_count_reads_header():
-    headers = {"MPT-Item-Count": "0"}
+@pytest.mark.parametrize(
+    ("header_value", "expected_count"),
+    [
+        pytest.param("0", 0, id="zero"),
+        pytest.param("10", 10, id="plain digits"),
+        pytest.param("007", 7, id="leading zeros"),
+    ],
+)
+def test_declared_item_count_reads_header(header_value, expected_count):
+    headers = {"MPT-Item-Count": header_value}
 
     result = declared_item_count(headers, "/api/v1/orders")
 
-    assert result == 0
+    assert result == expected_count
+
+
+# Forms a bare int() would accept but the header contract does not: each would silently
+# normalize a garbled count and surface later as a bogus mismatch instead of failing here.
+@pytest.mark.parametrize(
+    "header_value",
+    [
+        pytest.param("1_0", id="underscore literal"),
+        pytest.param("+5", id="leading plus"),
+        pytest.param(" 5 ", id="surrounding whitespace"),
+        pytest.param("\N{ARABIC-INDIC DIGIT FIVE}", id="non-ascii digits"),
+    ],
+)
+def test_declared_item_count_rejects_int_forms(header_value):
+    headers = {"MPT-Item-Count": header_value}
+
+    with pytest.raises(MPTStreamingItemCountMissingError, match=COUNT_MISSING_MATCH):
+        declared_item_count(headers, "/api/v1/orders")
 
 
 @pytest.mark.parametrize(
@@ -448,6 +625,16 @@ def test_stream_raises_on_unusable_item_count(streaming_service, headers):
         next(iterator)
 
 
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+def test_stream_rejects_non_object_record_line(streaming_service, line):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=NON_OBJECT_LINE_MATCH):
+        list(iterator)
+
+
 @respx.mock
 def test_stream_early_close_skips_verification(streaming_service):
     respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
@@ -467,7 +654,11 @@ def test_incomplete_skips_progress_completed(streaming_service, recording_progre
     with pytest.raises(MPTStreamingIncompleteError):
         list(iterator)
 
-    assert recording_progress.events == [("item_processed",), ("item_processed",)]
+    assert recording_progress.events == [
+        ("set_total_items", 3),
+        ("item_processed",),
+        ("item_processed",),
+    ]
 
 
 @respx.mock
@@ -489,6 +680,16 @@ async def test_async_stream_raises_on_unusable_count(async_streaming_service, he
         await anext(iterator)
 
 
+@pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
+@respx.mock
+async def test_async_stream_rejects_non_object_line(async_streaming_service, line):
+    respx.get(STREAM_URL).mock(return_value=raw_line_response(line))
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(json.JSONDecodeError, match=NON_OBJECT_LINE_MATCH):
+        [entry async for entry in iterator]
+
+
 @respx.mock
 async def test_async_early_close_skips_verification(async_streaming_service):
     respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
@@ -498,6 +699,50 @@ async def test_async_early_close_skips_verification(async_streaming_service):
     await iterator.aclose()  # act
 
     assert first.id == "ID-1"
+
+
+@respx.mock
+def test_stream_break_releases_response(streaming_service):
+    # The sync twin needs no explicit close: dropping the suspended generator closes it.
+    body = ClosableByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    for record in streaming_service.stream():  # act
+        consumed.append(record.id)
+        break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_async_stream_aclosing_releases_body(async_streaming_service):
+    # An abandoned async generator is finalized by the event loop's async-generator hook,
+    # so only an explicit close releases the response at a point the caller controls.
+    body = ClosableAsyncByteStream(JSONL_BODY)
+    respx.get(STREAM_URL).mock(return_value=closable_stream_response(body))
+    consumed = []
+
+    async with aclosing(async_streaming_service.stream()) as records:  # act
+        async for record in records:
+            consumed.append(record.id)
+            break
+
+    assert (consumed, body.closed) == (["ID-1"], True)
+
+
+@respx.mock
+async def test_aclosing_skips_progress_completed(
+    async_streaming_service,
+    async_recording_progress,
+):
+    respx.get(STREAM_URL).mock(return_value=streaming_response(item_count="3"))
+    records = async_streaming_service.stream(progress=async_recording_progress)
+
+    async with aclosing(records):  # act
+        await anext(records)
+
+    assert async_recording_progress.events == [("set_total_items", 3), ("item_processed",)]
 
 
 def over_cap_problem():
@@ -539,6 +784,42 @@ async def test_async_stream_raises_when_over_cap(async_streaming_service):
         await anext(iterator)
 
     assert raised.value.payload == over_cap_problem()
+
+
+# Every status the streaming reader maps to a typed error reads its diagnostic off the
+# error body, so the mapping has to survive an error body of any shape.
+STREAMING_ERROR_STATUSES = (
+    pytest.param(httpx.codes.NOT_IMPLEMENTED, MPTStreamingNotSupportedError, id="501"),
+    pytest.param(httpx.codes.NOT_ACCEPTABLE, MPTStreamingNotAcceptableError, id="406"),
+    pytest.param(httpx.codes.REQUEST_ENTITY_TOO_LARGE, MPTStreamingOverCapError, id="413"),
+)
+
+
+@pytest.mark.parametrize("body", ERROR_BODY_SHAPES)
+@pytest.mark.parametrize(("status_code", "error_class"), STREAMING_ERROR_STATUSES)
+@respx.mock
+def test_stream_maps_status_per_body_shape(streaming_service, status_code, error_class, body):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(status_code, content=body))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(error_class) as raised:
+        next(iterator)
+
+    assert raised.value.status_code == status_code
+
+
+@pytest.mark.parametrize("body", ERROR_BODY_SHAPES)
+@respx.mock
+async def test_async_stream_over_cap_body_shape(async_streaming_service, body):
+    respx.get(STREAM_URL).mock(
+        return_value=httpx.Response(httpx.codes.REQUEST_ENTITY_TOO_LARGE, content=body)
+    )
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingOverCapError) as raised:
+        await anext(iterator)
+
+    assert raised.value.status_code == httpx.codes.REQUEST_ENTITY_TOO_LARGE
 
 
 @respx.mock
@@ -608,6 +889,7 @@ def test_stream_progress_counts_stub(
     list(nullable_fields_service.stream(progress=recording_progress))  # act
 
     assert recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
@@ -622,6 +904,58 @@ def test_stream_keeps_deleted_status_as_a_record(nullable_fields_service, delete
 
     assert isinstance(result[0], NullableFieldsModel)
     assert result[0].status == "DELETED"
+
+
+@respx.mock
+def test_stream_skip_deleted_yields_only_models(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+
+    result = list(nullable_fields_service.stream(skip_deleted=True))
+
+    assert [entry.id for entry in result] == ["ID-1"]
+    assert all(isinstance(entry, NullableFieldsModel) for entry in result)
+
+
+@respx.mock
+def test_stream_skip_deleted_all_stubs_empty(nullable_fields_service, deletion_stub_record):
+    respx.get(STREAM_URL).mock(return_value=records_response([deletion_stub_record]))
+
+    result = list(nullable_fields_service.stream(skip_deleted=True))
+
+    assert result == []
+
+
+@respx.mock
+def test_stream_skip_deleted_reports_progress(
+    nullable_fields_service, deletion_stub_record, recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = nullable_fields_service.stream(progress=recording_progress, skip_deleted=True)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_skip_deleted_verifies_count(
+    nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = nullable_fields_service.stream(skip_deleted=True)
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        list(iterator)
 
 
 @respx.mock
@@ -662,10 +996,57 @@ async def test_async_stream_progress_counts_stub(
     [entry async for entry in stream]  # act
 
     assert async_recording_progress.events == [
+        ("set_total_items", 2),
         ("item_processed",),
         ("item_processed",),
         ("completed",),
     ]
+
+
+@respx.mock
+async def test_async_stream_skip_deleted_only_models(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream(skip_deleted=True)
+
+    result = [entry async for entry in stream]
+
+    assert [entry.id for entry in result] == ["ID-1"]
+    assert all(isinstance(entry, NullableFieldsModel) for entry in result)
+
+
+@respx.mock
+async def test_async_skip_deleted_reports_progress(
+    async_nullable_fields_service, deletion_stub_record, async_recording_progress, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records))
+    stream = async_nullable_fields_service.stream(
+        progress=async_recording_progress, skip_deleted=True
+    )
+
+    [entry async for entry in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+async def test_async_skip_deleted_verifies_count(
+    async_nullable_fields_service, deletion_stub_record, data_record
+):
+    records = [data_record, deletion_stub_record]
+    respx.get(STREAM_URL).mock(return_value=records_response(records, item_count="3"))
+    iterator = async_nullable_fields_service.stream(skip_deleted=True)
+
+    with pytest.raises(MPTStreamingIncompleteError, match=COUNT_MISMATCH_MATCH):
+        [entry async for entry in iterator]
 
 
 def test_deserialize_stream_record_builds_a_model(data_record):
@@ -698,3 +1079,446 @@ def test_deserialize_keeps_unmarked_records(record):
     result = deserialize_stream_record(dict(record), NullableFieldsModel)
 
     assert isinstance(result, NullableFieldsModel)
+
+
+def envelope_body(records, total=None):
+    # $meta first, as a streaming response sends it: the total is then known before the
+    # first record is read.
+    if total is None:
+        return json.dumps({"data": records})
+    return json.dumps({"$meta": {"pagination": {"total": total}}, "data": records})
+
+
+def envelope_response(body, item_count=None):
+    declared = "2" if item_count is None else item_count
+    return httpx.Response(
+        httpx.codes.OK,
+        content=body,
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": declared},
+    )
+
+
+def chunked_envelope_response(chunks, sent, item_count="2"):
+    def factory():
+        for chunk in chunks:
+            sent.append(chunk)
+            yield chunk.encode()
+
+    return httpx.Response(
+        httpx.codes.OK,
+        content=factory(),
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": item_count},
+    )
+
+
+@respx.mock
+def test_stream_envelope_sends_json_accept_header(streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    route = respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+
+    list(streaming_service.stream(stream_format=StreamFormat.JSON))  # act
+
+    request = route.calls[0].request
+    assert request.headers["Accept"] == "application/json"
+
+
+def formatted_response(body, content_type, item_count="2"):
+    return httpx.Response(
+        httpx.codes.OK,
+        content=body,
+        headers={
+            "MPT-Streaming": "true",
+            "MPT-Item-Count": item_count,
+            "Content-Type": content_type,
+        },
+    )
+
+
+@respx.mock
+def test_stream_rejects_a_format_mismatch(streaming_service, data_record):
+    # A server that echoes streaming mode but ignores Accept would hand the body to the
+    # parser of the other format; the declared Content-Type rejects it before the body
+    # is consumed.
+    body = envelope_body([data_record], total=1)
+    respx.get(STREAM_URL).mock(return_value=formatted_response(body, "application/json", "1"))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(MPTStreamingFormatMismatchError, match="application/json"):
+        list(iterator)
+
+
+@respx.mock
+def test_stream_accepts_matching_content_type(streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    content_type = "application/json; charset=utf-8"
+    respx.get(STREAM_URL).mock(return_value=formatted_response(body, content_type, "1"))
+
+    result = list(streaming_service.stream(stream_format=StreamFormat.JSON))
+
+    assert [order.id for order in result] == ["ID-1"]
+
+
+@respx.mock
+async def test_async_stream_rejects_format_mismatch(async_streaming_service):
+    jsonl_body = '{"id": "ID-1"}'
+    respx.get(STREAM_URL).mock(
+        return_value=formatted_response(jsonl_body, "application/jsonl", "1")
+    )
+    iterator = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(MPTStreamingFormatMismatchError, match="application/jsonl"):
+        [entry async for entry in iterator]
+
+
+@respx.mock
+def test_stream_accepts_the_format_as_a_string(streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    route = respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+
+    result = list(streaming_service.stream(stream_format="application/json"))
+
+    request = route.calls[0].request
+    assert (result[0].id, request.headers["Accept"]) == ("ID-1", "application/json")
+
+
+def test_stream_rejects_an_unknown_format(streaming_service):
+    iterator = streaming_service.stream(stream_format="text/csv")
+
+    with pytest.raises(ValueError, match="text/csv"):
+        next(iterator)
+
+
+@respx.mock
+def test_stream_envelope_yields_models(streaming_service, data_record, second_data_record):
+    body = envelope_body([data_record, second_data_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+
+    result = list(streaming_service.stream(stream_format=StreamFormat.JSON))
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@respx.mock
+def test_stream_envelope_yields_before_the_end(streaming_service, data_record, second_data_record):
+    sent = []
+    records = [json.dumps(data_record), json.dumps(second_data_record)]
+    chunks = ['{"data": [', records[0], ",", records[1], "]}"]
+    respx.get(STREAM_URL).mock(return_value=chunked_envelope_response(chunks, sent))
+    iterator = streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    first = next(iterator)  # act
+
+    assert (first.id, sent[-1]) == ("ID-1", records[0])
+
+
+@respx.mock
+def test_stream_envelope_takes_keepalives(streaming_service, data_record, second_data_record):
+    tokens = [
+        "{",
+        '"data"',
+        ":",
+        "[",
+        json.dumps(data_record),
+        ",",
+        json.dumps(second_data_record),
+        "]",
+        "}",
+    ]
+    body = KEEPALIVE.join(tokens)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+
+    result = list(streaming_service.stream(stream_format=StreamFormat.JSON))
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@respx.mock
+def test_stream_envelope_reports_the_total(
+    streaming_service, recording_progress, data_record, second_data_record
+):
+    body = envelope_body([data_record, second_data_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = streaming_service.stream(stream_format=StreamFormat.JSON, progress=recording_progress)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_envelope_total_not_reforwarded(
+    streaming_service, recording_progress, data_record, second_data_record
+):
+    # A divergent envelope total proves the point: the receiver's total comes from
+    # the authoritative MPT-Item-Count header, and the envelope's copy is ignored.
+    body = envelope_body([data_record, second_data_record], total=7)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = streaming_service.stream(stream_format=StreamFormat.JSON, progress=recording_progress)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_jsonl_empty_reports_total(streaming_service, recording_progress):
+    respx.get(STREAM_URL).mock(return_value=records_response([], item_count="0"))
+    stream = streaming_service.stream(stream_format=StreamFormat.JSONL, progress=recording_progress)
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 0),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_envelope_yields_deletion_stub(
+    nullable_fields_service, data_record, deletion_stub_record
+):
+    body = envelope_body([data_record, deletion_stub_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+
+    result = list(nullable_fields_service.stream(stream_format=StreamFormat.JSON))
+
+    assert [isinstance(entry, DeletionStub) for entry in result] == [False, True]
+
+
+@respx.mock
+def test_stream_envelope_keeps_deleted_status(nullable_fields_service, deleted_status_record):
+    body = envelope_body([deleted_status_record], total=1)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+
+    result = list(nullable_fields_service.stream(stream_format=StreamFormat.JSON))
+
+    assert isinstance(result[0], NullableFieldsModel)
+
+
+@respx.mock
+def test_stream_envelope_skip_deleted_total(
+    nullable_fields_service, data_record, deletion_stub_record, recording_progress
+):
+    body = envelope_body([data_record, deletion_stub_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = nullable_fields_service.stream(
+        stream_format=StreamFormat.JSON, progress=recording_progress, skip_deleted=True
+    )
+
+    list(stream)  # act
+
+    assert recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+def test_stream_envelope_raises_on_count_mismatch(streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="3"))
+    iterator = streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(MPTStreamingIncompleteError, match="declared 3, received 1"):
+        list(iterator)
+
+
+@respx.mock
+def test_stream_envelope_raises_when_unclosed(streaming_service, data_record, second_data_record):
+    body = f'{{"data": [{json.dumps(data_record)},{json.dumps(second_data_record)}'
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    iterator = streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(json.JSONDecodeError, match="Unterminated JSON envelope"):
+        list(iterator)
+
+
+@respx.mock
+def test_stream_envelope_raises_on_bad_record(streaming_service, data_record):
+    # A complete body with a syntax error must surface the decode error, not be counted
+    # short and misreported as an incomplete export.
+    body = f'{{"data": [{json.dumps(data_record)}, {{"id" "ID-2"}}]}}'
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    iterator = streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(json.JSONDecodeError, match="Expecting ':' delimiter"):
+        list(iterator)
+
+
+def truncated_envelope_response(record):
+    def factory():
+        yield f'{{"data": [{json.dumps(record)},'.encode()
+        raise httpx.RemoteProtocolError("peer closed connection without a complete body")
+
+    return httpx.Response(
+        httpx.codes.OK,
+        content=factory(),
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "2"},
+    )
+
+
+@respx.mock
+def test_stream_envelope_truncation_stays_typed(streaming_service, data_record):
+    # The transport guard wraps body consumption whatever reads it, so tokenizing the
+    # envelope must surface truncation as the same typed error the line reader gets.
+    respx.get(STREAM_URL).mock(return_value=truncated_envelope_response(data_record))
+    iterator = streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(MPTStreamingTruncatedError):
+        list(iterator)
+
+
+@respx.mock
+async def test_async_stream_envelope_yields_models(
+    async_streaming_service, data_record, second_data_record
+):
+    body = envelope_body([data_record, second_data_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    result = [order async for order in stream]
+
+    assert [order.id for order in result] == ["ID-1", "ID-2"]
+
+
+@respx.mock
+async def test_async_stream_envelope_sends_accept(async_streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    route = respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+    stream = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    [order async for order in stream]  # act
+
+    request = route.calls[0].request
+    assert request.headers["Accept"] == "application/json"
+
+
+@respx.mock
+async def test_async_stream_accepts_format_string(async_streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    route = respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="1"))
+    stream = async_streaming_service.stream(stream_format="application/json")
+
+    result = [order async for order in stream]
+
+    request = route.calls[0].request
+    assert (result[0].id, request.headers["Accept"]) == ("ID-1", "application/json")
+
+
+async def test_async_stream_rejects_unknown_format(async_streaming_service):
+    iterator = async_streaming_service.stream(stream_format="text/csv")
+
+    with pytest.raises(ValueError, match="text/csv"):
+        await anext(iterator)
+
+
+@respx.mock
+async def test_async_stream_envelope_reports_total(
+    async_streaming_service, async_recording_progress, data_record, second_data_record
+):
+    body = envelope_body([data_record, second_data_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = async_streaming_service.stream(
+        stream_format=StreamFormat.JSON, progress=async_recording_progress
+    )
+
+    [order async for order in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+async def test_async_envelope_total_not_reforwarded(
+    async_streaming_service, async_recording_progress, data_record, second_data_record
+):
+    # A divergent envelope total is ignored, as in the sync counterpart.
+    body = envelope_body([data_record, second_data_record], total=7)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = async_streaming_service.stream(
+        stream_format=StreamFormat.JSON, progress=async_recording_progress
+    )
+
+    [order async for order in stream]  # act
+
+    assert async_recording_progress.events == [
+        ("set_total_items", 2),
+        ("item_processed",),
+        ("item_processed",),
+        ("completed",),
+    ]
+
+
+@respx.mock
+async def test_async_stream_envelope_yields_stub(
+    async_nullable_fields_service, data_record, deletion_stub_record
+):
+    body = envelope_body([data_record, deletion_stub_record], total=2)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    stream = async_nullable_fields_service.stream(stream_format=StreamFormat.JSON)
+
+    result = [entry async for entry in stream]
+
+    assert [isinstance(entry, DeletionStub) for entry in result] == [False, True]
+
+
+@respx.mock
+async def test_async_stream_envelope_short_raises(async_streaming_service, data_record):
+    body = envelope_body([data_record], total=1)
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body, item_count="3"))
+    iterator = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(MPTStreamingIncompleteError, match="declared 3, received 1"):
+        [entry async for entry in iterator]
+
+
+@respx.mock
+async def test_async_stream_envelope_unclosed_raises(
+    async_streaming_service, data_record, second_data_record
+):
+    body = f'{{"data": [{json.dumps(data_record)},{json.dumps(second_data_record)}'
+    respx.get(STREAM_URL).mock(return_value=envelope_response(body))
+    iterator = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(json.JSONDecodeError, match="Unterminated JSON envelope"):
+        [entry async for entry in iterator]
+
+
+def async_truncated_envelope_response(record):
+    async def factory():
+        yield f'{{"data": [{json.dumps(record)},'.encode()
+        await asyncio.sleep(0)
+        raise httpx.RemoteProtocolError("peer closed connection without a complete body")
+
+    return httpx.Response(
+        httpx.codes.OK,
+        content=factory(),
+        headers={"MPT-Streaming": "true", "MPT-Item-Count": "2"},
+    )
+
+
+@respx.mock
+async def test_async_stream_envelope_truncation_typed(async_streaming_service, data_record):
+    # The transport guard wraps body consumption whatever reads it; the async envelope
+    # reader consumes through aiter_text, so it must surface the same typed error.
+    respx.get(STREAM_URL).mock(return_value=async_truncated_envelope_response(data_record))
+    iterator = async_streaming_service.stream(stream_format=StreamFormat.JSON)
+
+    with pytest.raises(MPTStreamingTruncatedError):
+        [entry async for entry in iterator]

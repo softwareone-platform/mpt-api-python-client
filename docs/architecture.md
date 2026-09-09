@@ -33,6 +33,8 @@ mpt_api_client/
 │   ├── query_state.py       # Query parameter accumulation
 │   ├── client_utils.py      # URL validation helpers
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
+│   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
+│   ├── jsonl_lines.py       # JSONL record-line splitting (newlines only)
 │   └── mixins/              # Composable HTTP operation mixins
 │       ├── collection_mixin.py
 │       ├── create_mixin.py
@@ -125,7 +127,7 @@ Services are composed using **mixins** that add HTTP operations:
 
 | Mixin | Operation |
 |---|---|
-| `CollectionMixin` | `iterate()` — paginated listing |
+| `CollectionMixin` | `iterate()` — paginated listing; inherits `StreamingMixin`, adding `stream()` |
 | `GetMixin` | `get(id)` — retrieve single resource |
 | `CreateMixin` | `create(data)` — create resource |
 | `UpdateMixin` | `update(id, data)` — update resource |
@@ -136,30 +138,61 @@ Services are composed using **mixins** that add HTTP operations:
 | `EnableMixin` / `DisableMixin` | enable/disable actions |
 | `QueryableMixin` | `filter()`, `order_by()`, `select()` — RQL query chaining |
 | `StreamingMixin` | `stream()` — streaming read mode, opted into with the `MPT-Streaming` header |
-| `StreamJSONLMixin` | `stream()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
+| `StreamJSONLMixin` | `stream_jsonl()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
 | `FilesOperationsMixin` | combined file create / update / download operations |
 
 The table lists the synchronous names; every mixin except `QueryableMixin`, which is shared,
 has an `Async*` counterpart for composition with `AsyncService`.
 
-The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) and the
-endpoint-specific JSONL contract (`StreamJSONLMixin` / `AsyncStreamJSONLMixin`) both expose
-`stream()`, and a service must compose only one of them. The platform mixins request the
+The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) exposes
+`stream()`, while the endpoint-specific JSONL contract (`StreamJSONLMixin` /
+`AsyncStreamJSONLMixin`) exposes `stream_jsonl()`, so a service can expose both without
+the method names colliding. `CollectionMixin` and `AsyncCollectionMixin` inherit the
+platform streaming mixins, so every collection service carries `stream()` without
+composing them explicitly; do not list `StreamingMixin` before a collection service's
+`CollectionMixin` base, because that ordering cannot produce a consistent MRO. The platform mixins request the
 streaming read mode on a regular collection route and require the API to echo the
 `MPT-Streaming` response header, raising `MPTStreamingNotEnabledError` when it does not. They
 also verify completeness: the declared `MPT-Item-Count` is read before the first record —
 raising `MPTStreamingItemCountMissingError` when absent or unusable — and compared with the
-yielded record count once the body is fully consumed, raising `MPTStreamingIncompleteError`
-on mismatch. An iterator closed early skips the comparison. A record marked with
+count of raw records consumed once the body is fully consumed, raising
+`MPTStreamingIncompleteError` on mismatch. The count is taken before `skip_deleted` withholds
+any stub, so a filtered stub still counts. An iterator closed early skips the comparison. A record marked with
 `$meta.deleted` is a deletion stub rather than data, and is yielded as a `DeletionStub`
 instead of a model, so it still counts towards the declared item count but cannot be ingested
-as a record. The JSONL mixins serve endpoints that assign `application/jsonl` their own
+as a record. A consumer that ingests no deletions can opt out with the keyword-only
+`skip_deleted=True`, which withholds stubs at yield time — after the completeness bookkeeping
+and the progress tick — and is typed with overloads, so the call narrows to an iterator of
+models. The JSONL mixins serve endpoints that assign `application/jsonl` their own
 meaning outside streaming mode.
+
+`stream()` picks its wire format per request with the `stream_format` argument, which sets
+`Accept`: `StreamFormat.JSONL` (the default) reads one record object per line, and
+`StreamFormat.JSON` reads the standard `{$meta, data}` envelope. Both formats are parsed as the
+body arrives and yield the same objects through the same record path, so deletion stubs, the
+completeness check and the streaming error types are format-independent, and a body the client
+cannot parse raises `json.JSONDecodeError` in either format. Record lines are split by
+`http/jsonl_lines.py`; see [the streaming guide](streaming.md#choosing-the-wire-format) for
+the record-boundary contract. The one asymmetry is a body cut
+short mid-record: the line-delimited reader hits it as a malformed last line and raises the
+decode error, while the envelope reader loses the record and reports the more precise
+`MPTStreamingIncompleteError`. The envelope is tokenized by
+`JSONEnvelopeParser` (`http/json_envelope_parser.py`), which emits a record when its closing
+brace arrives rather than when the body completes, consumes the insignificant whitespace a
+streaming response emits between tokens as keep-alives, and surfaces `$meta.pagination.total`
+as a parse event that `stream()` deliberately does not forward to a `progress` receiver —
+the receiver's total comes from the `MPT-Item-Count` header; see
+[the streaming guide](streaming.md#reporting-progress) for the consumer-facing progress
+contract. The parser reads the record array out of the service's `_collection_key`, the
+member the paged path deserializes, so streamed and paged responses read the same envelope.
 
 `StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
 unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
 the server owns pagination-input validation, and the inputs it accepts in streaming mode are
 still changing.
+
+See [the streaming guide](streaming.md) for the consumer-facing contract these mixins
+implement.
 
 Example service definition:
 
@@ -192,8 +225,8 @@ Transport-level settings (`base_url`, `timeout`, `retries`) are grouped in the
 constructors as `transport=TransportSettings(...)`. Timeouts resolve per connection phase:
 `connect_timeout`, `read_timeout`, `write_timeout` and `pool_timeout` each fall back to
 `timeout`, and the dataclass exposes two profiles — `request_timeout` for regular requests and
-`stream_timeout`, which substitutes the longer `stream_read_timeout` for the read phase because
-a streamed response defers its first byte until the server has built the result set. To resolve the base URL from the
+`stream_timeout`, whose read phase is the larger of `stream_read_timeout` and `read_timeout`,
+because a streamed response defers its first byte until the server has built the result set. To resolve the base URL from the
 `MPT_API_BASE_URL` environment variable instead, pass `EnvTransportSettings()` (the
 default when no transport is given); the clients themselves never read the environment.
 The resolved settings are handed to the authentication provider through
@@ -230,6 +263,7 @@ Client, transport, and API errors use the following hierarchy:
 MPTError
 ├── MPTStreamingError                       # base for streaming-mode failures
 │   ├── MPTStreamingNotEnabledError         # response did not confirm streaming mode
+│   ├── MPTStreamingFormatMismatchError     # Content-Type differed from the requested format
 │   ├── MPTStreamingItemCountMissingError   # no usable MPT-Item-Count declared
 │   ├── MPTStreamingIncompleteError         # record count differed from MPT-Item-Count
 │   └── MPTStreamingTruncatedError          # body ended before the HTTP message completed
@@ -240,3 +274,12 @@ MPTError
     ├── MPTStreamingNotAcceptableError      # 406, format unsupported (also MPTStreamingError)
     └── MPTStreamingOverCapError            # 413, export over cap (also MPTStreamingError)
 ```
+
+An error response becomes an `MPTAPIError` only when its body parses as a JSON object, whose
+members populate `title`, `detail`, `trace_id` and `errors`. httpx detects the JSON encoding
+before parsing, so an object arriving as UTF-16 or UTF-32 keeps its members too — tolerance of
+a non-conforming body, not an endorsement of it: RFC 8259 requires UTF-8 for interchange.
+Any other body — valid JSON that is not an object (a bare string, `null`, an array), a body
+that is not JSON at all, or bytes that do not decode — carries no members to read and becomes
+a plain `MPTHttpError` whose `body` holds the raw diagnostic, with undecodable bytes replaced.
+Either way `status_code` is preserved, so a caller can always branch on the status.

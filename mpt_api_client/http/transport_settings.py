@@ -30,11 +30,12 @@ class TransportSettings:
         write_timeout: Timeout for a single socket write. Falls back to ``timeout``.
         pool_timeout: Timeout for acquiring a connection from the pool. Falls back to
             ``timeout``.
-        stream_read_timeout: Read timeout applied to streaming requests instead of the
-            regular read timeout. Streaming responses commit their status only after
-            the server has built the result set, so the first byte can be deferred far
-            longer than a regular response; the default covers that wait with headroom.
-            The effective streaming read timeout is never lower than ``read_timeout``.
+        stream_read_timeout: Read timeout for streaming requests. A streaming request's
+            read phase is bounded by the larger of this and ``read_timeout``, so raising
+            ``read_timeout`` raises the streaming budget too. Streaming responses commit
+            their status only after the server has built the result set, so the first byte
+            can be deferred far longer than a regular response; the default covers that
+            wait with headroom.
         retries: Retry policy; either the number of retries for failed requests or a
             fully configured ``httpx_retries.Retry`` instance used as is. Normalized
             to a ``Retry`` instance at construction time.

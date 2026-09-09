@@ -1,6 +1,9 @@
 from collections.abc import AsyncIterator, Iterator
 
-from mpt_api_client.http.mixins.queryable_mixin import QueryableMixin
+from mpt_api_client.http.mixins.streaming_mixin import (
+    AsyncStreamingMixin,
+    StreamingMixin,
+)
 from mpt_api_client.http.types import Response
 from mpt_api_client.models import AsyncProgress, ModelCollection, Progress
 from mpt_api_client.models import Model as BaseModel
@@ -12,8 +15,12 @@ def _pagination_total[Model: BaseModel](items_collection: ModelCollection[Model]
     return 0
 
 
-class CollectionMixin[Model: BaseModel](QueryableMixin):
-    """Mixin providing collection functionality."""
+class CollectionMixin[Model: BaseModel](StreamingMixin[Model]):
+    """Mixin providing collection functionality.
+
+    Inherits `StreamingMixin`, so every collection service also exposes the
+    streaming-mode `stream()` read without composing that mixin explicitly.
+    """
 
     def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:
         """Fetch one page of resources.
@@ -100,8 +107,12 @@ class CollectionMixin[Model: BaseModel](QueryableMixin):
         return self.http_client.request("get", self.build_path(pagination_params))  # type: ignore[attr-defined, no-any-return]
 
 
-class AsyncCollectionMixin[Model: BaseModel](QueryableMixin):
-    """Async mixin providing collection functionality."""
+class AsyncCollectionMixin[Model: BaseModel](AsyncStreamingMixin[Model]):
+    """Async mixin providing collection functionality.
+
+    Inherits `AsyncStreamingMixin`, so every async collection service also exposes
+    the streaming-mode `stream()` read without composing that mixin explicitly.
+    """
 
     async def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:
         """Fetch one page of resources.

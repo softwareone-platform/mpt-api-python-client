@@ -8,7 +8,7 @@ This guide covers the structure, tooling, and conventions for the unit test suit
 ```text
 tests/
 └── unit/
-    ├── conftest.py      # Shared fixtures (http_client, async_http_client, DummyModel)
+    ├── conftest.py      # Shared fixtures and parametrize cases (http_client, DummyModel)
     ├── http/            # Transport, services, and mixins
     ├── models/          # Model, Collection, and Meta behavior
     ├── resources/       # Resource-domain services (accounts, catalog, …)

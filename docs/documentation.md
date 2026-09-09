@@ -13,13 +13,20 @@ This file documents repository-specific documentation rules only.
 - Topic-specific documentation must live in the matching file under [`docs/`](.).
 - Shared engineering rules must be linked from `mpt-extension-skills` instead of copied into this repository.
 - When changing setup, usage, testing, or architecture behavior, update the corresponding document in the same change.
-- `docs/usage.md` is the source of truth for installation, configuration, examples, and supported command entry points.
+- `docs/usage.md` is the source of truth for installation, configuration, general usage
+  examples, and supported command entry points.
+- `docs/streaming.md` is the source of truth for the streaming read mode: when to stream,
+  the wire formats, consumer obligations, timeouts, and streaming examples. `docs/usage.md`
+  carries only a short orientation and links here, so streaming guidance must not be
+  duplicated there.
 
 ## Current Documentation Map
 
 - [`README.md`](../README.md): overview, quick start, and documentation map
 - [`AGENTS.md`](../AGENTS.md): AI-agent entry point and reading order
 - [`usage.md`](usage.md): install, configure, and use the client
+- [`streaming.md`](streaming.md): streaming read mode — access pattern, wire formats,
+  consumer obligations, and timeouts
 - [`architecture.md`](architecture.md): repository structure and major abstractions
 - [`local-development.md`](local-development.md): Docker-only local setup and execution
 - [`testing.md`](testing.md): repository-specific testing strategy

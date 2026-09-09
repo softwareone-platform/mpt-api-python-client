@@ -14,6 +14,59 @@ from mpt_api_client.http.mixins import (
 )
 from tests.unit.conftest import DummyModel
 
+# Characters that are legal unescaped inside a JSON string value, yet a naive reader takes
+# for structure: str.splitlines() splits a line at the first three, and a bare str.strip()
+# swallows a line made of any but U+FEFF. A JSONL reader must keep every one of them inline.
+JSON_LEGAL_IN_STRING = (
+    pytest.param("\u2028", id="U+2028 line separator"),
+    pytest.param("\u2029", id="U+2029 paragraph separator"),
+    pytest.param("\u0085", id="U+0085 next line"),
+    pytest.param("\u00a0", id="U+00A0 no-break space"),
+    pytest.param("\u3000", id="U+3000 ideographic space"),
+    pytest.param("\ufeff", id="U+FEFF zero width no-break space"),
+)
+
+# The same characters outside a string value, where JSON grants them nothing: a line made of
+# one is a malformed record rather than a keep-alive, and a record padded with one fails to
+# decode. U+001E carries the json-seq record separator - another media type's framing.
+NON_JSON_WHITESPACE = (
+    pytest.param("\u00a0", id="U+00A0 no-break space"),
+    pytest.param("\u2028", id="U+2028 line separator"),
+    pytest.param("\u001e", id="U+001E record separator"),
+)
+
+# Characters that end no record here, so two records they sit between form one unparseable
+# line: a carriage return counts only as part of a CRLF, and U+001E frames json-seq instead.
+RECORD_NON_SEPARATORS = (
+    pytest.param("\r", id="lone CR"),
+    pytest.param("\u001e", id="U+001E record separator"),
+)
+
+# Every shape of line a reader must decode and fail on rather than wave through as a
+# keep-alive, with the decoder message it earns: whitespace only Python calls whitespace, a
+# record padded outside its value, and two records joined by something that frames none here.
+UNDECODABLE_LINES = (
+    pytest.param("\u00a0", "Expecting value", id="U+00A0 alone"),
+    pytest.param("\u2028", "Expecting value", id="U+2028 alone"),
+    pytest.param("\u001e", "Expecting value", id="U+001E alone"),
+    pytest.param('{"id": "ID-1"}\u00a0', "Extra data", id="record padded with U+00A0"),
+    pytest.param('{"id": "ID-1"}\r{"id": "ID-2"}', "Extra data", id="records framed by a CR"),
+    pytest.param('{"id": "ID-1"}\u001e{"id": "ID-2"}', "Extra data", id="records framed by U+001E"),
+)
+
+# A line of nothing but JSON's own insignificant whitespace: the keep-alive both readers
+# skip without counting it against the declared item count.
+KEEPALIVE_LINE = " \t"
+
+# Valid JSON that is not a record object: every JSONL reader rejects it with the typed
+# decode error instead of failing arbitrarily \u2014 or passing silently \u2014 downstream.
+NON_OBJECT_LINE_CASES = (
+    pytest.param("42", id="number"),
+    pytest.param("null", id="null"),
+    pytest.param('"x"', id="string"),
+    pytest.param("[1]", id="array"),
+)
+
 
 class DummyService(
     ManagedResourceMixin[DummyModel],
@@ -63,6 +116,42 @@ class AsyncRecordingProgress:
 
     async def completed(self):
         self.events.append(("completed",))
+
+
+class ClosableByteStream(httpx.SyncByteStream):
+    """Response body recording whether the consumer closed it.
+
+    A body backed by bytes reports itself closed from the start, so releasing the
+    response is only observable on a stream that records the close itself.
+    """
+
+    def __init__(self, body):
+        self._body = body
+        self.closed = False
+
+    def __iter__(self):
+        yield self._body
+
+    def close(self):
+        self.closed = True
+
+
+class ClosableAsyncByteStream(httpx.AsyncByteStream):
+    """Async response body recording whether the consumer closed it.
+
+    A body backed by bytes reports itself closed from the start, so releasing the
+    response is only observable on a stream that records the close itself.
+    """
+
+    def __init__(self, body):
+        self._body = body
+        self.closed = False
+
+    async def __aiter__(self):
+        yield self._body
+
+    async def aclose(self):
+        self.closed = True
 
 
 @pytest.fixture

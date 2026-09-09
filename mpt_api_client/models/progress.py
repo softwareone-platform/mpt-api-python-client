@@ -11,13 +11,23 @@ DEFAULT_PROGRESS_BATCH_SIZE = 100
 
 @runtime_checkable
 class Progress(Protocol):
-    """Receives iteration progress events from sync `iterate()` and `stream()`."""
+    """Receives progress events from sync `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def set_total_items(self, total: int) -> None:
-        """Called after each page fetch with the current pagination total."""
+        """Called with the declared total whenever the response reports one.
+
+        `iterate()` calls it after each page fetch; `stream()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record, in
+        both wire formats.
+        """
 
     def item_processed(self) -> None:
-        """Called once per record, just before it is yielded."""
+        """Called once per consumed record, before it is yielded.
+
+        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        stub, because the declared item count includes stubs: a report fed only the
+        records the caller sees would never reach that total.
+        """
 
     def completed(self) -> None:
         """Called once when iteration finishes normally."""
@@ -25,13 +35,23 @@ class Progress(Protocol):
 
 @runtime_checkable
 class AsyncProgress(Protocol):
-    """Receives iteration progress events from async `iterate()` and `stream()`."""
+    """Receives progress events from async `iterate()`, `stream()` and `stream_jsonl()`."""
 
     async def set_total_items(self, total: int) -> None:
-        """Called after each page fetch with the current pagination total."""
+        """Called with the declared total whenever the response reports one.
+
+        `iterate()` calls it after each page fetch; `stream()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record, in
+        both wire formats.
+        """
 
     async def item_processed(self) -> None:
-        """Called once per record, just before it is yielded."""
+        """Called once per consumed record, before it is yielded.
+
+        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        stub, because the declared item count includes stubs: a report fed only the
+        records the caller sees would never reach that total.
+        """
 
     async def completed(self) -> None:
         """Called once when iteration finishes normally."""
@@ -77,7 +97,7 @@ class ProgressReport(abc.ABC):
         self._count = 0
 
     def set_total_items(self, total: int) -> None:
-        """Store the current pagination total."""
+        """Store the current declared item total."""
         self._total = total
 
     def item_processed(self) -> None:
@@ -96,7 +116,7 @@ class ProgressReport(abc.ABC):
 
         Args:
             current: Number of records processed so far.
-            total: Current pagination total, 0 when unknown.
+            total: Current declared item total, 0 when unknown.
             completed: True only for the final report emitted by `completed()`.
         """
 
@@ -149,7 +169,7 @@ class BatchProgressReport(ProgressReport, abc.ABC):
 
 
 class AsyncProgressReport(abc.ABC):
-    """Async counterpart of `ProgressReport` for async `iterate()` and `stream()`."""
+    """Async counterpart of `ProgressReport` for `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def __init__(self) -> None:
         """Initialize the count and total to zero."""
@@ -157,7 +177,7 @@ class AsyncProgressReport(abc.ABC):
         self._count = 0
 
     async def set_total_items(self, total: int) -> None:
-        """Store the current pagination total."""
+        """Store the current declared item total."""
         self._total = total
 
     async def item_processed(self) -> None:
@@ -176,7 +196,7 @@ class AsyncProgressReport(abc.ABC):
 
         Args:
             current: Number of records processed so far.
-            total: Current pagination total, 0 when unknown.
+            total: Current declared item total, 0 when unknown.
             completed: True only for the final report emitted by `completed()`.
         """
 
@@ -255,7 +275,7 @@ class ConsoleProgress(TimeProgressReport):
 
 
 class AsyncConsoleProgress(AsyncTimeProgressReport):
-    """Async counterpart of `ConsoleProgress` for async `iterate()` and `stream()`."""
+    """Async counterpart of `ConsoleProgress` for `iterate()`, `stream()` and `stream_jsonl()`."""
 
     def __init__(
         self,

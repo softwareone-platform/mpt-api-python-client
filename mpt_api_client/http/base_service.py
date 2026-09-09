@@ -1,5 +1,6 @@
 from typing import Any
 
+from mpt_api_client.constants import MPT_DATA_FIELD
 from mpt_api_client.http.query_state import QueryState
 from mpt_api_client.http.types import Response
 from mpt_api_client.models import Meta, ModelCollection
@@ -11,7 +12,7 @@ class ServiceBase[Client, Model: BaseModel]:  # noqa: WPS214
 
     _endpoint: str
     _model_class: type[Model]
-    _collection_key = "data"
+    _collection_key = MPT_DATA_FIELD
 
     def __init__(
         self,

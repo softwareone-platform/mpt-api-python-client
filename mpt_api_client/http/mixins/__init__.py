@@ -32,6 +32,7 @@ from mpt_api_client.http.mixins.stream_jsonl_mixin import (
 )
 from mpt_api_client.http.mixins.streaming_mixin import (
     AsyncStreamingMixin,
+    StreamFormat,
     StreamingMixin,
 )
 from mpt_api_client.http.mixins.update_file_mixin import (
@@ -68,6 +69,7 @@ __all__ = [  # noqa: WPS410
     "ManagedResourceMixin",
     "ModifiableResourceMixin",
     "QueryableMixin",
+    "StreamFormat",
     "StreamJSONLMixin",
     "StreamingMixin",
     "UpdateFileMixin",

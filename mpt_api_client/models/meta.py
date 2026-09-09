@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Self
 
-from mpt_api_client.constants import MPT_META_FIELD
+from mpt_api_client.constants import MPT_META_FIELD, MPT_PAGINATION_FIELD
 from mpt_api_client.http.types import Response
 
 
@@ -52,6 +52,6 @@ class Meta:
 
         return cls(
             ignored=meta_data.get("ignored", []),
-            pagination=Pagination(**meta_data.get("pagination", {})),
+            pagination=Pagination(**meta_data.get(MPT_PAGINATION_FIELD, {})),
             response=response,
         )
