@@ -126,9 +126,11 @@ The buffering paths, for contrast:
 The flat profile is a property of the loop, not of the method. Keep the per-record work
 inside the `for` body — write, upsert, aggregate — and the whole export stays bounded.
 
-The bound above is asserted, not assumed: `tests/e2e/streaming/` exports 20,000 records from
-the live API in each wire format and fails if the allocation peak scales with the record
-count, or if buffering the same export stops being markedly more expensive than streaming it.
+The bound above is asserted, not assumed: `tests/e2e/streaming/` fails if the allocation peak
+scales with the record count, or if buffering the same export stops being markedly more
+expensive than streaming it. Proving that costs four live reads per wire format — a
+500-record warmup, a 2,000-record export, a 20,000-record export, and that same export
+buffered — so 42,500 records per format and roughly 170,000 across the sync and async pair.
 See [Streaming Memory Coverage](e2e_tests.md#streaming-memory-coverage).
 
 ## What A Stream Is
