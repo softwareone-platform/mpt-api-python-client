@@ -556,7 +556,10 @@ Split them by what a caller can do about them:
 `MPTStreamingNotEnabledError` and `MPTStreamingItemCountMissingError` are raised before the
 body is read, so no partial data is consumed. The three HTTP-backed types also subclass
 `MPTHttpError`, so existing `except MPTHttpError` handlers keep working and `status_code`
-remains available. Any other HTTP status passes through unchanged.
+remains available. Any other HTTP status passes through unchanged. The status decides the
+type, so the mapping holds whatever the error body turns out to be: an endpoint that answers
+`406` or `413` with a bare JSON string instead of `problem+json` still raises the typed error,
+only without the members `payload` would otherwise carry.
 
 A body the client cannot parse is not a streaming error at all but a `json.JSONDecodeError` —
 a malformed or non-object record line in the line-delimited format, a malformed or

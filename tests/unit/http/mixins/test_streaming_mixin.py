@@ -26,7 +26,7 @@ from mpt_api_client.http.mixins.streaming_mixin import (
     deserialize_stream_record,
 )
 from mpt_api_client.models import DeletionStub, Model
-from tests.unit.conftest import API_URL, DummyModel
+from tests.unit.conftest import API_URL, ERROR_BODY_SHAPES, DummyModel
 from tests.unit.http.conftest import (
     JSON_LEGAL_IN_STRING,
     KEEPALIVE_LINE,
@@ -784,6 +784,42 @@ async def test_async_stream_raises_when_over_cap(async_streaming_service):
         await anext(iterator)
 
     assert raised.value.payload == over_cap_problem()
+
+
+# Every status the streaming reader maps to a typed error reads its diagnostic off the
+# error body, so the mapping has to survive an error body of any shape.
+STREAMING_ERROR_STATUSES = (
+    pytest.param(httpx.codes.NOT_IMPLEMENTED, MPTStreamingNotSupportedError, id="501"),
+    pytest.param(httpx.codes.NOT_ACCEPTABLE, MPTStreamingNotAcceptableError, id="406"),
+    pytest.param(httpx.codes.REQUEST_ENTITY_TOO_LARGE, MPTStreamingOverCapError, id="413"),
+)
+
+
+@pytest.mark.parametrize("body", ERROR_BODY_SHAPES)
+@pytest.mark.parametrize(("status_code", "error_class"), STREAMING_ERROR_STATUSES)
+@respx.mock
+def test_stream_maps_status_per_body_shape(streaming_service, status_code, error_class, body):
+    respx.get(STREAM_URL).mock(return_value=httpx.Response(status_code, content=body))
+    iterator = streaming_service.stream()
+
+    with pytest.raises(error_class) as raised:
+        next(iterator)
+
+    assert raised.value.status_code == status_code
+
+
+@pytest.mark.parametrize("body", ERROR_BODY_SHAPES)
+@respx.mock
+async def test_async_stream_over_cap_body_shape(async_streaming_service, body):
+    respx.get(STREAM_URL).mock(
+        return_value=httpx.Response(httpx.codes.REQUEST_ENTITY_TOO_LARGE, content=body)
+    )
+    iterator = async_streaming_service.stream()
+
+    with pytest.raises(MPTStreamingOverCapError) as raised:
+        await anext(iterator)
+
+    assert raised.value.status_code == httpx.codes.REQUEST_ENTITY_TOO_LARGE
 
 
 @respx.mock
