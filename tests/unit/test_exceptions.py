@@ -4,6 +4,7 @@ import pytest
 from httpx import HTTPStatusError, Request, Response, codes
 
 from mpt_api_client import exceptions
+from tests.unit.conftest import NON_OBJECT_ERROR_BODIES
 
 
 @pytest.mark.parametrize(
@@ -143,6 +144,50 @@ def test_transform_http_status_exception_api():
     assert isinstance(result, exceptions.MPTAPIError)
     assert result.status_code == 400
     assert result.payload == payload
+
+
+def error_status_exception(body):
+    response = Response(
+        status_code=codes.BAD_REQUEST,
+        request=Request("GET", "http://test"),
+        content=body,
+    )
+    return HTTPStatusError("Bad Request", request=response.request, response=response)
+
+
+@pytest.mark.parametrize("body", NON_OBJECT_ERROR_BODIES)
+def test_transform_non_object_error_body(body):
+    exc = error_status_exception(body)
+
+    result = exceptions.transform_http_status_exception(exc)
+
+    # An exact type check, because MPTAPIError would satisfy an isinstance check here.
+    assert (type(result), result.status_code) == (exceptions.MPTHttpError, codes.BAD_REQUEST)
+
+
+# httpx detects the JSON encoding, so these keep their members rather than degrading to a
+# bare MPTHttpError. Encoding without an endianness suffix prepends the BOM it detects on.
+@pytest.mark.parametrize(
+    "encoding",
+    [
+        pytest.param("utf-16", id="utf-16"),
+        pytest.param("utf-32", id="utf-32"),
+    ],
+)
+def test_transform_detected_json_encoding(encoding):
+    exc = error_status_exception('{"detail": "Invalid filter expression"}'.encode(encoding))
+
+    result = exceptions.transform_http_status_exception(exc)
+
+    assert (type(result), result.detail) == (exceptions.MPTAPIError, "Invalid filter expression")
+
+
+def test_transform_undecodable_error_body():
+    exc = error_status_exception("Grenzwert\u00a0erreicht".encode("iso-8859-1"))
+
+    result = exceptions.transform_http_status_exception(exc)
+
+    assert result.body == "Grenzwert\ufffderreicht"
 
 
 def test_transform_http_status_exception():

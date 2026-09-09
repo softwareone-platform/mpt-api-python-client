@@ -274,8 +274,12 @@ class MPTAPIError(MPTHttpError):
 def transform_http_status_exception(http_status_exception: HTTPStatusError) -> MPTError:
     """Transforms httpx exceptions into MPT exceptions.
 
-    Attempts to extract API related information from HTTPStatusError and
-    raises MPTAPIError or MPTHttpError.
+    An error body that parses as a JSON object carries the API error members, so it
+    becomes an ``MPTAPIError``; httpx detects the JSON encoding, so a UTF-16 or UTF-32
+    object is read as readily as a UTF-8 one and keeps its members. Every other body — a
+    bare JSON string, ``null``, a JSON array, a body that is not JSON, or bytes that do
+    not decode — carries no members to read, so it becomes an ``MPTHttpError`` that still
+    preserves the status code.
 
     Args:
         http_status_exception: Native httpx exception
@@ -283,16 +287,23 @@ def transform_http_status_exception(http_status_exception: HTTPStatusError) -> M
     Returns:
         MPTError
     """
+    response = http_status_exception.response
     try:
+        payload = response.json()
+    except ValueError:
+        # JSONDecodeError for a body that is not JSON, UnicodeDecodeError for one whose
+        # bytes do not decode; both are ValueError and both mean there are no members.
+        payload = None
+    if isinstance(payload, dict):
         return MPTAPIError(
-            status_code=http_status_exception.response.status_code,
+            status_code=response.status_code,
             message=http_status_exception.args[0],
-            payload=http_status_exception.response.json(),
+            payload=payload,
         )
-    except json.JSONDecodeError:
-        body = http_status_exception.response.content.decode()
-        return MPTHttpError(
-            status_code=http_status_exception.response.status_code,
-            message=http_status_exception.args[0],
-            body=body,
-        )
+    return MPTHttpError(
+        status_code=response.status_code,
+        message=http_status_exception.args[0],
+        # The body is a human-readable diagnostic rather than record data, so replacing
+        # undecodable bytes keeps the status reachable instead of raising over them.
+        body=response.content.decode(errors="replace"),
+    )
