@@ -1,4 +1,6 @@
+from mpt_api_client.constants import APPLICATION_X_NDJSON
 from mpt_api_client.http import AsyncService, Service
+from mpt_api_client.http.file_utils import declare_content_type
 from mpt_api_client.http.mixins import (
     AsyncCollectionMixin,
     AsyncManagedResourceMixin,
@@ -52,6 +54,9 @@ class JournalsService(
     ) -> Journal | ModelCollection[Journal]:  # noqa: WPS110
         """Upload journal file.
 
+        The journal file holds JSON Lines. Unless the caller declares a content type of its
+        own, the file is sent as ``application/x-ndjson``, which the endpoint accepts.
+
         Args:
             journal_id: Journal ID.
             file: journal file.
@@ -60,24 +65,22 @@ class JournalsService(
             Journal | ModelCollection[Journal]: The uploaded resource as a single Journal
             instance, or a ModelCollection[Journal] when the response contains multiple records.
         """
-        files = {}
+        files: dict[str, FileTypes] = {}
 
         if file:
-            files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
-            files[self._upload_data_key] = journal_id  # UNUSED type: ignore
+            files[self._upload_file_key] = declare_content_type(file, APPLICATION_X_NDJSON)
+            files[self._upload_data_key] = (None, journal_id)
 
         path = join_url_path(self.path, journal_id, "upload")
 
-        response = self.http_client.request(  # UNUSED type: ignore[attr-defined]
+        response = self.http_client.request(
             "post",
-            path,  # UNUSED type: ignore[attr-defined]
+            path,
             files=files,
             force_multipart=True,
         )
 
-        return self._model_class.from_response(
-            response
-        )  # UNUSED type: ignore[attr-defined, no-any-return]
+        return self._model_class.from_response(response)
 
     def attachments(self, journal_id: str) -> JournalAttachmentsService:
         """Return journal attachments service."""
@@ -113,6 +116,9 @@ class AsyncJournalsService(
     ) -> Journal | ModelCollection[Journal]:  # noqa: WPS110
         """Upload journal file.
 
+        The journal file holds JSON Lines. Unless the caller declares a content type of its
+        own, the file is sent as ``application/x-ndjson``, which the endpoint accepts.
+
         Args:
             journal_id: Journal ID.
             file: journal file.
@@ -121,24 +127,22 @@ class AsyncJournalsService(
             Journal | ModelCollection[Journal]: The uploaded resource as a single Journal
             instance, or a ModelCollection[Journal] when the response contains multiple records.
         """
-        files = {}
+        files: dict[str, FileTypes] = {}
 
         if file:
-            files[self._upload_file_key] = file  # UNUSED type: ignore[attr-defined]
-            files[self._upload_data_key] = journal_id  # UNUSED type: ignore
+            files[self._upload_file_key] = declare_content_type(file, APPLICATION_X_NDJSON)
+            files[self._upload_data_key] = (None, journal_id)
 
         path = join_url_path(self.path, journal_id, "upload")
 
-        response = await self.http_client.request(  # UNUSED type: ignore[attr-defined]
+        response = await self.http_client.request(
             "post",
-            path,  # UNUSED type: ignore[attr-defined]
+            path,
             files=files,
             force_multipart=True,
         )
 
-        return self._model_class.from_response(
-            response
-        )  # UNUSED type: ignore[attr-defined, no-any-return]
+        return self._model_class.from_response(response)
 
     def attachments(self, journal_id: str) -> AsyncJournalAttachmentsService:
         """Return journal attachments service."""
