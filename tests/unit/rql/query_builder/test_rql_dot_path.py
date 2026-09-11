@@ -13,16 +13,16 @@ def test_dotted_path_comp(op):
 
     # BL
     test = Test()
-    today = dt.datetime.now(dt.UTC).date()
-    now = dt.datetime.now(dt.UTC)
-    today_expected_result = f"{op}(asset.id,'{today.isoformat()}')"
-    now_expected_result = f"{op}(asset.id,'{now.isoformat()}')"
+    day = dt.date(2026, 9, 8)
+    moment = dt.datetime(2026, 9, 8, 10, 30, 15, tzinfo=dt.UTC)
+    day_expected_result = f"{op}(asset.id,'2026-09-08')"
+    moment_expected_result = f"{op}(asset.id,'2026-09-08T10%3A30%3A15%2B00%3A00')"
 
     with pytest.raises(TypeError):
         getattr(RQLQuery().asset.id, op)(test)
 
-    assert str(getattr(RQLQuery().asset.id, op)(today)) == today_expected_result
-    assert str(getattr(RQLQuery().asset.id, op)(now)) == now_expected_result
+    assert str(getattr(RQLQuery().asset.id, op)(day)) == day_expected_result
+    assert str(getattr(RQLQuery().asset.id, op)(moment)) == moment_expected_result
 
 
 @pytest.mark.parametrize("op", ["eq", "ne", "gt", "ge", "le", "lt"])
