@@ -32,6 +32,7 @@ mpt_api_client/
 │   ├── async_service.py     # AsyncService — async service (extends ServiceBase)
 │   ├── query_state.py       # Query parameter accumulation
 │   ├── client_utils.py      # URL validation helpers
+│   ├── file_utils.py        # Upload content-type declaration
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
 │   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
 │   ├── jsonl_lines.py       # JSONL record-line splitting (newlines only)
@@ -218,7 +219,9 @@ class ProductsService(
 - base URL resolution
 - retry transport (configurable)
 - error transformation into `MPTHttpError` / `MPTAPIError`
-- multipart file upload support
+- multipart file upload support; `http/file_utils.py` declares a content type for an
+  upload whose extension `mimetypes` does not recognise, such as the `.jsonl` a billing
+  journal carries, which httpx would otherwise send as `application/octet-stream`
 
 Transport-level settings (`base_url`, `timeout`, `retries`) are grouped in the
 `TransportSettings` dataclass (`http/transport_settings.py`), passed to the client

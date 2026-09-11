@@ -7,7 +7,7 @@ pytestmark = [pytest.mark.flaky]
 
 
 @pytest.fixture
-def created_billing_journal(mpt_vendor, billing_journal_factory):
+def created_billing_journal(mpt_vendor, billing_journal_factory, delete_billing_journal):
     new_billing_journal_request_data = billing_journal_factory(
         name="E2E Created Billing Journal",
     )
@@ -16,10 +16,7 @@ def created_billing_journal(mpt_vendor, billing_journal_factory):
 
     yield created_billing_journal
 
-    try:
-        mpt_vendor.billing.journals.delete(created_billing_journal.id)
-    except MPTAPIError as error:
-        print(f"TEARDOWN - Unable to delete billing journal: {error.title}")  # noqa: WPS421
+    delete_billing_journal(mpt_vendor.billing.journals, created_billing_journal.id)
 
 
 @pytest.fixture

@@ -1,5 +1,6 @@
 APPLICATION_JSON = "application/json"
 APPLICATION_JSONL = "application/jsonl"
+APPLICATION_X_NDJSON = "application/x-ndjson"
 MIMETYPE_EXCEL_XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 MPT_STREAMING_HEADER = "MPT-Streaming"
