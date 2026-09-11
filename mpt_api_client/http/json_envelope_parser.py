@@ -19,8 +19,9 @@ from mpt_api_client.models.model import Resource
 # An already-decoded number is extended by a later chunk only through a fraction or an
 # exponent that is still plausible: the continuation character either ends the buffered
 # body or is followed by what the number grammar requires next. `12.` cut at the boundary
-# may still grow a fraction; `12.}` never can.
-NUMBER_CONTINUATION = re.compile(r"\.(\d|$)|[eE][+-]?(\d|$)")
+# may still grow a fraction; `12.}` never can. `re.ASCII` and `\Z` are load-bearing: a
+# Unicode-aware `\d` would admit U+0665, and `$` also matches before a trailing newline.
+NUMBER_CONTINUATION = re.compile(r"\.(\d|\Z)|[eE][+-]?(\d|\Z)", re.ASCII)
 
 # Every character a JSON value may begin with: a string, object, array, number, or one of
 # the literals — including the non-standard Infinity/-Infinity/NaN constants the decoder
