@@ -46,8 +46,11 @@ class Meta:
     Attributes:
         response: Response the metadata was read from.
         pagination: Pagination block of the response.
-        omitted: Names of the requested fields the API did not return, as the API
-            reports them under ``$meta.omitted``.
+        omitted: Names of the resource fields this response left out, as the API
+            reports them under ``$meta.omitted``. The API omits its heavier fields
+            by default and lists them here; selecting one with ``select()`` returns
+            it and drops it from this list. A field name the resource does not have
+            is ignored rather than reported.
     """
 
     response: Response

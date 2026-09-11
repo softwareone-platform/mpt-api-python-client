@@ -81,3 +81,16 @@ async def test_delete_item(async_mpt_vendor, async_created_item):
 
     with pytest.raises(MPTAPIError):
         await service.get(async_created_item.id)
+
+
+# The API omits its heavier fields by default and names them in $meta.omitted.
+async def test_meta_omitted_lists_fields_left_out(async_mpt_ops):
+    result = await async_mpt_ops.catalog.items.fetch_page(limit=1)
+
+    assert "audit" in result.meta.omitted
+
+
+async def test_meta_omitted_drops_a_selected_field(async_mpt_ops):
+    result = await async_mpt_ops.catalog.items.select("audit").fetch_page(limit=1)
+
+    assert "audit" not in result.meta.omitted
