@@ -81,3 +81,16 @@ def test_delete_item(mpt_vendor, created_item):
 
     with pytest.raises(MPTAPIError):
         service.get(created_item.id)
+
+
+# The API omits its heavier fields by default and names them in $meta.omitted.
+def test_meta_omitted_lists_fields_left_out(mpt_ops):
+    result = mpt_ops.catalog.items.fetch_page(limit=1)
+
+    assert "audit" in result.meta.omitted
+
+
+def test_meta_omitted_drops_a_selected_field(mpt_ops):
+    result = mpt_ops.catalog.items.select("audit").fetch_page(limit=1)
+
+    assert "audit" not in result.meta.omitted

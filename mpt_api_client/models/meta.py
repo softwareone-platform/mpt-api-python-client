@@ -2,7 +2,11 @@ import math
 from dataclasses import dataclass, field
 from typing import Self
 
-from mpt_api_client.constants import MPT_META_FIELD, MPT_PAGINATION_FIELD
+from mpt_api_client.constants import (
+    MPT_META_FIELD,
+    MPT_META_OMITTED_FIELD,
+    MPT_PAGINATION_FIELD,
+)
 from mpt_api_client.http.types import Response
 
 
@@ -37,11 +41,21 @@ class Pagination:
 
 @dataclass
 class Meta:
-    """Provides meta-information about the pagination, ignored fields and the response."""
+    """Provides meta-information about the pagination, omitted fields and the response.
+
+    Attributes:
+        response: Response the metadata was read from.
+        pagination: Pagination block of the response.
+        omitted: Names of the resource fields this response left out, as the API
+            reports them under ``$meta.omitted``. The API omits its heavier fields
+            by default and lists them here; selecting one with ``select()`` returns
+            it and drops it from this list. A field name the resource does not have
+            is ignored rather than reported.
+    """
 
     response: Response
     pagination: Pagination = field(default_factory=Pagination)
-    ignored: list[str] = field(default_factory=list)
+    omitted: list[str] = field(default_factory=list)
 
     @classmethod
     def from_response(cls, response: Response) -> Self:
@@ -51,7 +65,7 @@ class Meta:
             raise TypeError("Response $meta must be a dict.")
 
         return cls(
-            ignored=meta_data.get("ignored", []),
+            omitted=meta_data.get(MPT_META_OMITTED_FIELD, []),
             pagination=Pagination(**meta_data.get(MPT_PAGINATION_FIELD, {})),
             response=response,
         )
