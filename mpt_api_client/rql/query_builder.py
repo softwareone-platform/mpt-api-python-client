@@ -4,10 +4,17 @@ from decimal import Decimal
 from typing import Any, Self, override
 
 from mpt_api_client.rql import constants
+from mpt_api_client.rql.encoding import (
+    rql_encode_field,
+    rql_encode_value,
+    rql_quote_value,
+)
 
 Numeric = int | float | Decimal
 
 QueryValue = str | bool | dt.date | dt.datetime | Numeric
+
+OPERATOR_LITERALS = frozenset((constants.NULL_EXPR, constants.EMPTY_EXPR))
 
 
 class RQLProperty:
@@ -18,12 +25,14 @@ class RQLProperty:
 
     @override
     def __str__(self) -> str:
-        return self.value
+        if self.value in OPERATOR_LITERALS:
+            return self.value
+        return rql_encode_field(self.value)
 
     @classmethod
     def null(cls) -> Self:
         """Returns `null()` operator."""
-        return cls("null()")
+        return cls(constants.NULL_EXPR)
 
 
 class RQLValue:
@@ -35,16 +44,15 @@ class RQLValue:
     @override
     def __str__(self) -> str:
         if isinstance(self.value, str):
-            return f"'{self.value}'"
+            return rql_quote_value(self.value)
         if isinstance(self.value, bool):
             return "true" if self.value else "false"
 
         if isinstance(self.value, dt.date | dt.datetime):
-            str_time = self.value.isoformat()
-            return f"'{str_time}'"
+            return rql_quote_value(self.value.isoformat())
 
         # Matching: if isinstance(value, int | float | Decimal):
-        return str(self.value)
+        return rql_encode_value(str(self.value))
 
 
 def parse_kwargs(query_dict: dict[str, QueryValue | Iterable[QueryValue]]) -> list[str]:  # noqa: WPS231
@@ -73,17 +81,17 @@ def parse_kwargs(query_dict: dict[str, QueryValue | Iterable[QueryValue]]) -> li
     for lookup, value in query_dict.items():
         tokens = lookup.split("__")
         if len(tokens) == 1:
-            field = tokens[0]
+            field = rql_encode_field(tokens[0])
             str_value = rql_encode("eq", value)
             query.append(f"eq({field},{str_value})")
             continue
         op = tokens[-1]
         if op not in constants.KEYWORDS:
-            field = ".".join(tokens)
+            field = rql_encode_field(".".join(tokens))
             str_value = rql_encode("eq", value)
             query.append(f"eq({field},{str_value})")
             continue
-        field = ".".join(tokens[:-1])
+        field = rql_encode_field(".".join(tokens[:-1]))
         if op in constants.COMP or op in constants.SEARCH:
             str_value = rql_encode(op, value)
             query.append(f"{op}({field},{str_value})")
@@ -94,7 +102,7 @@ def parse_kwargs(query_dict: dict[str, QueryValue | Iterable[QueryValue]]) -> li
             continue
 
         cmpop = "eq" if value is True else "ne"
-        expr = "null()" if op == constants.NULL else "empty()"
+        expr = constants.NULL_EXPR if op == constants.NULL else constants.EMPTY_EXPR
         query.append(f"{cmpop}({field},{expr})")
 
     return query
@@ -508,22 +516,25 @@ class RQLQuery:
 
     def _bin(self, op: str, value: QueryValue) -> Self:
         self._field = ".".join(self._path)
+        field = rql_encode_field(self._field)
         value = rql_encode(op, value)
-        self.expr = f"{op}({self._field},{value})"
+        self.expr = f"{op}({field},{value})"
         return self
 
     def _list(self, op: str, value_list: list[QueryValue]) -> Self:
         self._field = ".".join(self._path)
+        field = rql_encode_field(self._field)
         encoded_list = rql_encode(op, value_list)
-        self.expr = f"{op}({self._field},({encoded_list}))"
+        self.expr = f"{op}({field},({encoded_list}))"
         return self
 
     def _bool(self, expr: str, value: QueryValue) -> Self:
         self._field = ".".join(self._path)
+        field = rql_encode_field(self._field)
         if bool(value) is False:
-            self.expr = f"ne({self._field},{expr}())"
+            self.expr = f"ne({field},{expr}())"
             return self
-        self.expr = f"eq({self._field},{expr}())"
+        self.expr = f"eq({field},{expr}())"
         return self
 
     def _to_string(self, query: "RQLQuery") -> str:
@@ -571,7 +582,7 @@ class RQLQuery:
         return self
 
     def _nest(self, op: str, collection_name: str) -> Self:
-        name = collection_name.replace("__", ".")
+        name = rql_encode_field(collection_name.replace("__", "."))
         collection = self._to_string(self) if self.children else self.expr or ""
         expr = f"{op}({name},{collection})"
         return self.new(expr=expr)
