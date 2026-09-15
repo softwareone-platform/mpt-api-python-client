@@ -9,6 +9,15 @@ on:
 permissions:
   contents: read
 
+# Pushes to the same branch supersede each other: the E2E step takes hours, and
+# two of them must never run against the shared TEST environment at once. A new
+# merge cancels the run still in flight for that branch, so only the newest
+# commit is ever being tested. Grouped per ref so main and release/* are
+# independent.
+concurrency:
+  group: push-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
 
@@ -38,6 +47,14 @@ jobs:
     - name: "Run validation & test"
       run: make check-all
 
+    # Scan before E2E: E2E is long-running and can consume the whole job
+    # timeout, which would otherwise skip the scan on every push.
+    - name: "Run SonarCloud Scan"
+      uses: SonarSource/sonarqube-scan-action@v8.2.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: "Run E2E test"
       continue-on-error: true
       run: make e2e args="--reportportal --rp-launch=$RP_LAUNCH --rp-api-key=$RP_API_KEY --rp-endpoint=$RP_ENDPOINT -o rp_launch_attributes=\"$RP_LAUNCH_ATTR\""
@@ -46,12 +63,6 @@ jobs:
         RP_ENDPOINT: ${{ secrets.RP_ENDPOINT }}
         RP_API_KEY: ${{ secrets.RP_API_KEY }}
         RP_LAUNCH_ATTR: ref:${{ github.ref }} event_name:${{ github.event_name }}
-
-    - name: "Run SonarCloud Scan"
-      uses: SonarSource/sonarqube-scan-action@v8.2.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: "Stop containers"
       if: always()

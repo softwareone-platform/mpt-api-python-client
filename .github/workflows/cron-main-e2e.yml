@@ -4,6 +4,13 @@ on:
     - cron: '0 8 * * 1,4'
   workflow_dispatch: {}
 
+# Only one scheduled/dispatched E2E run at a time: a manual dispatch supersedes
+# a scheduled run still in flight rather than adding a second hours-long run
+# against the shared TEST environment.
+concurrency:
+  group: cron-main-e2e
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
