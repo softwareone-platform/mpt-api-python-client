@@ -21,7 +21,8 @@ Run all test commands through Docker-based make targets:
 ```bash
 make test
 make test args="tests/unit/http"
-make test args="tests/e2e"
+make e2e
+make e2e path=tests/e2e/catalog
 make check
 make check-all
 ```
