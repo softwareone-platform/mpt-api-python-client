@@ -60,6 +60,7 @@
   "commerce.subscription.product.item.id": "ITM-1767-7355-0001",
   "commerce.user.id": "USR-4303-2348",
   "exchange.currency.id": "CUR-6831",
+  "exchange.pair.id": "FXP-0000-0001",
   "helpdesk.channel.id": "CHL-5064-0262-3671",
   "helpdesk.chat.id": "CHT-5064-0262-3671",
   "notifications.batch.attachment.id": "ATT-7183-1965-7758",
