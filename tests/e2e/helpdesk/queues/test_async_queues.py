@@ -28,12 +28,12 @@ def test_create_queue(async_created_queue):
 
 
 async def test_update_queue(async_mpt_ops, async_created_queue, short_uuid):
-    update_data = {"description": f"e2e update {short_uuid}"}
+    update_data = {"longDescription": f"e2e update {short_uuid}"}
 
     result = await async_mpt_ops.helpdesk.queues.update(async_created_queue.id, update_data)
 
     assert isinstance(result, Queue)
-    assert result.to_dict().get("description") == update_data["description"]
+    assert result.to_dict().get("longDescription") == update_data["longDescription"]
 
 
 async def test_activate_queue(async_mpt_ops, async_created_disabled_queue):

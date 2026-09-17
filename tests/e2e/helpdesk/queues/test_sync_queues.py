@@ -28,12 +28,12 @@ def test_create_queue(created_queue):
 
 
 def test_update_queue(mpt_ops, created_queue, short_uuid):
-    update_data = {"description": f"e2e update {short_uuid}"}
+    update_data = {"longDescription": f"e2e update {short_uuid}"}
 
     result = mpt_ops.helpdesk.queues.update(created_queue.id, update_data)
 
     assert isinstance(result, Queue)
-    assert result.to_dict().get("description") == update_data["description"]
+    assert result.to_dict().get("longDescription") == update_data["longDescription"]
 
 
 def test_activate_queue(mpt_ops, created_disabled_queue):
