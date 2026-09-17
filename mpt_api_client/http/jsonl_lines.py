@@ -9,7 +9,7 @@ def is_keep_alive_line(line: str) -> bool:
     """Report whether a body line is an ignorable keep-alive rather than a record.
 
     Only JSON's own insignificant whitespace makes a line ignorable, the same four
-    characters the envelope parser consumes between tokens. A bare ``str.strip()`` would
+    characters a JSON reader consumes between tokens. A bare ``str.strip()`` would
     apply Python's far wider Unicode whitespace set and silently discard a line of
     U+00A0, U+2028, U+0085 or U+001E — none of which is whitespace outside a JSON string
     value, and U+001E a record separator of ``application/json-seq``, a different media
@@ -28,7 +28,7 @@ def is_keep_alive_line(line: str) -> bool:
 def decode_record_line(line: str) -> dict[str, Any]:
     """Decode one record line of a JSONL body.
 
-    The decoded value is required to be an object, the same guard the envelope parser
+    The decoded value is required to be an object, the same guard the paged read path
     applies to its record elements: a valid-JSON line holding anything else fails here
     as the documented decode error instead of an arbitrary error — or a silently empty
     record — out of whatever consumes the value next.
@@ -105,9 +105,9 @@ def iter_jsonl_lines(text_chunks: Iterable[str]) -> Iterator[str]:
     `decode_record_line` to reject.
 
     A single byte order mark opening the body is dropped before the first line is
-    formed, and only there: the sibling read paths tolerate exactly that one — the
-    paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
-    it at envelope start — so a BOM-emitting producer parses the same in every format.
+    formed, and only there: the paged read path tolerates exactly that one, because
+    ``json.loads`` on raw bytes strips it, so a BOM-emitting producer parses the same
+    on either path.
 
     Args:
         text_chunks: Decoded text chunks of the body, in arrival order.
@@ -152,9 +152,9 @@ async def aiter_jsonl_lines(text_chunks: AsyncIterable[str]) -> AsyncIterator[st
     `decode_record_line` to reject.
 
     A single byte order mark opening the body is dropped before the first line is
-    formed, and only there: the sibling read paths tolerate exactly that one — the
-    paged path's ``json.loads`` on raw bytes strips it, and the envelope parser skips
-    it at envelope start — so a BOM-emitting producer parses the same in every format.
+    formed, and only there: the paged read path tolerates exactly that one, because
+    ``json.loads`` on raw bytes strips it, so a BOM-emitting producer parses the same
+    on either path.
 
     Args:
         text_chunks: Decoded text chunks of the body, in arrival order.

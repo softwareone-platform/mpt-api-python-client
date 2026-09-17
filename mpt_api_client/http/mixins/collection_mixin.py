@@ -19,7 +19,7 @@ class CollectionMixin[Model: BaseModel](StreamingMixin[Model]):
     """Mixin providing collection functionality.
 
     Inherits `StreamingMixin`, so every collection service also exposes the
-    streaming-mode `stream()` read without composing that mixin explicitly.
+    streaming-mode `stream_snapshot()` read without composing that mixin explicitly.
     """
 
     def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:
@@ -111,7 +111,7 @@ class AsyncCollectionMixin[Model: BaseModel](AsyncStreamingMixin[Model]):
     """Async mixin providing collection functionality.
 
     Inherits `AsyncStreamingMixin`, so every async collection service also exposes
-    the streaming-mode `stream()` read without composing that mixin explicitly.
+    the streaming-mode `stream_snapshot()` read without composing that mixin explicitly.
     """
 
     async def fetch_page(self, limit: int = 100, offset: int = 0) -> ModelCollection[Model]:

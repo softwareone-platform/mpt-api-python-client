@@ -135,7 +135,7 @@ class HTTPClient:
     ) -> Iterator[HTTPXResponse]:
         """Open a streaming response without buffering its body fully in memory.
 
-        Prefer the service-level ``stream()`` and ``stream_jsonl()``, which parse the
+        Prefer the service-level ``stream_snapshot()`` and ``stream()``, which parse the
         records for you; drop to this only for a body they do not model. Redirects are
         followed automatically.
 

@@ -34,7 +34,6 @@ mpt_api_client/
 │   ├── client_utils.py      # URL validation helpers
 │   ├── file_utils.py        # Upload content-type declaration
 │   ├── types.py             # Type aliases (Response, HeaderTypes, etc.)
-│   ├── json_envelope_parser.py  # Incremental {$meta, data} envelope parsing
 │   ├── jsonl_lines.py       # JSONL record-line splitting (newlines only)
 │   └── mixins/              # Composable HTTP operation mixins
 │       ├── collection_mixin.py
@@ -129,7 +128,7 @@ Services are composed using **mixins** that add HTTP operations:
 
 | Mixin | Operation |
 |---|---|
-| `CollectionMixin` | `iterate()` — paginated listing; inherits `StreamingMixin`, adding `stream()` |
+| `CollectionMixin` | `iterate()` — paginated listing; inherits `StreamingMixin`, adding `stream_snapshot()` |
 | `GetMixin` | `get(id)` — retrieve single resource |
 | `CreateMixin` | `create(data)` — create resource |
 | `UpdateMixin` | `update(id, data)` — update resource |
@@ -139,18 +138,19 @@ Services are composed using **mixins** that add HTTP operations:
 | `DownloadFileMixin` | download binary content |
 | `EnableMixin` / `DisableMixin` | enable/disable actions |
 | `QueryableMixin` | `filter()`, `order_by()`, `select()` — RQL query chaining |
-| `StreamingMixin` | `stream()` — streaming read mode, opted into with the `MPT-Streaming` header |
-| `StreamJSONLMixin` | `stream_jsonl()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
+| `StreamingMixin` | `stream_snapshot()` — streaming read mode, opted into with the `MPT-Streaming` header |
+| `StreamJSONLMixin` | `stream()` — JSONL endpoints that define their own meaning for `application/jsonl` (billing statement charges) |
 | `FilesOperationsMixin` | combined file create / update / download operations |
 
 The table lists the synchronous names; every mixin except `QueryableMixin`, which is shared,
 has an `Async*` counterpart for composition with `AsyncService`.
 
 The platform streaming contract (`StreamingMixin` / `AsyncStreamingMixin`) exposes
-`stream()`, while the endpoint-specific JSONL contract (`StreamJSONLMixin` /
-`AsyncStreamJSONLMixin`) exposes `stream_jsonl()`, so a service can expose both without
-the method names colliding. `CollectionMixin` and `AsyncCollectionMixin` inherit the
-platform streaming mixins, so every collection service carries `stream()` without
+`stream_snapshot()`, while the endpoint-specific JSONL contract (`StreamJSONLMixin` /
+`AsyncStreamJSONLMixin`) exposes `stream()`, so a service can expose both without the
+method names colliding. `stream()` belongs to the JSONL contract because that is what it
+meant through 6.x; the next major version gives the name back to the streaming read. `CollectionMixin` and `AsyncCollectionMixin` inherit the
+platform streaming mixins, so every collection service carries `stream_snapshot()` without
 composing them explicitly; do not list `StreamingMixin` before a collection service's
 `CollectionMixin` base, because that ordering cannot produce a consistent MRO. The platform mixins request the
 streaming read mode on a regular collection route and require the API to echo the
@@ -168,28 +168,20 @@ and the progress tick — and is typed with overloads, so the call narrows to an
 models. The JSONL mixins serve endpoints that assign `application/jsonl` their own
 meaning outside streaming mode.
 
-`stream()` picks its wire format per request with the `stream_format` argument, which sets
-`Accept`: `StreamFormat.JSONL` (the default) reads one record object per line, and
-`StreamFormat.JSON` reads the standard `{$meta, data}` envelope. Both formats are parsed as the
-body arrives and yield the same objects through the same record path, so deletion stubs, the
-completeness check and the streaming error types are format-independent, and a body the client
-cannot parse raises `json.JSONDecodeError` in either format. Record lines are split by
-`http/jsonl_lines.py`; see [the streaming guide](streaming.md#choosing-the-wire-format) for
-the record-boundary contract. The one asymmetry is a body cut
-short mid-record: the line-delimited reader hits it as a malformed last line and raises the
-decode error, while the envelope reader loses the record and reports the more precise
-`MPTStreamingIncompleteError`. The envelope is tokenized by
-`JSONEnvelopeParser` (`http/json_envelope_parser.py`), which emits a record when its closing
-brace arrives rather than when the body completes, consumes the insignificant whitespace a
-streaming response emits between tokens as keep-alives, and surfaces `$meta.pagination.total`
-as a parse event that `stream()` deliberately does not forward to a `progress` receiver —
-the receiver's total comes from the `MPT-Item-Count` header; see
-[the streaming guide](streaming.md#reporting-progress) for the consumer-facing progress
-contract. The parser reads the record array out of the service's `_collection_key`, the
-member the paged path deserializes, so streamed and paged responses read the same envelope.
+`stream_snapshot()` always sends `Accept: application/jsonl` and reads one record object per
+line. The body is parsed as it arrives, so the memory bound is one record rather than one
+export, and a body the client cannot parse raises `json.JSONDecodeError`. Record lines are
+split by `http/jsonl_lines.py`; see [the streaming guide](streaming.md#the-wire-format) for
+the record-boundary contract. A short read surfaces one of three ways: a transport failure
+once the body has started raises `MPTStreamingTruncatedError`, since retry cannot re-request
+a stream in flight; a completed message whose last record is unterminated raises the decode
+error; and a completed, well-formed body carrying fewer records than `MPT-Item-Count`
+declared raises `MPTStreamingIncompleteError`. A `progress` receiver's total comes from the
+`MPT-Item-Count` header; see [the streaming guide](streaming.md#reporting-progress) for the
+consumer-facing progress contract.
 
-`StreamingMixin.stream()` takes `limit` and `offset` and forwards them to the collection route
-unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
+`StreamingMixin.stream_snapshot()` takes `limit` and `offset` and forwards them to the
+collection route unchanged, omitting whichever is unset. Validating them locally is deliberately out of scope:
 the server owns pagination-input validation, and the inputs it accepts in streaming mode are
 still changing.
 

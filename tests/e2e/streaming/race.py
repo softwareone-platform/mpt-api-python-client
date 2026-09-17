@@ -23,7 +23,7 @@ class StreamRace(NamedTuple):
 class CountingProgress:
     """Progress fake recording the declared totals and counting the records processed.
 
-    `stream()` reports the declared `MPT-Item-Count` once, before the first record, and
+    `stream_snapshot()` reports the declared `MPT-Item-Count` once, before the first record, and
     counts every record it processes including a stub withheld by ``skip_deleted``.
     """
 

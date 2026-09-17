@@ -1,4 +1,6 @@
+import httpx
 import pytest
+import respx
 
 from mpt_api_client.http.mixins import (
     AsyncStreamingMixin,
@@ -44,14 +46,14 @@ def test_async_endpoint(async_statement_charges_service):
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream", "stream_jsonl"])
+@pytest.mark.parametrize("method", ["get", "stream", "stream_snapshot"])
 def test_methods_present(statement_charges_service, method):
     result = hasattr(statement_charges_service, method)
 
     assert result is True
 
 
-@pytest.mark.parametrize("method", ["get", "stream", "stream_jsonl"])
+@pytest.mark.parametrize("method", ["get", "stream", "stream_snapshot"])
 def test_async_methods_present(async_statement_charges_service, method):
     result = hasattr(async_statement_charges_service, method)
 
@@ -61,19 +63,21 @@ def test_async_methods_present(async_statement_charges_service, method):
 @pytest.mark.parametrize(
     ("service_method", "mixin_method"),
     [
-        pytest.param(StatementChargesService.stream, StreamingMixin.stream, id="sync stream"),
+        pytest.param(StatementChargesService.stream, StreamJSONLMixin.stream, id="sync stream"),
         pytest.param(
-            StatementChargesService.stream_jsonl,
-            StreamJSONLMixin.stream_jsonl,
-            id="sync stream_jsonl",
+            StatementChargesService.stream_snapshot,
+            StreamingMixin.stream_snapshot,
+            id="sync stream_snapshot",
         ),
         pytest.param(
-            AsyncStatementChargesService.stream, AsyncStreamingMixin.stream, id="async stream"
+            AsyncStatementChargesService.stream,
+            AsyncStreamJSONLMixin.stream,
+            id="async stream",
         ),
         pytest.param(
-            AsyncStatementChargesService.stream_jsonl,
-            AsyncStreamJSONLMixin.stream_jsonl,
-            id="async stream_jsonl",
+            AsyncStatementChargesService.stream_snapshot,
+            AsyncStreamingMixin.stream_snapshot,
+            id="async stream_snapshot",
         ),
     ],
 )
@@ -83,14 +87,36 @@ def test_stream_methods_come_from_mixins(service_method, mixin_method):
     assert result is True
 
 
-def test_stream_and_stream_jsonl_are_distinct():
-    result = StatementChargesService.stream is StatementChargesService.stream_jsonl
+CHARGES_URL = "https://api.example.com/public/v1/billing/statements/STM-0000-0001/charges"
+
+
+# The regression guard for the 7.0.0 break. stream() resolving to the platform streaming
+# read still imported and still ran, so only the wire behaviour tells the two apart: the
+# JSONL read sends no MPT-Streaming header and needs no MPT-Item-Count to complete.
+@respx.mock
+def test_stream_reads_jsonl_not_streaming(statement_charges_service):
+    body = '{"id": "CHG-0001"}\n{"id": "CHG-0002"}\n'
+    response = httpx.Response(httpx.codes.OK, content=body)
+    route = respx.get(CHARGES_URL).mock(return_value=response)
+
+    result = [charge.id for charge in statement_charges_service.stream()]
+
+    request = route.calls[0].request
+    assert (result, request.headers["Accept"], "MPT-Streaming" in request.headers) == (
+        ["CHG-0001", "CHG-0002"],
+        "application/jsonl",
+        False,
+    )
+
+
+def test_stream_is_not_stream_snapshot():
+    result = StatementChargesService.stream is StatementChargesService.stream_snapshot
 
     assert result is False
 
 
-def test_async_stream_and_jsonl_are_distinct():
-    result = AsyncStatementChargesService.stream is AsyncStatementChargesService.stream_jsonl
+def test_async_stream_is_not_snapshot():
+    result = AsyncStatementChargesService.stream is AsyncStatementChargesService.stream_snapshot
 
     assert result is False
 

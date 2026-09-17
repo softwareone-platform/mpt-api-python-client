@@ -8,17 +8,36 @@ For installation, client construction, and the general sync and async patterns, 
 [usage.md](usage.md). For where the streaming mixins and exceptions sit in the codebase, see
 [architecture.md](architecture.md).
 
-## `stream()` Versus `iterate()`
+## Upgrading From 7.0.0
+
+7.0.0 published the platform streaming read as `stream()`, taking a name that had meant the
+endpoint JSONL download since 6.x. Because `CollectionMixin` inherits the streaming mixin, a
+6.x caller's `stream()` silently became the streaming read: same name, same import, different
+request and different results. This release separates the two names again.
+
+| 7.0.0 | now | |
+|---|---|---|
+| `stream()` | `stream_snapshot()` | the platform streaming read, opted into with `MPT-Streaming` |
+| `stream_jsonl()` | `stream()` | the endpoint JSONL download, unchanged since 6.x |
+| `stream(stream_format=StreamFormat.JSON)` | — | the envelope encoding is held back; see [The Wire Format](#the-wire-format) |
+
+Upgrading from 6.x needs no change. Upgrading from 7.0.0 means renaming those two call sites.
+
+`stream_snapshot()` is a transitional name: the next major version gives `stream()` back to
+the streaming read and renames the JSONL download, so the two contracts swap labels exactly
+once more, in a release that says so.
+
+## `stream_snapshot()` Versus `iterate()`
 
 Both read a whole collection. They differ in how the platform produces the result and in
 what the client can guarantee about it.
 
-| | `iterate()` | `stream()` |
+| | `iterate()` | `stream_snapshot()` |
 |---|---|---|
 | Requests | One request per page | One request for the whole export |
 | Read mode | Regular paged read | Streaming mode, opted into with `MPT-Streaming: true` |
 | Membership | Re-evaluated on every page | Fixed once, when the stream opens |
-| Response format | `application/json` page envelope | either wire format, chosen per request |
+| Response format | `application/json` page envelope | `application/jsonl`, one record per line |
 | Completeness | Not verifiable | Verified against `MPT-Item-Count` |
 | Deleted members | Absent from later pages | Emitted as a `DeletionStub` |
 | Recovery from failure | Re-fetch the failed page | Restart the whole export |
@@ -28,19 +47,19 @@ Use `iterate()` when you want the collection as it is right now and you will con
 it promptly: it is the plain paged read, and a failure costs one page. Use it also for
 endpoints that do not stream, and as the fallback when streaming is refused.
 
-Use `stream()` when you need a consistent export rather than a live read — a nightly sync, a
+Use `stream_snapshot()` when you need a consistent export rather than a live read — a nightly sync, a
 reconciliation job, a bulk load into another system. Streaming asks the platform for a
 point-in-time export, so the result set does not shift underneath you while you read it, and
 the client can tell you whether you received all of it.
 
-`stream()` is not a faster `iterate()` for small reads. It costs the platform a key scan
+`stream_snapshot()` is not a faster `iterate()` for small reads. It costs the platform a key scan
 before the first byte and it costs you the three obligations below. For a few hundred
 records, page.
 
 ### Every Collection Service Streams
 
 `CollectionMixin` and `AsyncCollectionMixin` inherit `StreamingMixin` and
-`AsyncStreamingMixin`, so `stream()` is available on every collection service without
+`AsyncStreamingMixin`, so `stream_snapshot()` is available on every collection service without
 per-service wiring:
 
 ```python
@@ -51,12 +70,12 @@ client = MPTClient.from_config(
     base_url="https://api.s1.show/public",
 )
 
-for order in client.commerce.orders.filter(RQLQuery(status="Processing")).stream():
+for order in client.commerce.orders.filter(RQLQuery(status="Processing")).stream_snapshot():
     print(order.id)
 ```
 
 Streaming mode is a property of the request, not of the service. The route is the ordinary
-collection route, so `filter()`, `order_by()` and `select()` chain before `stream()` exactly
+collection route, so `filter()`, `order_by()` and `select()` chain before `stream_snapshot()` exactly
 as they do before `iterate()`; the client turns the read into a stream by sending the
 `MPT-Streaming` header.
 
@@ -74,16 +93,16 @@ endpoints up front:
 from mpt_api_client.exceptions import MPTStreamingNotSupportedError
 
 try:
-    records = list(client.commerce.orders.stream())
+    records = list(client.commerce.orders.stream_snapshot())
 except MPTStreamingNotSupportedError:
     records = list(client.commerce.orders.iterate())
 ```
 
-### Do Not Confuse `stream()` With `stream_jsonl()`
+### Do Not Confuse `stream_snapshot()` With `stream()`
 
 The two methods look alike and mean different things.
 
-| | `stream()` | `stream_jsonl()` |
+| | `stream_snapshot()` | `stream()` |
 |---|---|---|
 | Contract | The platform streaming read mode | An endpoint's own JSONL download |
 | `MPT-Streaming` header | Sent, and the response must confirm it | Not sent |
@@ -91,10 +110,15 @@ The two methods look alike and mean different things.
 | Yields | Models or `DeletionStub` objects | Models only |
 | Availability | Every collection service | Composed explicitly, today only by billing statement charges |
 
-A service can carry both, and billing statement charges does: `stream_jsonl()` is its JSONL
-download, while `stream()` is the streaming-mode read it inherits with every other
-collection service. Reach for `stream_jsonl()` only when you specifically want that
-endpoint's JSONL contract; for everything else `stream()` is the streaming read.
+A service can carry both, and billing statement charges does: `stream()` is its JSONL
+download, while `stream_snapshot()` is the streaming-mode read it inherits with every other
+collection service. Reach for `stream()` only when you specifically want that endpoint's
+JSONL contract; for everything else `stream_snapshot()` is the streaming read.
+
+`stream()` is the name the JSONL download has carried since 6.x, and it keeps it. In the
+next major version `stream_snapshot()` takes the name back for the streaming read and the
+JSONL download is renamed, so the two contracts swap labels exactly once, in a release that
+says so.
 
 The line grammar is shared: in both methods a record line must decode to a JSON object,
 and a line holding any other valid JSON value — a bare scalar, an array, `null` — raises
@@ -102,11 +126,10 @@ and a line holding any other valid JSON value — a bare scalar, an array, `null
 
 ## Memory Characteristics
 
-`stream()` holds one record at a time. The response body is parsed as it arrives and each
+`stream_snapshot()` holds one record at a time. The response body is parsed as it arrives and each
 record is deserialized, yielded, and dropped, so peak memory is set by the largest single
 record rather than by the size of the export. A ten-million-record stream costs the same as a
-ten-record one. This holds in both wire formats — the envelope is tokenized incrementally
-rather than buffered.
+ten-record one. The body is tokenized incrementally rather than buffered.
 
 Time scales the same way. A record that spans many body chunks is assembled once, when its
 line ends, so the cost of a record is linear in its own length: doubling the record size
@@ -128,9 +151,9 @@ inside the `for` body — write, upsert, aggregate — and the whole export stay
 
 The bound above is asserted, not assumed: `tests/e2e/streaming/` fails if the allocation peak
 scales with the record count, or if buffering the same export stops being markedly more
-expensive than streaming it. Proving that costs four live reads per wire format — a
-500-record warmup, a 2,000-record export, a 20,000-record export, and that same export
-buffered — so 42,500 records per format and roughly 170,000 across the sync and async pair.
+expensive than streaming it. Proving that costs four live reads — a 500-record warmup, a
+2,000-record export, a 20,000-record export, and that same export buffered — so 42,500
+records per case and roughly 85,000 across the sync and async pair.
 See [Streaming Memory Coverage](e2e_tests.md#streaming-memory-coverage).
 
 ## What A Stream Is
@@ -156,44 +179,31 @@ The longer an export runs over frequently written data, the wider the drift betw
 membership and content: expect more deletion stubs and more post-snapshot content on a long
 export than on a short one.
 
-## Choosing The Wire Format
+## The Wire Format
 
-Streaming mode and the wire format are two independent per-request choices. The
-`MPT-Streaming` header selects streaming; `Accept` selects the encoding, and `stream()`
-exposes it as `stream_format`:
+The wire format is fixed: `stream_snapshot()` always requests `application/jsonl`, one
+record object per line with no envelope. The `MPT-Streaming` header selects streaming mode,
+and `Accept` is not a choice the caller makes.
 
-| `stream_format` | `Accept` | Body |
-|---|---|---|
-| `StreamFormat.JSONL` (default) | `application/jsonl` | one record object per line, no envelope |
-| `StreamFormat.JSON` | `application/json` | the standard `{$meta, data}` envelope, the same shape `iterate()` reads |
+`stream_snapshot()` rejects a response whose `Content-Type` names a different media type,
+before reading its body. That guard catches a proxy that ignores `Accept` and labels the
+body honestly. It does not catch a body mislabeled as `application/jsonl`: a `{$meta, data}`
+envelope on one line is a JSON object, so the line reader accepts it as one record, and only
+the count check against `MPT-Item-Count` will notice.
 
-```python
-from mpt_api_client.http.mixins import StreamFormat
+**The body is parsed as it arrives**, so the memory bound described above holds.
 
-for order in client.commerce.orders.stream(stream_format=StreamFormat.JSON):
-    print(order.id)
-```
+Keep-alives are blank lines and are invisible: whitespace means the four characters RFC 8259
+fixes — space, tab, line feed and carriage return — so a line is a keep-alive only when there
+is nothing else on it. It never reaches your loop and never counts as a record.
 
-A `StreamFormat` member or its `Accept` string is accepted; any other value raises
-`ValueError` before the request is sent, rather than failing deep in header construction.
-
-**Both formats are parsed as the body arrives**, so the memory bound described above holds
-either way. In envelope format the JSON is tokenized incrementally: a record is deserialized
-when its own closing brace arrives, not when the envelope completes.
-
-Keep-alives differ in shape and are invisible either way. The line-delimited format emits
-blank lines; the envelope format emits insignificant whitespace between tokens, consumed
-while tokenizing. Both formats mean the same four characters by whitespace — space, tab,
-line feed and carriage return, the set RFC 8259 fixes — so a line is a keep-alive only when
-there is nothing else on it. Neither reaches your loop, and neither counts as a record.
-
-Record boundaries in the line-delimited format are newlines alone: a record ends at a line
-feed, optionally preceded by a carriage return, and nothing else ends one. Inside a JSON
-string value every character from `%x20` up is legal unescaped except `"` and `\`, so
-U+0085, U+00A0, U+2028, U+2029, U+3000 and U+FEFF arrive whole in your text fields, in
-either format. Outside a value none of them is whitespace or a separator, so each of these
-is a malformed body rather than something the reader absorbs, and raises
-`json.JSONDecodeError`:
+Record boundaries are newlines alone: a record ends at a line feed, optionally preceded by a
+carriage return, and nothing else ends one. The last record is the one exception, and ends
+at the end of the body whether or not a final line feed arrives. Inside a JSON string value every character from
+`%x20` up is legal unescaped except `"` and `\`, so U+0085, U+00A0, U+2028, U+2029, U+3000
+and U+FEFF arrive whole in your text fields. Outside a value none of them is whitespace or a
+separator, so each of these is a malformed body rather than something the reader absorbs, and
+raises `json.JSONDecodeError`:
 
 - a line carrying only one of them, which is not a keep-alive and does count towards
   `MPT-Item-Count`
@@ -202,24 +212,18 @@ is a malformed body rather than something the reader absorbs, and raises
   of `application/json-seq`, a different media type from the `application/jsonl` this
   client requests
 
-A single UTF-8 byte order mark opening the body is dropped in either format — the same
-tolerance `json.loads` gives the paged path — so a BOM-emitting producer parses identically
-everywhere.
+A single UTF-8 byte order mark opening the body is dropped — the same tolerance `json.loads`
+gives the paged path — so a BOM-emitting producer parses identically everywhere.
 
-The total does not depend on the format: in both, a `progress` receiver gets the declared
-`MPT-Item-Count` through `set_total_items`, exactly once, before the first record arrives,
-so a progress report can render a percentage of a streamed export either way. The envelope
-also carries `$meta.pagination.total` — contractually a mirror of the header, likewise the
-capped `min(matches, N)` under a bounded `limit=N` — which the client does not re-report:
-the header stays the single source of the receiver's total.
+A `progress` receiver gets the declared `MPT-Item-Count` through `set_total_items`, exactly
+once, before the first record arrives, so a progress report can render a percentage of a
+streamed export.
 
-Pick the line-delimited format when you want the simplest thing to store or pipe: one record
-per line survives `split`, `tail` and append-only files, where a single enclosing envelope
-does not; pick the envelope when a consumer expects the standard `{$meta, data}` shape.
+> **Note:** the `{$meta, data}` envelope encoding and the incremental parser that reads it
+> are held back for the next major version, where `stream_snapshot()` becomes `stream()`
+> again. `StreamFormat` remains a single-member enum so re-adding the envelope costs no
+> change to any public name.
 
-Everything else is format-independent: query state, `limit` and `offset`, deletion stubs, the
-completeness check against `MPT-Item-Count`, the total reported to `progress`, and every
-streaming error.
 
 ## Bounding An Export
 
@@ -232,16 +236,16 @@ streaming error.
 | `N` | The first `N` records of the stream order |
 
 Under a bounded `limit=N`, the count the response declares is the capped count,
-`K = min(matches, N)` — not the uncapped number of matches. Both carriers agree:
-`MPT-Item-Count` and, in the envelope format, `$meta.pagination.total`. The completeness check
-compares against that capped value, so a bounded export verifies exactly like a full one.
+`K = min(matches, N)` — not the uncapped number of matches: `MPT-Item-Count` declares `K`.
+The completeness check compares against that capped value, so a bounded export verifies
+exactly like a full one.
 
 ```python
-for order in client.commerce.orders.order_by("-audit.created.at").stream(limit=100_000):
+for order in client.commerce.orders.order_by("-audit.created.at").stream_snapshot(limit=100_000):
     print(order.id)
 ```
 
-`stream()` also accepts `offset`. Pagination inputs are sent exactly as given and are never
+`stream_snapshot()` also accepts `offset`. Pagination inputs are sent exactly as given and are never
 checked locally, because the server owns their validation: it currently rejects `offset` in
 streaming mode with `400`, and support for it is scheduled. Passing through is correct either
 way, so no client release is coupled to that change.
@@ -256,11 +260,11 @@ you take on in exchange. Each prevents a failure that is silent without it.
 **Prevents:** processing a truncated export as if it were the whole result set.
 
 Streaming mode commits the `MPT-Item-Count` response header together with the status: the
-number of records the stream will carry. It is the contract's only completeness signal. The
-envelope format's `$meta.pagination.total` carries the same number, but it precedes the data
-and so cannot attest that the data arrived — it is a total to display, not a check to make.
+number of records the stream will carry. It is the contract's only completeness signal. It
+is declared with the headers, before the data, so it is a total to check the body against
+once the body ends, not a claim that the body arrived.
 
-`stream()` performs this check for you. It reads the declared count before yielding the first
+`stream_snapshot()` performs this check for you. It reads the declared count before yielding the first
 record and compares it with the number of raw records consumed when the body ends —
 consumed, not yielded, because `skip_deleted` filtering happens after this accounting:
 
@@ -277,7 +281,7 @@ Closing the iterator early does not raise. The check applies only to a stream co
 the end, so `break`-ing out of the loop on purpose is not reported as an incomplete export:
 
 ```python
-for order in client.commerce.orders.stream():
+for order in client.commerce.orders.stream_snapshot():
     if order.id == "ORD-0000-0001":
         break  # deliberate early exit, no completeness check
 ```
@@ -290,9 +294,9 @@ The count does not survive persisting the payload. If you write the raw records 
 and verify them later, store the expected count alongside them — once the response is gone,
 the export's own completeness signal is gone with it.
 
-The supported way to capture it is a `progress` receiver: `stream()` calls `set_total_items`
-with the declared `MPT-Item-Count` before the first record, in both wire formats, so the
-count is in hand before any record is written. `stream()` still yields records, not headers —
+The supported way to capture it is a `progress` receiver: `stream_snapshot()` calls `set_total_items`
+with the declared `MPT-Item-Count` before the first record, so the count is in hand before
+any record is written. `stream_snapshot()` still yields records, not headers —
 there is no need to drop to `client.http_client.stream(...)` just to read the header.
 
 ### 2. Check For A Deletion Stub Before Ingesting A Record
@@ -312,10 +316,10 @@ Only `id` is guaranteed on a stub. No other property of the deleted row is carri
 **truthy** `deleted` marker is what identifies a stub; a record with no `$meta`, no `deleted`
 key, or a falsy one is data. In practice the platform omits `$meta` entirely on a normal
 record, so those cases are defensive rather than expected. A stub that carries no string
-`id` breaks the one guarantee the contract makes, so `stream()` raises `TypeError` rather
+`id` breaks the one guarantee the contract makes, so `stream_snapshot()` raises `TypeError` rather
 than yielding a stub that identifies nothing.
 
-`stream()` yields these as `DeletionStub`, never as a model, so the object cannot be mistaken
+`stream_snapshot()` yields these as `DeletionStub`, never as a model, so the object cannot be mistaken
 for a record by code that expects one. Deserializing a stub as a model would produce an
 instance whose every declared field is `None` — indistinguishable from a record whose values
 really are unset — and a sync job writing that back would overwrite the stored record with
@@ -331,20 +335,20 @@ from mpt_api_client.models import DeletionStub
 attempt_id = uuid.uuid4().hex
 
 try:
-    for result in client.commerce.orders.stream():
+    for result in client.commerce.orders.stream_snapshot():
         if isinstance(result, DeletionStub):
             stage_delete(attempt_id, result.id)
         else:
             stage_upsert(attempt_id, result)
 
-    # Reached only once stream() has verified the record count against MPT-Item-Count.
+    # Reached only once stream_snapshot() has verified the record count against MPT-Item-Count.
     promote(attempt_id)
 except Exception:
     discard(attempt_id)
     raise
 ```
 
-Note what the loop does *not* do: it stages rather than writes. `stream()` yields records
+Note what the loop does *not* do: it stages rather than writes. `stream_snapshot()` yields records
 before it can verify the count, so applying each record as it arrives leaves partial local
 state behind on a truncated export — the one thing
 [Restart, Do Not Resume](#3-restart-do-not-resume) says must not survive a failed attempt.
@@ -386,11 +390,11 @@ nothing from the branch: it would drop the stubs and move on. Declare that with 
 keyword-only `skip_deleted` flag instead of writing a branch that discards:
 
 ```python
-for order in client.commerce.orders.stream(skip_deleted=True):
+for order in client.commerce.orders.stream_snapshot(skip_deleted=True):
     print(order.id)
 ```
 
-The flag is typed with overloads, so a type checker resolves `stream(skip_deleted=True)` to
+The flag is typed with overloads, so a type checker resolves `stream_snapshot(skip_deleted=True)` to
 `Iterator[Model]` — `AsyncIterator[Model]` on the async service — and an opted-out consumer
 carries no union type through its own signatures. The default call keeps
 `Iterator[Model | DeletionStub]` and the branch it forces.
@@ -429,9 +433,9 @@ from mpt_api_client.exceptions import (
 )
 
 try:
-    records = list(client.commerce.orders.stream())
+    records = list(client.commerce.orders.stream_snapshot())
 except (MPTStreamingIncompleteError, MPTStreamingTruncatedError):
-    records = list(client.commerce.orders.stream())  # a new snapshot, not a continuation
+    records = list(client.commerce.orders.stream_snapshot())  # a new snapshot, not a continuation
 ```
 
 `MPTStreamingTruncatedError` is how a mid-stream failure arrives: the API signals an internal
@@ -491,9 +495,8 @@ Three things to know about it:
   streaming can never end up with the shorter of the two.
 - It bounds a single read, not the whole export. No total-duration timeout is applied: an
   export runs for as long as the server keeps sending. Server-side keep-alives count as data
-  and reset the read clock — blank lines in the line-delimited format, insignificant
-  whitespace between tokens in the envelope. A line of anything else fails the read instead
-  of extending it.
+  and reset the read clock: a blank line is a keep-alive. A line of anything else fails the
+  read instead of extending it.
 - Lowering it below the SLO is the trap. If you tune timeouts down for a low-latency service
   and set `stream_read_timeout` from the same budget as your regular calls, large exports
   start failing while small ones keep working — which reads as a size-dependent server bug
@@ -518,7 +521,7 @@ All streaming-specific failures derive from `MPTStreamingError`, so one handler 
 | Exception | Raised when |
 |---|---|
 | `MPTStreamingNotEnabledError` | The response does not echo `MPT-Streaming`, so the body is an ordinary paged response |
-| `MPTStreamingFormatMismatchError` | The response `Content-Type` names a media type other than the requested wire format |
+| `MPTStreamingFormatMismatchError` | The response `Content-Type` names a media type other than `application/jsonl` |
 | `MPTStreamingNotSupportedError` | `501` — the resource provides no streaming-capable execution strategy |
 | `MPTStreamingNotAcceptableError` | `406` — the requested format cannot be served for this read mode |
 | `MPTStreamingOverCapError` | `413` — the result set exceeds the configured `MaxExportKeys` cap |
@@ -534,7 +537,7 @@ from mpt_api_client.exceptions import MPTStreamingError
 logger = logging.getLogger(__name__)
 
 try:
-    for order in client.commerce.orders.stream():
+    for order in client.commerce.orders.stream_snapshot():
         print(order.id)
 except MPTStreamingError as error:
     logger.error("Streaming unavailable: %s", error)
@@ -546,9 +549,9 @@ Split them by what a caller can do about them:
   `MPTStreamingFormatMismatchError`, `MPTStreamingNotSupportedError`,
   `MPTStreamingNotAcceptableError`, `MPTStreamingOverCapError` and
   `MPTStreamingItemCountMissingError`. Retrying the same call against the same endpoint fails
-  the same way. Change the request, or fall back to `iterate()`. A `406` now genuinely can
-  mean a format you asked for and the endpoint cannot serve, so check `stream_format` before
-  assuming the endpoint is at fault.
+  the same way. Change the request, or fall back to `iterate()`. A `406` means the endpoint
+  cannot serve `application/jsonl` for this read mode, so streaming is not available there at
+  all.
 - **Incomplete-export failures** — `MPTStreamingIncompleteError` and
   `MPTStreamingTruncatedError`. A retry can succeed, but only as a fresh export; see
   [Restart, Do Not Resume](#3-restart-do-not-resume).
@@ -561,13 +564,12 @@ type, so the mapping holds whatever the error body turns out to be: an endpoint 
 `406` or `413` with a bare JSON string instead of `problem+json` still raises the typed error,
 only without the members `payload` would otherwise carry.
 
-A body the client cannot parse is not a streaming error at all but a `json.JSONDecodeError` —
-a malformed or non-object record line in the line-delimited format, a malformed or
-unterminated envelope in the envelope format. A record must be a JSON object in both formats:
-a line holding a bare scalar, array, or `null` is rejected with the same typed decode error a
-non-object envelope element gets, not surfaced as a crash deeper in record handling. A body cut short usually loses records before it loses its closing
-tokens, so a truncated export normally reports the more precise `MPTStreamingIncompleteError`
-instead.
+A body the client cannot parse is not a streaming error at all but a `json.JSONDecodeError`:
+a malformed record line, or a line whose JSON is valid but is not an object. A record must be
+a JSON object, so a line holding a bare scalar, array, or `null` is rejected with that typed
+decode error rather than surfacing as a crash deeper in record handling. A body cut short
+usually loses records before the reader runs out of lines to parse, so a truncated export
+normally reports the more precise `MPTStreamingIncompleteError` instead.
 
 ### Over-Cap Exports
 
@@ -584,14 +586,14 @@ from mpt_api_client.exceptions import MPTStreamingOverCapError
 logger = logging.getLogger(__name__)
 
 try:
-    records = list(client.commerce.orders.stream())
+    records = list(client.commerce.orders.stream_snapshot())
 except MPTStreamingOverCapError as error:
     # The body names the configured cap. Read it defensively: payload is {} when the
     # response carried no JSON, and the member names are the server's, not the client's.
     cap = error.payload.get("maxExportKeys")
     logger.error("Export refused (configured cap: %s): %s", cap, error.payload)
     # A bounded retry is a different read: the first N of the sort order, not the export.
-    records = list(client.commerce.orders.stream(limit=10_000))
+    records = list(client.commerce.orders.stream_snapshot(limit=10_000))
 ```
 
 `payload` is an empty mapping when the response carries no JSON body, so treat every member
@@ -630,7 +632,7 @@ async def export_orders() -> None:
     attempt_id = uuid.uuid4().hex
 
     try:
-        async for result in client.commerce.orders.stream():
+        async for result in client.commerce.orders.stream_snapshot():
             if isinstance(result, DeletionStub):
                 await stage_delete(attempt_id, result.id)
             else:
@@ -659,7 +661,7 @@ a `break`, a `return`, an exception.
 ```python
 from contextlib import aclosing
 
-async with aclosing(client.commerce.orders.stream()) as orders:
+async with aclosing(client.commerce.orders.stream_snapshot()) as orders:
     async for order in orders:
         if order.id == "ORD-0000-0001":
             break  # the response is released when the async with block exits
@@ -689,27 +691,25 @@ Two things the wrapper does not change:
 - **`progress` still sees no `completed()`.** The export was abandoned rather than finished,
   so the receiver ends on the last `item_processed` it was given.
 
-`stream_jsonl()` is an async generator over an open response too, so an early exit from one
-takes the same wrapper.
+The JSONL `stream()` is an async generator over an open response too, so an early exit from
+one takes the same wrapper.
 
 ## Reporting Progress
 
-A long export gives no feedback by default. `stream()` accepts an optional `progress`
+A long export gives no feedback by default. `stream_snapshot()` accepts an optional `progress`
 receiver, called once per consumed record — including a stub withheld by `skip_deleted` —
 and once on completion:
 
 ```python
 from mpt_api_client.models import ConsoleProgress
 
-for order in client.commerce.orders.stream(progress=ConsoleProgress()):
+for order in client.commerce.orders.stream_snapshot(progress=ConsoleProgress()):
     print(order.id)
 ```
 
-The total is reported the same way in both wire formats: `set_total_items` is called exactly
-once, with the declared `MPT-Item-Count`, when the response headers are verified — before
-the first record — so `ConsoleProgress` renders a real percentage from the start of the
-export. The envelope's `$meta.pagination.total` is contractually a mirror of that header and
-is not re-reported.
+`set_total_items` is called exactly once, with the declared `MPT-Item-Count`, when the
+response headers are verified — before the first record — so `ConsoleProgress` renders a real
+percentage from the start of the export.
 
 The receiver is also where you capture the declared count when the payload is stored for
 later verification, as [obligation 1](#1-verify-completeness-against-mpt-item-count)
