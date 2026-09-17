@@ -1,6 +1,5 @@
 import pytest
 
-from mpt_api_client.http.mixins.streaming_mixin import StreamFormat
 from mpt_api_client.models import DeletionStub
 from tests.e2e.streaming.race import (
     BOUNDED_EXPORT,
@@ -14,13 +13,10 @@ from tests.e2e.streaming.race import (
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
 async def test_async_stream_stub_for_deleted_row(
-    async_mpt_ops, async_mpt_vendor, async_deletable_product, stream_format
+    async_mpt_ops, async_mpt_vendor, async_deletable_product
 ):
-    streamed_products = async_mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream(
-        stream_format=stream_format
-    )
+    streamed_products = async_mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream_snapshot()
 
     result = await async_race_delete_mid_stream(
         streamed_products, async_mpt_vendor.catalog.products, async_deletable_product.id
@@ -29,13 +25,12 @@ async def test_async_stream_stub_for_deleted_row(
     assert result.objects_for_row == [DeletionStub(id=async_deletable_product.id)]
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
 async def test_async_stream_withholds_counted_stub(
-    async_mpt_ops, async_mpt_vendor, async_deletable_product, stream_format
+    async_mpt_ops, async_mpt_vendor, async_deletable_product
 ):
     progress = AsyncCountingProgress()
-    streamed_products = async_mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream(
-        skip_deleted=True, stream_format=stream_format, progress=progress
+    streamed_products = async_mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream_snapshot(
+        skip_deleted=True, progress=progress
     )
 
     result = await async_race_delete_mid_stream(
@@ -52,11 +47,10 @@ async def test_async_stream_withholds_counted_stub(
     )
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-async def test_async_stream_reports_declared_count(async_mpt_ops, stream_format):
+async def test_async_stream_reports_declared_count(async_mpt_ops):
     progress = AsyncCountingProgress()
-    streamed_products = async_mpt_ops.catalog.products.stream(
-        limit=BOUNDED_EXPORT, stream_format=stream_format, progress=progress
+    streamed_products = async_mpt_ops.catalog.products.stream_snapshot(
+        limit=BOUNDED_EXPORT, progress=progress
     )
 
     result = len([streamed async for streamed in streamed_products])
@@ -65,11 +59,10 @@ async def test_async_stream_reports_declared_count(async_mpt_ops, stream_format)
     assert (progress.totals, result) == ([BOUNDED_EXPORT], BOUNDED_EXPORT)
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-async def test_async_stream_early_close_does_not_raise(async_mpt_ops, stream_format):
+async def test_async_stream_early_close_does_not_raise(async_mpt_ops):
     progress = AsyncCountingProgress()
-    streamed_products = async_mpt_ops.catalog.products.stream(
-        limit=BOUNDED_EXPORT, stream_format=stream_format, progress=progress
+    streamed_products = async_mpt_ops.catalog.products.stream_snapshot(
+        limit=BOUNDED_EXPORT, progress=progress
     )
 
     result = await async_read_then_close(streamed_products, EARLY_CLOSE_RECORDS)

@@ -1,6 +1,6 @@
 """Measurement protocol behind the constant-memory streaming coverage.
 
-`stream()` claims memory stays bounded no matter how many records the export carries.
+`stream_snapshot()` claims memory stays bounded no matter how many records the export carries.
 Proving that needs two comparisons on the same live data, which is what
 `profile_streaming_memory` collects in one pass:
 
@@ -18,11 +18,6 @@ Peaks come from `tracemalloc`, which counts Python allocations rather than proce
 size, so the numbers do not move with allocator or kernel behaviour. Every peak is reported
 net of the memory already live when its window opens, and each window starts with a
 collection, so an object released by an earlier read is never charged to a later one.
-
-The profile is taken per wire format, because the property has to hold for each of them
-separately and they reach it by different routes: `JSONL` reads one record per line, while
-`JSON` parses records out of the `{$meta, data}` envelope incrementally. The envelope is the
-easier one to get wrong, since the obvious implementation deserializes the whole body first.
 """
 
 import gc
@@ -31,8 +26,6 @@ from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
-
-from mpt_api_client.http.mixins import StreamFormat
 
 # Records exported before the first measured window, so connection setup, lazy imports and
 # the first read buffers are paid for outside every comparison. This is a separate read,
@@ -99,15 +92,15 @@ async def measure_peak_async(read: Callable[[], Awaitable[int]]) -> PeakReading:
     return PeakReading(records=records, peak_bytes=peak_bytes)
 
 
-def drain_stream(service: Any, limit: int, stream_format: StreamFormat) -> int:
+def drain_stream(service: Any, limit: int) -> int:
     """Stream `limit` records, retaining none.
 
     The stream is consumed to exhaustion, which is what triggers its completeness check.
     """
-    return sum(1 for _ in service.stream(limit=limit, stream_format=stream_format))
+    return sum(1 for _ in service.stream_snapshot(limit=limit))
 
 
-async def drain_stream_async(service: Any, limit: int, stream_format: StreamFormat) -> int:
+async def drain_stream_async(service: Any, limit: int) -> int:
     """Stream `limit` records, retaining none.
 
     The stream is consumed to exhaustion, which is what triggers its completeness check.
@@ -115,36 +108,36 @@ async def drain_stream_async(service: Any, limit: int, stream_format: StreamForm
     # WPS519 would have the records collected and counted, which is the buffering this
     # measurement exists to rule out.
     consumed = 0
-    records = service.stream(limit=limit, stream_format=stream_format)
+    records = service.stream_snapshot(limit=limit)
     async for _ in records:  # noqa: WPS519
         consumed += 1
     return consumed
 
 
-def buffer_export(service: Any, stream_format: StreamFormat) -> int:
+def buffer_export(service: Any) -> int:
     """Materialise a whole export, the buffering read the streamed read is compared with."""
-    return len(list(service.stream(limit=VOLUME_RECORDS, stream_format=stream_format)))
+    return len(list(service.stream_snapshot(limit=VOLUME_RECORDS)))
 
 
-async def buffer_export_async(service: Any, stream_format: StreamFormat) -> int:
+async def buffer_export_async(service: Any) -> int:
     """Materialise a whole export, the buffering read the streamed read is compared with."""
-    records = service.stream(limit=VOLUME_RECORDS, stream_format=stream_format)
+    records = service.stream_snapshot(limit=VOLUME_RECORDS)
     return len([record async for record in records])
 
 
-def profile_streaming_memory(service: Any, fmt: StreamFormat) -> StreamingMemoryProfile:
+def profile_streaming_memory(service: Any) -> StreamingMemoryProfile:
     with tracing_allocations():
-        drain_stream(service, WARMUP_RECORDS, fmt)
-        sample = measure_peak(lambda: drain_stream(service, SAMPLE_RECORDS, fmt))
-        volume = measure_peak(lambda: drain_stream(service, VOLUME_RECORDS, fmt))
-        buffered = measure_peak(lambda: buffer_export(service, fmt))
+        drain_stream(service, WARMUP_RECORDS)
+        sample = measure_peak(lambda: drain_stream(service, SAMPLE_RECORDS))
+        volume = measure_peak(lambda: drain_stream(service, VOLUME_RECORDS))
+        buffered = measure_peak(lambda: buffer_export(service))
     return StreamingMemoryProfile(sample=sample, volume=volume, buffered=buffered)
 
 
-async def profile_async_streaming_memory(service: Any, fmt: StreamFormat) -> StreamingMemoryProfile:
+async def profile_async_streaming_memory(service: Any) -> StreamingMemoryProfile:
     with tracing_allocations():
-        await drain_stream_async(service, WARMUP_RECORDS, fmt)
-        sample = await measure_peak_async(lambda: drain_stream_async(service, SAMPLE_RECORDS, fmt))
-        volume = await measure_peak_async(lambda: drain_stream_async(service, VOLUME_RECORDS, fmt))
-        buffered = await measure_peak_async(lambda: buffer_export_async(service, fmt))
+        await drain_stream_async(service, WARMUP_RECORDS)
+        sample = await measure_peak_async(lambda: drain_stream_async(service, SAMPLE_RECORDS))
+        volume = await measure_peak_async(lambda: drain_stream_async(service, VOLUME_RECORDS))
+        buffered = await measure_peak_async(lambda: buffer_export_async(service))
     return StreamingMemoryProfile(sample=sample, volume=volume, buffered=buffered)

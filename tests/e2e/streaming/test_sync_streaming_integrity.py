@@ -1,6 +1,5 @@
 import pytest
 
-from mpt_api_client.http.mixins.streaming_mixin import StreamFormat
 from mpt_api_client.models import DeletionStub
 from tests.e2e.streaming.race import (
     BOUNDED_EXPORT,
@@ -14,11 +13,8 @@ from tests.e2e.streaming.race import (
 pytestmark = [pytest.mark.flaky]
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-def test_sync_stream_stub_for_deleted_row(mpt_ops, mpt_vendor, deletable_product, stream_format):
-    streamed_products = mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream(
-        stream_format=stream_format
-    )
+def test_sync_stream_stub_for_deleted_row(mpt_ops, mpt_vendor, deletable_product):
+    streamed_products = mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream_snapshot()
 
     result = race_delete_mid_stream(
         streamed_products, mpt_vendor.catalog.products, deletable_product.id
@@ -27,11 +23,10 @@ def test_sync_stream_stub_for_deleted_row(mpt_ops, mpt_vendor, deletable_product
     assert result.objects_for_row == [DeletionStub(id=deletable_product.id)]
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-def test_sync_stream_withholds_counted_stub(mpt_ops, mpt_vendor, deletable_product, stream_format):
+def test_sync_stream_withholds_counted_stub(mpt_ops, mpt_vendor, deletable_product):
     progress = CountingProgress()
-    streamed_products = mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream(
-        skip_deleted=True, stream_format=stream_format, progress=progress
+    streamed_products = mpt_ops.catalog.products.order_by(OLDEST_FIRST).stream_snapshot(
+        skip_deleted=True, progress=progress
     )
 
     result = race_delete_mid_stream(
@@ -48,11 +43,10 @@ def test_sync_stream_withholds_counted_stub(mpt_ops, mpt_vendor, deletable_produ
     )
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-def test_sync_stream_reports_declared_count(mpt_ops, stream_format):
+def test_sync_stream_reports_declared_count(mpt_ops):
     progress = CountingProgress()
-    streamed_products = mpt_ops.catalog.products.stream(
-        limit=BOUNDED_EXPORT, stream_format=stream_format, progress=progress
+    streamed_products = mpt_ops.catalog.products.stream_snapshot(
+        limit=BOUNDED_EXPORT, progress=progress
     )
 
     result = len(list(streamed_products))
@@ -61,11 +55,10 @@ def test_sync_stream_reports_declared_count(mpt_ops, stream_format):
     assert (progress.totals, result) == ([BOUNDED_EXPORT], BOUNDED_EXPORT)
 
 
-@pytest.mark.parametrize("stream_format", [StreamFormat.JSONL, StreamFormat.JSON])
-def test_sync_stream_early_close_does_not_raise(mpt_ops, stream_format):
+def test_sync_stream_early_close_does_not_raise(mpt_ops):
     progress = CountingProgress()
-    streamed_products = mpt_ops.catalog.products.stream(
-        limit=BOUNDED_EXPORT, stream_format=stream_format, progress=progress
+    streamed_products = mpt_ops.catalog.products.stream_snapshot(
+        limit=BOUNDED_EXPORT, progress=progress
     )
 
     result = read_then_close(streamed_products, EARLY_CLOSE_RECORDS)

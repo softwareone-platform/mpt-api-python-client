@@ -11,20 +11,19 @@ DEFAULT_PROGRESS_BATCH_SIZE = 100
 
 @runtime_checkable
 class Progress(Protocol):
-    """Receives progress events from sync `iterate()`, `stream()` and `stream_jsonl()`."""
+    """Receives progress events from sync `iterate()`, `stream_snapshot()` and `stream()`."""
 
     def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
 
-        `iterate()` calls it after each page fetch; `stream()` calls it exactly
-        once, with the declared `MPT-Item-Count`, before the first record, in
-        both wire formats.
+        `iterate()` calls it after each page fetch; `stream_snapshot()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record.
         """
 
     def item_processed(self) -> None:
         """Called once per consumed record, before it is yielded.
 
-        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        A `stream_snapshot()` reading with ``skip_deleted`` still reports a withheld deletion
         stub, because the declared item count includes stubs: a report fed only the
         records the caller sees would never reach that total.
         """
@@ -35,20 +34,19 @@ class Progress(Protocol):
 
 @runtime_checkable
 class AsyncProgress(Protocol):
-    """Receives progress events from async `iterate()`, `stream()` and `stream_jsonl()`."""
+    """Receives progress events from async `iterate()`, `stream_snapshot()` and `stream()`."""
 
     async def set_total_items(self, total: int) -> None:
         """Called with the declared total whenever the response reports one.
 
-        `iterate()` calls it after each page fetch; `stream()` calls it exactly
-        once, with the declared `MPT-Item-Count`, before the first record, in
-        both wire formats.
+        `iterate()` calls it after each page fetch; `stream_snapshot()` calls it exactly
+        once, with the declared `MPT-Item-Count`, before the first record.
         """
 
     async def item_processed(self) -> None:
         """Called once per consumed record, before it is yielded.
 
-        A `stream()` reading with ``skip_deleted`` still reports a withheld deletion
+        A `stream_snapshot()` reading with ``skip_deleted`` still reports a withheld deletion
         stub, because the declared item count includes stubs: a report fed only the
         records the caller sees would never reach that total.
         """
@@ -169,7 +167,10 @@ class BatchProgressReport(ProgressReport, abc.ABC):
 
 
 class AsyncProgressReport(abc.ABC):
-    """Async counterpart of `ProgressReport` for `iterate()`, `stream()` and `stream_jsonl()`."""
+    """Async counterpart of `ProgressReport`.
+
+    Receives progress events from `iterate()`, `stream_snapshot()` and `stream()`.
+    """
 
     def __init__(self) -> None:
         """Initialize the count and total to zero."""
@@ -275,7 +276,10 @@ class ConsoleProgress(TimeProgressReport):
 
 
 class AsyncConsoleProgress(AsyncTimeProgressReport):
-    """Async counterpart of `ConsoleProgress` for `iterate()`, `stream()` and `stream_jsonl()`."""
+    """Async counterpart of `ConsoleProgress`.
+
+    Reports progress from `iterate()`, `stream_snapshot()` and `stream()` to the console.
+    """
 
     def __init__(
         self,

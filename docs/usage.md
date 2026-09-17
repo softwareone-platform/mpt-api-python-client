@@ -187,13 +187,11 @@ for invoice in client.billing.invoices.iterate(progress=LogProgress(batch_size=1
 > `set_total_items` is still called but receives `0` — treat a total of `0` as
 > unknown when rendering progress.
 
-The `progress` parameter is also accepted by `stream()` and `stream_jsonl()` described in
-[Streaming Large Result Sets](#streaming-large-result-sets). `stream()` calls
-`set_total_items` with the declared `MPT-Item-Count` before the first record, in both wire
-formats — see [Choosing The Wire Format](streaming.md#choosing-the-wire-format) — while
-`stream_jsonl()` never calls it, so design progress
-implementations to work while the total is still unknown. The async `iterate()`, `stream()`
-and `stream_jsonl()` accept an
+The `progress` parameter is also accepted by the two streaming reads described in
+[Streaming Large Result Sets](#streaming-large-result-sets). `stream_snapshot()` calls
+`set_total_items` with the declared `MPT-Item-Count` before the first record, while the
+JSONL `stream()` never calls it, so design progress implementations to work while the
+total is still unknown. The async `iterate()`, `stream_snapshot()` and `stream()` accept an
 `AsyncProgress` implementation whose methods are `async def` and are awaited —
 `AsyncConsoleProgress` is the shipped counterpart, with `AsyncProgressReport`,
 `AsyncTimeProgressReport`, and `AsyncBatchProgressReport` as the async abstract bases.
@@ -229,7 +227,7 @@ collection. Streaming is opted into per request with the `MPT-Streaming` header,
 `StreamingMixin` and `AsyncStreamingMixin` send on your behalf. Records are yielded one at a
 time without buffering the whole body, so memory stays flat regardless of result size.
 
-`CollectionMixin` inherits `StreamingMixin`, so every collection service exposes `stream()`
+`CollectionMixin` inherits `StreamingMixin`, so every collection service exposes `stream_snapshot()`
 out of the box — no extra composition is needed:
 
 ```python
@@ -241,22 +239,17 @@ client = MPTClient.from_config(
 )
 service = client.commerce.orders
 
-for order in service.filter(RQLQuery(status="Processing")).stream():
+for order in service.filter(RQLQuery(status="Processing")).stream_snapshot():
     print(order.id)
 ```
 
 Streaming mixins extend `QueryableMixin`, so `filter()`, `order_by()` and `select()` chain
-before `stream()` exactly as they do before `iterate()`. Membership is fixed when the stream
+before `stream_snapshot()` exactly as they do before `iterate()`. Membership is fixed when the stream
 opens: records created afterwards are not included.
 
 The minimal loop above reads `id`, which every streamed object carries; anything that touches
 other fields must first branch on `DeletionStub`, as the async example does — or declare that
 deletions are irrelevant with `skip_deleted=True`.
-
-The wire format is a per-request choice — `stream_format=StreamFormat.JSONL` by default, or
-`StreamFormat.JSON` for the `{$meta, data}` envelope. Both are parsed incrementally and carry
-the same records; see
-[Choosing The Wire Format](streaming.md#choosing-the-wire-format) for what differs.
 
 The async form yields from an async generator:
 
@@ -277,13 +270,13 @@ async def main():
     attempt_id = uuid.uuid4().hex
 
     try:
-        async for result in service.stream():
+        async for result in service.stream_snapshot():
             if isinstance(result, DeletionStub):
                 await stage_delete(attempt_id, result.id)
             else:
                 await stage_upsert(attempt_id, result)
 
-        # Reached only once stream() has verified the export; see the streaming guide.
+        # Reached only once stream_snapshot() has verified the export; see the streaming guide.
         await promote(attempt_id)
     except Exception:
         # Any failure strands the staged attempt, not only MPTStreamingError.
@@ -299,18 +292,18 @@ stream itself — see
 [Leaving An Async Stream Early](streaming.md#leaving-an-async-stream-early).
 
 **Read [the streaming guide](streaming.md) before shipping a stream consumer.** It covers
-when to stream instead of paging, both wire formats, `limit` semantics, the streaming
-exceptions, and the three obligations a consumer cannot skip — verifying completeness against
-`MPT-Item-Count`, handling deletion stubs (and when
+when to stream instead of paging, the `application/jsonl` encoding, `limit` semantics, the
+streaming exceptions, and the three obligations a consumer cannot skip — verifying
+completeness against `MPT-Item-Count`, handling deletion stubs (and when
 [opting out](streaming.md#opting-out-of-deletion-stubs) is legitimate), and restarting rather
 than resuming a failed export — plus the timeout setting that decides whether a large export
 works at all.
 
-> **Note:** `StreamJSONLMixin` exposes the separately named `stream_jsonl()` for endpoints
-> that assign `application/jsonl` their own meaning outside streaming mode, such as billing
-> statement charges. It sends no `MPT-Streaming` header and performs no confirmation check.
-> The distinct names let a service compose both streaming mixins side by side. See
-> [the streaming guide](streaming.md#do-not-confuse-stream-with-stream_jsonl) for the
+> **Note:** `StreamJSONLMixin` exposes `stream()` for endpoints that assign
+> `application/jsonl` their own meaning outside streaming mode, such as billing statement
+> charges. It sends no `MPT-Streaming` header and performs no confirmation check. The
+> distinct names let a service compose both streaming mixins side by side. See
+> [the streaming guide](streaming.md#do-not-confuse-stream_snapshot-with-stream) for the
 > distinction.
 
 

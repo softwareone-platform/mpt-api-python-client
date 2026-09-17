@@ -13,9 +13,16 @@ from mpt_api_client.models import Model as BaseModel
 
 
 class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
-    """Mixin providing JSONL (NDJSON) streaming of a collection line by line."""
+    """Mixin providing JSONL (NDJSON) streaming of a collection line by line.
 
-    def stream_jsonl(self, *, progress: Progress | None = None) -> Iterator[Model]:
+    This is for endpoints that give ``application/jsonl`` their own meaning outside
+    streaming mode, such as billing statement charges. It is distinct from
+    `StreamingMixin.stream_snapshot()`, which opts into the platform streaming read with
+    the ``MPT-Streaming`` header: this one sends no such header, expects no
+    ``MPT-Item-Count``, and never yields a deletion stub.
+    """
+
+    def stream(self, *, progress: Progress | None = None) -> Iterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this
@@ -56,9 +63,16 @@ class StreamJSONLMixin[Model: BaseModel](QueryableMixin):
 
 
 class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
-    """Async mixin providing JSONL (NDJSON) streaming of a collection line by line."""
+    """Async mixin providing JSONL (NDJSON) streaming of a collection line by line.
 
-    async def stream_jsonl(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
+    This is for endpoints that give ``application/jsonl`` their own meaning outside
+    streaming mode, such as billing statement charges. It is distinct from
+    `AsyncStreamingMixin.stream_snapshot()`, which opts into the platform streaming read
+    with the ``MPT-Streaming`` header: this one sends no such header, expects no
+    ``MPT-Item-Count``, and never yields a deletion stub.
+    """
+
+    async def stream(self, *, progress: AsyncProgress | None = None) -> AsyncIterator[Model]:
         """Stream resources from a JSONL endpoint, yielding one model per line.
 
         Unlike ``iterate()``, which paginates and deserializes full pages, this
@@ -75,7 +89,7 @@ class AsyncStreamJSONLMixin[Model: BaseModel](QueryableMixin):
 
             from contextlib import aclosing
 
-            async with aclosing(service.stream_jsonl()) as records:
+            async with aclosing(service.stream()) as records:
                 async for record in records:
                     break
 

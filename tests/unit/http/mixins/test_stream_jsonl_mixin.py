@@ -1,3 +1,4 @@
+import inspect
 import json
 from contextlib import aclosing
 
@@ -65,12 +66,12 @@ def async_stream_service(async_http_client):
 
 
 @respx.mock
-def test_stream_jsonl_yields_models(stream_service):
+def test_stream_yields_models(stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = list(stream_service.stream_jsonl())
+    result = list(stream_service.stream())
 
     request = route.calls[0].request
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
@@ -80,22 +81,22 @@ def test_stream_jsonl_yields_models(stream_service):
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
-def test_stream_jsonl_keeps_json_legal_separator(stream_service, separator):
+def test_stream_keeps_json_legal_separator(stream_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=separator_jsonl_response(separator))
 
-    result = list(stream_service.stream_jsonl())
+    result = list(stream_service.stream())
 
     assert [(charge.id, charge.name) for charge in result] == [expected_pair]
 
 
 @respx.mock
-def test_stream_jsonl_applies_query_filters(stream_service):
+def test_stream_applies_query_filters(stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = list(stream_service.filter(RQLQuery(status="active")).stream_jsonl())
+    result = list(stream_service.filter(RQLQuery(status="active")).stream())
 
     request = route.calls[0].request
     assert result
@@ -103,12 +104,12 @@ def test_stream_jsonl_applies_query_filters(stream_service):
 
 
 @respx.mock
-def test_stream_jsonl_progress_events(stream_service, recording_progress: RecordingProgress):
+def test_stream_progress_events(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    list(stream_service.stream_jsonl(progress=recording_progress))  # act
+    list(stream_service.stream(progress=recording_progress))  # act
 
     assert recording_progress.events == [
         ("item_processed",),
@@ -118,11 +119,11 @@ def test_stream_jsonl_progress_events(stream_service, recording_progress: Record
 
 
 @respx.mock
-def test_stream_jsonl_progress_early_break(stream_service, recording_progress: RecordingProgress):
+def test_stream_progress_early_break(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
-    iterator = stream_service.stream_jsonl(progress=recording_progress)
+    iterator = stream_service.stream(progress=recording_progress)
     next(iterator)
 
     iterator.close()  # act
@@ -131,11 +132,11 @@ def test_stream_jsonl_progress_early_break(stream_service, recording_progress: R
 
 
 @respx.mock
-def test_stream_jsonl_progress_bad_line(stream_service, recording_progress: RecordingProgress):
+def test_stream_progress_bad_line(stream_service, recording_progress: RecordingProgress):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=MALFORMED_JSONL_BODY)
     )
-    iterator = stream_service.stream_jsonl(progress=recording_progress)
+    iterator = stream_service.stream(progress=recording_progress)
 
     with pytest.raises(ValueError, match="Expecting value"):
         next(iterator)
@@ -145,40 +146,40 @@ def test_stream_jsonl_progress_bad_line(stream_service, recording_progress: Reco
 
 @pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
 @respx.mock
-def test_stream_jsonl_rejects_non_object_line(stream_service, line):
+def test_stream_rejects_non_object_line(stream_service, line):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
-    iterator = stream_service.stream_jsonl()
+    iterator = stream_service.stream()
 
     with pytest.raises(json.JSONDecodeError, match="record must be an object"):
         next(iterator)
 
 
 @respx.mock
-def test_stream_jsonl_skips_whitespace_keepalive(stream_service):
+def test_stream_skips_whitespace_keepalive(stream_service):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=two_records_around(KEEPALIVE_LINE))
 
-    result = list(stream_service.stream_jsonl())
+    result = list(stream_service.stream())
 
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
 
 
 @pytest.mark.parametrize(("line", "decode_error"), UNDECODABLE_LINES)
 @respx.mock
-def test_stream_jsonl_rejects_non_record_line(stream_service, line, decode_error):
+def test_stream_rejects_non_record_line(stream_service, line, decode_error):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
-    iterator = stream_service.stream_jsonl()
+    iterator = stream_service.stream()
 
     with pytest.raises(json.JSONDecodeError, match=decode_error):
         next(iterator)
 
 
 @respx.mock
-async def test_async_stream_jsonl_yields_models(async_stream_service):
+async def test_async_stream_yields_models(async_stream_service):
     route = respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    result = [charge async for charge in async_stream_service.stream_jsonl()]
+    result = [charge async for charge in async_stream_service.stream()]
 
     request = route.calls[0].request
     assert [charge.id for charge in result] == ["ID-1", "ID-2"]
@@ -188,27 +189,24 @@ async def test_async_stream_jsonl_yields_models(async_stream_service):
 
 @pytest.mark.parametrize("separator", JSON_LEGAL_IN_STRING)
 @respx.mock
-async def test_async_stream_jsonl_keeps_separator(async_stream_service, separator):
+async def test_async_stream_keeps_separator(async_stream_service, separator):
     expected_pair = ("ID-1", f"a{separator}b")
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=separator_jsonl_response(separator))
 
-    result = [charge async for charge in async_stream_service.stream_jsonl()]
+    result = [charge async for charge in async_stream_service.stream()]
 
     assert [(charge.id, charge.name) for charge in result] == [expected_pair]
 
 
 @respx.mock
-async def test_async_stream_jsonl_progress_events(
+async def test_async_stream_progress_events(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
 
-    [
-        charge
-        async for charge in async_stream_service.stream_jsonl(progress=async_recording_progress)
-    ]
+    [charge async for charge in async_stream_service.stream(progress=async_recording_progress)]
 
     assert async_recording_progress.events == [
         ("item_processed",),
@@ -218,13 +216,13 @@ async def test_async_stream_jsonl_progress_events(
 
 
 @respx.mock
-async def test_async_stream_jsonl_progress_early_break(
+async def test_async_stream_progress_early_break(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=JSONL_BODY)
     )
-    iterator = async_stream_service.stream_jsonl(progress=async_recording_progress)
+    iterator = async_stream_service.stream(progress=async_recording_progress)
 
     await anext(iterator)
     await iterator.aclose()
@@ -233,13 +231,13 @@ async def test_async_stream_jsonl_progress_early_break(
 
 
 @respx.mock
-async def test_async_stream_jsonl_progress_bad_line(
+async def test_async_stream_progress_bad_line(
     async_stream_service, async_recording_progress: AsyncRecordingProgress
 ):
     respx.get(f"{API_URL}/api/v1/charges").mock(
         return_value=httpx.Response(httpx.codes.OK, content=MALFORMED_JSONL_BODY)
     )
-    iterator = async_stream_service.stream_jsonl(progress=async_recording_progress)
+    iterator = async_stream_service.stream(progress=async_recording_progress)
 
     with pytest.raises(ValueError, match="Expecting value"):
         await anext(iterator)
@@ -249,9 +247,9 @@ async def test_async_stream_jsonl_progress_bad_line(
 
 @pytest.mark.parametrize("line", NON_OBJECT_LINE_CASES)
 @respx.mock
-async def test_async_stream_jsonl_rejects_non_object(async_stream_service, line):
+async def test_async_stream_rejects_non_object(async_stream_service, line):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
-    iterator = async_stream_service.stream_jsonl()
+    iterator = async_stream_service.stream()
 
     with pytest.raises(json.JSONDecodeError, match="record must be an object"):
         await anext(iterator)
@@ -261,7 +259,7 @@ async def test_async_stream_jsonl_rejects_non_object(async_stream_service, line)
 async def test_async_jsonl_skips_whitespace_keepalive(async_stream_service):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=two_records_around(KEEPALIVE_LINE))
 
-    async with aclosing(async_stream_service.stream_jsonl()) as records:
+    async with aclosing(async_stream_service.stream()) as records:
         result = [charge.id async for charge in records]
 
     assert result == ["ID-1", "ID-2"]
@@ -271,14 +269,14 @@ async def test_async_jsonl_skips_whitespace_keepalive(async_stream_service):
 @respx.mock
 async def test_async_jsonl_rejects_non_record_line(async_stream_service, line, decode_error):
     respx.get(f"{API_URL}/api/v1/charges").mock(return_value=raw_line_response(line))
-    iterator = async_stream_service.stream_jsonl()
+    iterator = async_stream_service.stream()
 
     with pytest.raises(json.JSONDecodeError, match=decode_error):
         await anext(iterator)
 
 
 @respx.mock
-def test_stream_jsonl_break_releases_body(stream_service):
+def test_stream_break_releases_body(stream_service):
     # The sync twin needs no explicit close: dropping the suspended generator closes it.
     body = ClosableByteStream(JSONL_BODY)
     respx.get(f"{API_URL}/api/v1/charges").mock(
@@ -286,7 +284,7 @@ def test_stream_jsonl_break_releases_body(stream_service):
     )
     consumed = []
 
-    for record in stream_service.stream_jsonl():  # act
+    for record in stream_service.stream():  # act
         consumed.append(record.id)
         break
 
@@ -303,9 +301,41 @@ async def test_async_jsonl_aclosing_releases_body(async_stream_service):
     )
     consumed = []
 
-    async with aclosing(async_stream_service.stream_jsonl()) as records:  # act
+    async with aclosing(async_stream_service.stream()) as records:  # act
         async for record in records:
             consumed.append(record.id)
             break
 
     assert (consumed, body.closed) == (["ID-1"], True)
+
+
+# 6.4.0 published stream(progress=...) and nothing else. 7.0.0 renamed it to stream_jsonl()
+# and handed the freed name to the platform streaming read, silently changing what a 6.x
+# call did. Pin the signature so the name cannot drift again without a test failing.
+@pytest.mark.parametrize(
+    ("mixin", "is_async"),
+    [
+        pytest.param(StreamJSONLMixin, False, id="sync"),
+        pytest.param(AsyncStreamJSONLMixin, True, id="async"),
+    ],
+)
+def test_stream_keeps_the_published_signature(mixin, is_async):
+    signature = inspect.signature(mixin.stream)
+    progress = signature.parameters["progress"]
+
+    result = (
+        list(signature.parameters),
+        progress.kind,
+        progress.default,
+        inspect.isasyncgenfunction(mixin.stream),
+    )
+
+    assert result == (["self", "progress"], inspect.Parameter.KEYWORD_ONLY, None, is_async)
+
+
+def test_stream_jsonl_name_is_gone():
+    result = hasattr(StreamJSONLMixin, "stream_jsonl") or hasattr(
+        AsyncStreamJSONLMixin, "stream_jsonl"
+    )
+
+    assert result is False

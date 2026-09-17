@@ -31,7 +31,7 @@ tests/
 what the streaming suites use.
 
 Most directories mirror an API domain. `streaming/` is the exception: it covers the
-platform streaming read mode itself — the contract `stream()` implements — rather than
+platform streaming read mode itself — the contract `stream_snapshot()` implements — rather than
 one domain, and uses whichever collection makes the case observable.
 
 ## Running Tests
@@ -53,11 +53,10 @@ target: `make test` covers `tests/unit` only, and `make check-all` does not run 
 ## Streaming Memory Coverage
 
 `tests/e2e/streaming/test_sync_streaming.py` and its async twin assert the property
-`stream()` exists for: memory stays bounded
-however many records an export carries, the bound
-[streaming.md](streaming.md#memory-characteristics) documents. It is the one suite whose
-result depends on the size of the live dataset, so it carries requirements the rest of
-`tests/e2e/` does not.
+`stream_snapshot()` exists for: consuming it keeps memory bounded however many records the
+export carries, the bound [streaming.md](streaming.md#memory-characteristics) documents. It
+is the one suite whose result depends on the size of the live dataset, so it carries
+requirements the rest of `tests/e2e/` does not.
 
 It streams operations-scoped `catalog.items`, which holds well over the 20,000 records the
 largest single read exports. The measurement is a `tracemalloc` allocation peak — Python
@@ -70,17 +69,10 @@ one, so nothing can hide in it. Ten times the records must not cost materially m
 and buffering the same export must cost far more, which is what shows the measurement is
 sensitive enough to see buffering reintroduced.
 
-Each case runs once per `StreamFormat`, because the property must hold for every wire format
-and they reach it differently: `JSONL` reads one record per line, while `JSON` parses records
-out of the `{$meta, data}` envelope incrementally — the easier one to regress, since the
-obvious implementation deserializes the whole body first. The parametrisation enumerates the
-enum, so a format added later is covered without editing the tests.
-
 That makes the suite the heaviest consumer of live data in `tests/e2e/`: 42,500 records per
-wire format per case (500 + 2,000 + 20,000 + 20,000), so 85,000 for the sync suite across the
-two current formats and roughly 170,000 including the async twin. Size the run against a
-rate-limited or metered environment from that figure, not from the 20,000 of the largest
-single read.
+case (500 + 2,000 + 20,000 + 20,000) for the sync suite, so roughly 85,000 including the async
+twin. Size the run against a rate-limited or metered environment from that figure, not from
+the 20,000 of the largest single read.
 
 The comparison is against the peaks measured in the same run rather than an absolute byte
 threshold, so it does not need recalibrating per environment. If the environment holds fewer
@@ -94,7 +86,7 @@ protocol and the reasoning behind each constant.
 [the streaming contract](streaming.md#three-obligations-you-cannot-skip) that only a live
 platform can demonstrate: a `$meta.deleted` deletion stub, that same stub withheld but still
 counted under `skip_deleted`, the declared `MPT-Item-Count` reaching a progress receiver, and
-an early close not reporting an incomplete export. Each case runs in both wire formats.
+an early close not reporting an incomplete export.
 
 The stub cases provoke the contract's own race rather than simulating it: create a product,
 open a stream ordered oldest-first so that row is emitted last, then hard-delete it once the

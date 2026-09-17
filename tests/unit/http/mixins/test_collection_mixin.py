@@ -768,20 +768,20 @@ def streaming_mode_response():
     )
 
 
-def test_col_mx_stream_inherited(dummy_service, streaming_mode_response):
+def test_col_mx_snapshot_inherited(dummy_service, streaming_mode_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=streaming_mode_response)
 
-        result = [resource.id for resource in dummy_service.stream()]
+        result = [resource.id for resource in dummy_service.stream_snapshot()]
 
     assert result == ["ID-1", "ID-2"]
 
 
-async def test_async_col_mx_stream_inherited(async_dummy_service, streaming_mode_response):
+async def test_async_col_mx_snapshot_inherited(async_dummy_service, streaming_mode_response):
     with respx.mock:
         respx.get("https://api.example.com/api/v1/test").mock(return_value=streaming_mode_response)
 
-        result = [resource.id async for resource in async_dummy_service.stream()]
+        result = [resource.id async for resource in async_dummy_service.stream_snapshot()]
 
     assert result == ["ID-1", "ID-2"]
 
