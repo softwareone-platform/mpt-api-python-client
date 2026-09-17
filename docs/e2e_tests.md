@@ -37,9 +37,15 @@ one domain, and uses whichever collection makes the case observable.
 ## Running Tests
 
 ```bash
-make e2e                              # run the E2E suite
-make e2e args="tests/e2e/catalog"     # run a subset of E2E tests
+make e2e                                  # run the E2E suite
+make e2e path=tests/e2e/catalog           # run a subset of E2E tests
+make e2e args="-k test_create_variant"    # pass extra pytest options
 ```
+
+The target always passes a test path (`tests/e2e` unless `path` is set), so `args` only
+carries options. Passing options alone used to drop the path and fall back to `testpaths`,
+which made CI run the unit suite again after the E2E tests. E2E runs also disable coverage
+(`--no-cov`) so they do not overwrite the unit `coverage.xml` that SonarCloud reads.
 
 E2E tests need live API credentials and run against the real API, so they have their own
 target: `make test` covers `tests/unit` only, and `make check-all` does not run them.
