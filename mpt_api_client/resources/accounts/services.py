@@ -17,6 +17,7 @@ class ServiceIdentity(Model):
         status: Service identity status.
         description: Service identity description.
         icon: URL or identifier for the service identity icon.
+        revision: Revision number.
         audit: Audit information.
     """
 
@@ -24,6 +25,7 @@ class ServiceIdentity(Model):
     status: str | None
     description: str | None
     icon: str | None
+    revision: int | None
     audit: BaseModel | None
 
 
