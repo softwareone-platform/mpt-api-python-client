@@ -58,6 +58,62 @@ def create_fixture_resource_and_delete(service, resource_data, upload_file=None)
         _delete_resource(service, resource)
 
 
+async def _async_create_first_free(service, candidates, is_taken):
+    remaining = list(candidates)
+    while remaining:
+        candidate = remaining.pop(0)
+        try:
+            return await service.create(candidate)
+        except MPTAPIError as error:
+            if not is_taken(error):
+                raise
+    raise RuntimeError(f"Every candidate payload is already taken: {candidates}")
+
+
+def _create_first_free(service, candidates, is_taken):
+    for candidate in candidates:
+        try:
+            return service.create(candidate)
+        except MPTAPIError as error:
+            if not is_taken(error):
+                raise
+    raise RuntimeError(f"Every candidate payload is already taken: {candidates}")
+
+
+@asynccontextmanager
+async def async_create_first_free_fixture_and_delete(service, candidates, is_taken):
+    """Create the first candidate the platform accepts, then delete it on teardown.
+
+    ``candidates`` are payloads that differ only in a server-enforced uniqueness key and
+    ``is_taken(error)`` tells whether a rejected create means that key is already in use.
+    The create call itself is the claim, so two runs that race for the same key cannot both
+    succeed and the loser moves on to the next candidate instead of failing.
+    """
+    resource = await _async_create_first_free(service, candidates, is_taken)
+
+    try:
+        yield resource
+    finally:
+        await _delete_async_resource(service, resource)
+
+
+@contextmanager
+def create_first_free_fixture_and_delete(service, candidates, is_taken):
+    """Create the first candidate the platform accepts, then delete it on teardown.
+
+    ``candidates`` are payloads that differ only in a server-enforced uniqueness key and
+    ``is_taken(error)`` tells whether a rejected create means that key is already in use.
+    The create call itself is the claim, so two runs that race for the same key cannot both
+    succeed and the loser moves on to the next candidate instead of failing.
+    """
+    resource = _create_first_free(service, candidates, is_taken)
+
+    try:
+        yield resource
+    finally:
+        _delete_resource(service, resource)
+
+
 @asynccontextmanager
 async def async_create_fixture_resource_and_finalize(service, resource_data, finalize, logger):
     """Create a resource, then transition it to a terminal state on teardown.
