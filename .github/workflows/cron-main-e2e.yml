@@ -4,6 +4,11 @@ on:
     - cron: '0 8 * * 1,4'
   workflow_dispatch: {}
 
+# Limits E2E test concurrency to 1, canceling any previous run in progress.
+concurrency:
+  group: e2e
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
