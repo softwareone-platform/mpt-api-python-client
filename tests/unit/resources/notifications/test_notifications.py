@@ -18,6 +18,10 @@ from mpt_api_client.resources.notifications.subscribers import (
     AsyncSubscribersService,
     SubscribersService,
 )
+from mpt_api_client.resources.notifications.templates import (
+    AsyncTemplatesService,
+    TemplatesService,
+)
 from mpt_api_client.resources.notifications.webhooks import (
     AsyncWebhooksService,
     WebhooksService,
@@ -48,6 +52,7 @@ def test_async_notifications_init(async_http_client):
         ("subscribers", SubscribersService),
         ("directories", DirectoriesService),
         ("footers", FootersService),
+        ("templates", TemplatesService),
         ("webhooks", WebhooksService),
     ],
 )
@@ -69,6 +74,7 @@ def test_notifications_properties(http_client, attr_name, expected):
         ("subscribers", AsyncSubscribersService),
         ("directories", AsyncDirectoriesService),
         ("footers", AsyncFootersService),
+        ("templates", AsyncTemplatesService),
         ("webhooks", AsyncWebhooksService),
     ],
 )
