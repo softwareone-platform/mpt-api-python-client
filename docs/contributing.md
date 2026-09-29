@@ -25,6 +25,18 @@ This repository uses Docker as the default local execution model.
 - Use `make run` for an IPython session with project dependencies available.
 - Use `make test`, `make check`, and `make check-all` through the provided `make` targets.
 
+## Claude Code Settings
+
+The repository commits a shared project settings file,
+[`.claude/settings.json`](../.claude/settings.json).
+
+Only `.claude/settings.json` is tracked. Keep personal settings in
+`.claude/settings.local.json` or other files under `.claude/`, which
+[`.gitignore`](../.gitignore) keeps out of version control. See the Claude Code
+[settings](https://code.claude.com/docs/en/settings#settings-files-and-who-they-affect)
+and [attribution](https://code.claude.com/docs/en/settings-reference#attribution)
+references for details.
+
 ## Repository-Specific Expectations
 
 - Keep public API changes aligned with [`mpt_api_client/mpt_client.py`](../mpt_api_client/mpt_client.py) and the resource/service layout described in [architecture.md](architecture.md).
