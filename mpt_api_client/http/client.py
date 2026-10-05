@@ -1,5 +1,5 @@
 import json as json_package
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import ExitStack, contextmanager
 from typing import TYPE_CHECKING, Any
 
@@ -132,7 +132,7 @@ class HTTPClient:
         headers: HeaderTypes | None = None,
         query_params: QueryParam | None = None,
         options: QueryOptions | None = None,
-    ) -> Iterator[HTTPXResponse]:
+    ) -> Generator[HTTPXResponse]:
         """Open a streaming response without buffering its body fully in memory.
 
         Prefer the service-level ``stream_snapshot()`` and ``stream()``, which parse the
