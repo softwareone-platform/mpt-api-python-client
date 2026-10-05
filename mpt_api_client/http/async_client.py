@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
@@ -123,7 +123,7 @@ class AsyncHTTPClient:
         headers: HeaderTypes | None = None,
         query_params: QueryParam | None = None,
         options: QueryOptions | None = None,
-    ) -> AsyncIterator[HTTPXResponse]:
+    ) -> AsyncGenerator[HTTPXResponse]:
         """Open a streaming response without buffering its body fully in memory.
 
         Prefer the service-level ``stream_snapshot()`` and ``stream()``, which parse the

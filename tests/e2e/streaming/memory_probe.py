@@ -22,7 +22,7 @@ collection, so an object released by an earlier read is never charged to a later
 
 import gc
 import tracemalloc
-from collections.abc import Awaitable, Callable, Iterator
+from collections.abc import Awaitable, Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
@@ -65,7 +65,7 @@ class StreamingMemoryProfile:
 
 
 @contextmanager
-def tracing_allocations() -> Iterator[None]:
+def tracing_allocations() -> Generator[None]:
     gc.collect()
     tracemalloc.start(TRACE_FRAMES)
     try:
