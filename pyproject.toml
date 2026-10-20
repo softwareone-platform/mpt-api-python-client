@@ -34,7 +34,7 @@ dev = [
   "ipdb==0.13.*",
   "ipython==9.*",
   "mypy==2.4.*",
-  "pre-commit==4.6.*",
+  "pre-commit==4.7.*",
   "pyfakefs==6.2.*",
   "pytest==9.1.*",
   "pytest-asyncio==1.4.*",
