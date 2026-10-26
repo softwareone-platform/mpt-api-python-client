@@ -40,7 +40,7 @@ dev = [
   "pytest-asyncio==1.4.*",
   "pytest-cov==7.1.*",
   "pytest-deadfixtures==3.1.*",
-  "pytest-mock==3.16.*",
+  "pytest-mock==3.17.*",
   "pytest-randomly==5.0.*",
   "pytest-reportportal==5.6.*",
   "pytest-rerunfailures==16.7.*",
