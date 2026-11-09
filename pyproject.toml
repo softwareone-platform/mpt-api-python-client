@@ -35,7 +35,7 @@ dev = [
   "ipython==9.*",
   "mypy==2.4.*",
   "pre-commit==4.7.*",
-  "pyfakefs==6.2.*",
+  "pyfakefs==6.3.*",
   "pytest==9.2.*",
   "pytest-asyncio==1.4.*",
   "pytest-cov==7.1.*",
