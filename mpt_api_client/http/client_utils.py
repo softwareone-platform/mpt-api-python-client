@@ -35,7 +35,8 @@ def _build_sanitized_base_url(split_result: SplitResult) -> str:
     host = _format_host(split_result.hostname)
     port = _format_port(split_result)
     path = _sanitize_path(split_result.path)
-    return str(urlunparse((split_result.scheme, f"{host}{port}", path, "", "", "")))
+    netloc = f"{host}{port}"
+    return str(urlunparse((split_result.scheme, netloc, path, "", "", "")))
 
 
 def validate_base_url(base_url: str | None) -> str:
